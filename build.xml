@@ -35,7 +35,7 @@
     <property name="findbugs-ant.jar"       location="${env.JOSM_SRC_DIR}/tools/findbugs/findbugs-ant.jar"/>
     <property name="annotations.jar"        location="${env.JOSM_SRC_DIR}/tools/findbugs/annotations.jar"/>
 
-    <property name="josm"                   location="foreign/josm.jar"/>
+    <property name="josm"                   location="josm.jar"/>
     <property name="plugin.dist.dir"        location="dist"/>
 
     <!-- ** include targets that all plugins have in common ** -->

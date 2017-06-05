@@ -9,4 +9,11 @@ public class MarkSeenPlugin extends Plugin {
     public MarkSeenPlugin(PluginInformation info) {
         super(info);
     }
+
+    @Override
+    public void mapFrameInitialized(MapFrame oldFrame, MapFrame newFrame) {
+        if (oldFrame == null && newFrame != null) {
+            newFrame.addToggleDialog(new MarkSeenDialog());
+        }
+    }
 }
