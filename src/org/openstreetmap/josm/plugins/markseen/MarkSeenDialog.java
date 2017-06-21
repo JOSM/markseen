@@ -9,14 +9,13 @@ import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
 import org.openstreetmap.josm.gui.bbox.BBoxChooser;
-import org.openstreetmap.josm.gui.bbox.SlippyMapBBoxChooser;
 import org.openstreetmap.josm.gui.dialogs.ToggleDialog;
 
 /**
  * Essentially a modified copy of {@link MinimapDialog} rather than an subclass because it's keen on its privacy.
  */
 public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent.ZoomChangeListener, PropertyChangeListener {
-    private SlippyMapBBoxChooser slippyMap;
+    private MarkSeenSlippyMapBBoxChooser slippyMap;
     private boolean skipEvents;
     /**
      * Constructs a new {@code MarkSeenDialog}.
@@ -28,7 +27,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         if (slippyMap != null) {
             return;
         }
-        slippyMap = new SlippyMapBBoxChooser();
+        slippyMap = new MarkSeenSlippyMapBBoxChooser();
         createLayout(slippyMap, false, Collections.emptyList());
         slippyMap.setSizeButtonVisible(false);
         slippyMap.addPropertyChangeListener(BBoxChooser.BBOX_PROP, this);
