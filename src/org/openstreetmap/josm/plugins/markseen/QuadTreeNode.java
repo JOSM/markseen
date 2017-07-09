@@ -53,7 +53,7 @@ class QuadTreeNode {
     }
 
     private boolean isAboveCanonical() {
-        return this.mask == null && !this.belowCanonical;
+        return this.canonicalMask == null && !this.belowCanonical;
     }
 
     private QuadTreeNode getChild(int childIndex, boolean write) {
@@ -85,7 +85,7 @@ class QuadTreeNode {
         int xtileTarget,
         int ytileTarget,
         int zoomTarget,
-        boolean belowCanonical,
+        boolean recBelowCanonical,
         boolean write
     ) {
         assert zoomTarget <= JMapViewer.MAX_ZOOM;
@@ -101,7 +101,7 @@ class QuadTreeNode {
         assert (ytileThis << (zoomTarget-zoomThis)) <= ytileTarget;
         assert ytileTarget <= ((ytileThis << (zoomTarget-zoomThis)) + (1<<(zoomTarget-zoomThis)));
         // also assert consistency of belowCanonical
-        assert this.belowCanonical == belowCanonical;
+        assert this.belowCanonical == recBelowCanonical;
 
         int childIndex = 0;
         int xtileNext = 2*xtileThis;
@@ -132,7 +132,7 @@ class QuadTreeNode {
                 xtileTarget,
                 ytileTarget,
                 zoomTarget,
-                belowCanonical || (canonicalMask != null),
+                this.belowCanonical || (this.canonicalMask != null),
                 write
             );
         }
@@ -150,13 +150,13 @@ class QuadTreeNode {
 
         // g was supplied to us as the Graphics2D that the calling child would have used had it drawn *itself* onto the
         // descendent. we have to transform it so that has the appropriate AffineTransform for *us* to use for drawing.
-        g.scale(2, 2);
         if ((childIndex & 1) != 0) {
             g.translate(-tileSize, 0);
         }
         if ((childIndex & (1<<1)) != 0) {
             g.translate(0, -tileSize);
         }
+        g.scale(2, 2);
 
         // using a `false` write arg here because we don't want to bother generating a mask which is only going to be
         // used as an intermediary
@@ -189,10 +189,10 @@ class QuadTreeNode {
             gCopy = (Graphics2D) g.create();
             gCopy.scale(0.5, 0.5);
             if ((i & 1) != 0) {
-                gCopy.translate(tileSize/2, 0);
+                gCopy.translate(tileSize, 0);
             }
             if ((i & (1<<1)) != 0) {
-                gCopy.translate(0, tileSize/2);
+                gCopy.translate(0, tileSize);
             }
             child.drawOntoAncestor(gCopy, tileController);
             gCopy.dispose();
@@ -230,12 +230,14 @@ class QuadTreeNode {
         }
 
         if (this.dirty || mask_ == null) {
+            // we're going to have to redraw our mask from descendents or ancestors
             if (!write) {
                 // there's nothing more we can do without write access
                 return null;
             }
 
             if (mask_ == null || mask_ == tileController.EMPTY_MASK || mask_ == tileController.FULL_MASK) {
+                // we don't have an image allocated that we can write to - allocate one
                 mask_ = this.newBufferedImage(tileController);
                 this.mask = new SoftReference<BufferedImage>(mask_);
             }
@@ -308,6 +310,7 @@ class QuadTreeNode {
         // either fully contained by bbox, fully outside bbox or is forced to create a new node at or below
         // preferredZoom
         if (x1 < xThis || x0 > xThis+tileSize || y1 < yThis || y0 > yThis+tileSize) {
+            System.out.format("Ignoring tile %d/%d/%d\n", zoomThis, xThis/tileSize, yThis/tileSize);
             // this tile lies completely outside the rect
             if (this.belowCanonical) {
                 // we have to claim canonicalism for this node - an ancestor must be being split for us to have arrived
@@ -317,10 +320,11 @@ class QuadTreeNode {
                 this.belowCanonical = false;
             }
             // otherwise nothing else to do
-        } else if (x0 > xThis && x1 < xThis+tileSize && y0 > yThis && x1 < yThis+tileSize) {
+        } else if (x0 < xThis && x1 > xThis+tileSize && y0 < yThis && y1 > yThis+tileSize) {
             // this tile lies completely inside the rect - make this node canonical, set mask to all-seen (unless this
             // is already the case)
             if (this.canonicalMask != tileController.FULL_MASK) {
+                System.out.format("Marking tile %d/%d/%d as FULL_MASK\n", zoomThis, xThis/tileSize, yThis/tileSize);
                 this.canonicalMask = tileController.FULL_MASK;
                 this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
 
@@ -346,8 +350,8 @@ class QuadTreeNode {
                 for (int i=0; i<this.children.length; i++) {
                     QuadTreeNode child = this.getChild(i, true);
                     child.markRectSeenInner(
-                        (xThis*2)+((i&1) != 0 ? 1 : 0),
-                        (yThis*2)+((i&(1<<1)) != 0 ? 1 : 0),
+                        (xThis*2)+((i&1) != 0 ? tileSize : 0),
+                        (yThis*2)+((i&(1<<1)) != 0 ? tileSize : 0),
                         zoomThis+1,
                         x0*2,
                         y0*2,
@@ -360,13 +364,15 @@ class QuadTreeNode {
 
                 // the descendents we recursed into should have, in all cases, claimed canonicalism at a level lower
                 // than this node, so if we did have canonicalism we now need to relinquish it during the unwind
-                this.mask = null;
+                this.canonicalMask = null;
                 this.belowCanonical = false;
             } else {
+                System.out.format("Drawing to tile %d/%d/%d\n", zoomThis, xThis/tileSize, yThis/tileSize);
                 // this is a node we should be drawing to
                 if (this.belowCanonical) {
                     // claim canonicalism for this node
                     this.canonicalMask = this.getMask(true, tileController);
+                    this.belowCanonical = false;
                 }
 
                 // draw.
@@ -384,13 +390,15 @@ class QuadTreeNode {
 
     public void markRectSeen(Bounds bbox, double minTilesWidth, MarkSeenTileController tileController) {
         assert tileController.quadTreeRWLock.isWriteLockedByCurrentThread();
+        // *should* only be called on root node, right?
+        assert this.parent == null;
 
         OsmMercator merc = new OsmMercator(tileController.getTileSource().getTileSize());
 
         double x0 = merc.lonToX(bbox.getMinLon(), 0);
-        double y0 = merc.latToY(bbox.getMinLat(), 0);
+        double y0 = merc.latToY(bbox.getMaxLat(), 0);
         double x1 = merc.lonToX(bbox.getMaxLon(), 0);
-        double y1 = merc.latToY(bbox.getMaxLat(), 0);
+        double y1 = merc.latToY(bbox.getMinLat(), 0);
 
         // calculate the factor that the x coord delta would have to be multiplied by to get it to occupy minTilesWidth
         // tiles
@@ -409,5 +417,25 @@ class QuadTreeNode {
             preferredZoom,
             tileController
         );
+    }
+
+    private void checkIntegrityInner(boolean recBelowCanonical, QuadTreeNode recParent) {
+        assert this.parent == recParent;
+        assert this.belowCanonical == recBelowCanonical;
+        if (this.belowCanonical) {
+            assert this.canonicalMask == null;
+        }
+        for (int i=0; i<this.children.length; i++) {
+            QuadTreeNode child = this.getChild(i, false);
+            if (child == null) {
+                assert !this.isAboveCanonical();
+            } else {
+                child.checkIntegrityInner(this.belowCanonical || (this.canonicalMask != null), this);
+            }
+        }
+    }
+
+    public void checkIntegrity() {
+        this.checkIntegrityInner(false, null);
     }
 }

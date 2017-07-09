@@ -87,7 +87,9 @@ public class MarkSeenTileController extends TileController {
             new Color(255,255,255,255)
         );
         this.quadTreeRoot = new QuadTreeNode(this);
+        this.quadTreeRWLock.writeLock().lock();
         this.quadTreeRoot.markRectSeen(new Bounds(51.36, -0.35, 51.61, 0.10), 4, this);
+        this.quadTreeRWLock.writeLock().unlock();
     }
 
     /**
