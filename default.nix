@@ -7,6 +7,7 @@
     buildInputs = [
       pkgs.ant
       pkgs.openjdk
+      pkgs.rlwrap  # just try using jdb without it
     ];
 
     shellHook = let
