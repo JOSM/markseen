@@ -1,0 +1,7 @@
+build/
+dist/
+test/jacoco.exec
+test/build/
+test/report/
+josm.jar
+test_config/
