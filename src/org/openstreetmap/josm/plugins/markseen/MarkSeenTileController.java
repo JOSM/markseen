@@ -22,7 +22,7 @@ public class MarkSeenTileController extends TileController {
     // is there a better way to create a properly read-only BufferedImage? don't know. for now, all we want to be able
     // to do is catch potential bugs where something attempts to write to a mask that is intended to be shared &
     // constant
-    static class WriteInhibitedBufferedImage extends BufferedImage {
+    public static class WriteInhibitedBufferedImage extends BufferedImage {
         public boolean inhibitWrites = false;
 
         public WriteInhibitedBufferedImage(int width, int height, int imageType, IndexColorModel cm, Color constColor) {
@@ -43,26 +43,24 @@ public class MarkSeenTileController extends TileController {
         }
     }
 
-    public final WriteInhibitedBufferedImage EMPTY_MASK;
-    public final WriteInhibitedBufferedImage FULL_MASK;
-
-    private static IndexColorModel maskColorModel;
-    public static IndexColorModel getMaskColorModel() {
-        return maskColorModel;
+    private final BufferedImage EMPTY_MASK;
+    private final BufferedImage FULL_MASK;
+    public BufferedImage getEmptyMask() {
+        return this.EMPTY_MASK;
+    }
+    public BufferedImage getFullMask() {
+        return this.FULL_MASK;
     }
 
-    static {
-        maskColorModel = new IndexColorModel(
-            1,
-            2,
-            new byte[]{(byte)0, (byte)255},
-            new byte[]{(byte)0, (byte)0},
-            new byte[]{(byte)0, (byte)255},
-            new byte[]{(byte)0, (byte)128}
-        );
+    private IndexColorModel maskColorModel;
+    public IndexColorModel getMaskColorModel() {
+        return this.maskColorModel;
     }
 
-    public final ReentrantReadWriteLock quadTreeRWLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock quadTreeRWLock = new ReentrantReadWriteLock();
+    public ReentrantReadWriteLock getQuadTreeRWLock() {
+        return this.quadTreeRWLock;
+    }
 
     private QuadTreeNode quadTreeRoot;
     public QuadTreeNode getQuadTreeRoot() {
@@ -72,6 +70,14 @@ public class MarkSeenTileController extends TileController {
     public MarkSeenTileController(TileSource source, TileCache tileCache, TileLoaderListener listener) {
         super(source, tileCache, listener);
 
+        this.maskColorModel = new IndexColorModel(
+            1,
+            2,
+            new byte[]{(byte)0, (byte)255},
+            new byte[]{(byte)0, (byte)0},
+            new byte[]{(byte)0, (byte)255},
+            new byte[]{(byte)0, (byte)128}
+        );
         this.EMPTY_MASK = new WriteInhibitedBufferedImage(
             source.getTileSize(),
             source.getTileSize(),

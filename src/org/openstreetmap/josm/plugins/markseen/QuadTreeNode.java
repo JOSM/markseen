@@ -30,7 +30,7 @@ class QuadTreeNode {
     public QuadTreeNode(MarkSeenTileController tileController) {
         this.belowCanonical = false;
 
-        this.canonicalMask = tileController.EMPTY_MASK;
+        this.canonicalMask = tileController.getEmptyMask();
         this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
     }
 
@@ -71,7 +71,7 @@ class QuadTreeNode {
         boolean write,
         MarkSeenTileController tileController
     ) {
-        assert (!write) || tileController.quadTreeRWLock.isWriteLockedByCurrentThread();
+        assert (!write) || tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread();
         // if we don't know we're the root we can't be sure we're not belowCanonical
         assert parent == null;
 
@@ -212,7 +212,7 @@ class QuadTreeNode {
     }
 
     public BufferedImage getMask(boolean write, MarkSeenTileController tileController) {
-        assert (!write) || tileController.quadTreeRWLock.isWriteLockedByCurrentThread();
+        assert (!write) || tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread();
 
         if (this.canonicalMask != null) {
             return this.canonicalMask;
@@ -236,7 +236,7 @@ class QuadTreeNode {
                 return null;
             }
 
-            if (mask_ == null || mask_ == tileController.EMPTY_MASK || mask_ == tileController.FULL_MASK) {
+            if (mask_ == null || mask_ == tileController.getEmptyMask() || mask_ == tileController.getFullMask()) {
                 // we don't have an image allocated that we can write to - allocate one
                 mask_ = this.newBufferedImage(tileController);
                 this.mask = new SoftReference<BufferedImage>(mask_);
@@ -323,9 +323,9 @@ class QuadTreeNode {
         } else if (x0 < xThis && x1 > xThis+tileSize && y0 < yThis && y1 > yThis+tileSize) {
             // this tile lies completely inside the rect - make this node canonical, set mask to all-seen (unless this
             // is already the case)
-            if (this.canonicalMask != tileController.FULL_MASK) {
+            if (this.canonicalMask != tileController.getFullMask()) {
                 System.out.format("Marking tile %d/%d/%d as FULL_MASK\n", zoomThis, xThis/tileSize, yThis/tileSize);
-                this.canonicalMask = tileController.FULL_MASK;
+                this.canonicalMask = tileController.getFullMask();
                 this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
 
                 if (this.isAboveCanonical()) {
@@ -389,7 +389,7 @@ class QuadTreeNode {
     }
 
     public void markRectSeen(Bounds bbox, double minTilesWidth, MarkSeenTileController tileController) {
-        assert tileController.quadTreeRWLock.isWriteLockedByCurrentThread();
+        assert tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread();
         // *should* only be called on root node, right?
         assert this.parent == null;
 

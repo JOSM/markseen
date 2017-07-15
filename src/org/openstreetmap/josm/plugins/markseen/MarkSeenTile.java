@@ -56,29 +56,29 @@ public class MarkSeenTile extends Tile {
 
     protected void paintInner(Graphics g, int x, int y, int width, int height, boolean ignoreWH) {
         // attempt with read-lock first
-        this.tileController.quadTreeRWLock.readLock().lock();
+        this.tileController.getQuadTreeRWLock().readLock().lock();
         QuadTreeNode node = this.getQuadTreeNode(false);
         if (node == null) {
             // operation could not be performed with only a read-lock, we'll have to drop the read-lock and
             // reacquire with write lock so that any required resources can be created or modified
-            this.tileController.quadTreeRWLock.readLock().unlock();
-            this.tileController.quadTreeRWLock.writeLock().lock();
+            this.tileController.getQuadTreeRWLock().readLock().unlock();
+            this.tileController.getQuadTreeRWLock().writeLock().lock();
             node = this.getQuadTreeNode(true);
         }
 
         // if we already have the write-lock we won't drop it - it's likely we'll need the write-lock to perform
         // getMask if this tile didn't previously have a valid quadTreeNodeMemo
         BufferedImage mask_ = node.getMask(
-            this.tileController.quadTreeRWLock.isWriteLockedByCurrentThread(),
+            this.tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread(),
             this.tileController
         );
         if (mask_ == null) {
             // this should only have been possible if we hadn't already taken the write-lock
-            assert !this.tileController.quadTreeRWLock.isWriteLockedByCurrentThread();
+            assert !this.tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread();
             // operation could not be performed with only a read-lock, we'll have to drop the read-lock and
             // reacquire with write lock so that any required resources can be created or modified
-            this.tileController.quadTreeRWLock.readLock().unlock();
-            this.tileController.quadTreeRWLock.writeLock().lock();
+            this.tileController.getQuadTreeRWLock().readLock().unlock();
+            this.tileController.getQuadTreeRWLock().writeLock().lock();
             mask_ = node.getMask(true, this.tileController);
         }
 
@@ -89,10 +89,10 @@ public class MarkSeenTile extends Tile {
         }
 
         // release whichever lock we had
-        if (this.tileController.quadTreeRWLock.isWriteLockedByCurrentThread()) {
-            this.tileController.quadTreeRWLock.writeLock().unlock();
+        if (this.tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread()) {
+            this.tileController.getQuadTreeRWLock().writeLock().unlock();
         } else {
-            this.tileController.quadTreeRWLock.readLock().unlock();
+            this.tileController.getQuadTreeRWLock().readLock().unlock();
         }
     }
 
