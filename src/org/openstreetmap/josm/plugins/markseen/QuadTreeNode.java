@@ -13,6 +13,7 @@ import java.util.Arrays;
 
 import org.openstreetmap.gui.jmapviewer.JMapViewer;
 import org.openstreetmap.gui.jmapviewer.OsmMercator;
+import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.Bounds;
 
 class QuadTreeNode {
@@ -310,7 +311,7 @@ class QuadTreeNode {
         // either fully contained by bbox, fully outside bbox or is forced to create a new node at or below
         // preferredZoom
         if (x1 < xThis || x0 > xThis+tileSize || y1 < yThis || y0 > yThis+tileSize) {
-            System.out.format("Ignoring tile %d/%d/%d\n", zoomThis, xThis/tileSize, yThis/tileSize);
+            Main.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": ignoring\n");
             // this tile lies completely outside the rect
             if (this.belowCanonical) {
                 // we have to claim canonicalism for this node - an ancestor must be being split for us to have arrived
@@ -324,7 +325,7 @@ class QuadTreeNode {
             // this tile lies completely inside the rect - make this node canonical, set mask to all-seen (unless this
             // is already the case)
             if (this.canonicalMask != tileController.getFullMask()) {
-                System.out.format("Marking tile %d/%d/%d as FULL_MASK\n", zoomThis, xThis/tileSize, yThis/tileSize);
+                Main.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": marking as FULL_MASK\n");
                 this.canonicalMask = tileController.getFullMask();
                 this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
 
@@ -367,7 +368,7 @@ class QuadTreeNode {
                 this.canonicalMask = null;
                 this.belowCanonical = false;
             } else {
-                System.out.format("Drawing to tile %d/%d/%d\n", zoomThis, xThis/tileSize, yThis/tileSize);
+                Main.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": drawing to\n");
                 // this is a node we should be drawing to
                 if (this.belowCanonical) {
                     // claim canonicalism for this node
