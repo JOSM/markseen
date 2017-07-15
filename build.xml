@@ -11,7 +11,7 @@
 ** Call "ant help" to get possible build targets.
 **
 -->
-<project name="markseen" default="dist" basedir=".">
+<project name="markseen" default="dist" basedir="." xmlns:jacoco="antlib:org.jacoco.ant">
     <property environment="env"/>
 
     <!-- enter the *lowest* JOSM version this plugin is currently compatible with -->
@@ -34,10 +34,78 @@
     <property name="checkstyle.jar"         location="${env.JOSM_SRC_DIR}/tools/checkstyle/checkstyle-all.jar"/>
     <property name="findbugs-ant.jar"       location="${env.JOSM_SRC_DIR}/tools/findbugs/findbugs-ant.jar"/>
     <property name="annotations.jar"        location="${env.JOSM_SRC_DIR}/tools/findbugs/annotations.jar"/>
+    <property name="jacocoant.jar"          location="${env.JOSM_SRC_DIR}/tools/jacocoant.jar"/>
 
     <property name="josm"                   location="josm.jar"/>
     <property name="plugin.dist.dir"        location="dist"/>
 
+    <property name="testconfig.dir"        location="test_config"/>
+
+
     <!-- ** include targets that all plugins have in common ** -->
     <import file="${env.JOSM_PLUGINS_SRC_DIR}/plugins/build-common.xml"/>
+
+    <macrodef name="init-test-preferences">
+        <sequential>
+            <copy file="${env.JOSM_SRC_DIR}/test/config/preferences.template.xml" tofile="${testconfig.dir}/unit-josm.home/preferences.xml"/>
+            <replace file="${testconfig.dir}/unit-josm.home/preferences.xml" encoding="UTF-8" token="@OSM_USERNAME@" value="${osm.username}"/>
+            <replace file="${testconfig.dir}/unit-josm.home/preferences.xml" encoding="UTF-8" token="@OSM_PASSWORD@" value="${osm.password}"/>
+        </sequential>
+    </macrodef>
+    <target name="test-clean">
+        <delete dir="${plugin.test.dir}/build"/>
+        <delete dir="${plugin.test.dir}/report"/>
+        <delete file="${plugin.test.dir}/jacoco.exec" />
+        <delete file="${testconfig.dir}/unit-josm.home/preferences.xml" />
+        <delete dir="${testconfig.dir}/unit-josm.home/cache" failonerror="false"/>
+    </target>
+    <path id="test.classpath">
+        <fileset dir="${env.JOSM_SRC_DIR}/test/lib">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="${plugin.test.dir}/lib" erroronmissingdir="no">
+            <include name="**/*.jar"/>
+            <exclude name="**/*-sources.jar"/>
+            <exclude name="**/*-javadoc.jar"/>
+        </fileset>
+        <fileset dir="lib" erroronmissingdir="no">
+            <include name="**/*.jar"/>
+            <exclude name="**/*-sources.jar"/>
+            <exclude name="**/*-javadoc.jar"/>
+        </fileset>
+        <pathelement path="${plugin.test.dir}/data"/>
+        <pathelement path="${josm.test.build.dir}/unit"/>
+        <pathelement path="${josm}"/>
+        <pathelement path="${plugin.jar}"/>
+        <pathelement path="${groovy.jar}"/>
+        <pathelement path="${annotations.jar}"/>
+        <pathelement path="${env.CLASSPATH}"/>
+    </path>
+    <target name="test" depends="dist, test-clean, test-compile" if="test.present"
+        description="Run unit tests. OSM API (TEST) account shall be set with -Dosm.username and -Dosm.password">
+        <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml" classpath="${jacocoant.jar}" />
+        <sequential>
+            <echo message="Running unit tests with JUnit"/>
+            <jacoco:coverage destfile="${plugin.test.dir}/jacoco.exec">
+                <junit printsummary="yes" fork="true" forkmode="once" dir="${basedir}">
+                    <jvmarg value="-Dfile.encoding=UTF-8"/>
+                    <jvmarg value="-ea"/>
+                    <sysproperty key="josm.home" value="${testconfig.dir}/unit-josm.home"/>
+                    <sysproperty key="josm.test.data" value="${plugin.test.dir}/data"/>
+                    <sysproperty key="java.awt.headless" value="true"/>
+                    <sysproperty key="suppressPermanentFailure" value="${suppressPermanentFailure}"/>
+                    <classpath>
+                        <fileset refid="plugin.requires.jars"/>
+                        <path refid="test.classpath"/>
+                        <pathelement path="${plugin.test.dir}/build/unit"/>
+                    </classpath>
+                    <formatter type="plain"/>
+                    <formatter type="xml"/>
+                    <batchtest fork="yes" todir="${plugin.test.dir}/report">
+                        <fileset dir="${plugin.test.dir}/build/unit" includes="**/*Test.class"/>
+                    </batchtest>
+                </junit>
+            </jacoco:coverage>
+        </sequential>
+    </target>
 </project>
