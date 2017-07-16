@@ -44,16 +44,18 @@ public class QuadTreeNodeTest extends BaseTest {
 
     private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private Bounds bounds;
-    private double minTilesWidth;
+    // parametrized variables
+    private Object[][] seenRects;
     private Object[][] referenceTiles;
 
     @Parameters
     public static Collection<Object[]> getParameters() throws IOException {
         return Arrays.asList(new Object[][] {
             {
-                new Bounds(51.36, -0.35, 51.61, 0.10),
-                4,
+                new Object [][] {
+                    // bounds, minTilesWidth
+                    { new Bounds(51.36, -0.35, 51.61, 0.10), 4. }
+                },
                 new Object[][] {
                     // zoom, xtile, ytile, expectedMask
                     // the expectedMask can either be a byte[] OR a boolean, true denoting FULL_MASK and false
@@ -70,9 +72,8 @@ public class QuadTreeNodeTest extends BaseTest {
         });
     }
 
-    public QuadTreeNodeTest(Bounds bounds_, double minTilesWidth_, Object[][] referenceTiles_) {
-        this.bounds = bounds_;
-        this.minTilesWidth = minTilesWidth_;
+    public QuadTreeNodeTest(Object[][] seenRects_, Object[][] referenceTiles_) {
+        this.seenRects = seenRects_;
         this.referenceTiles = referenceTiles_;
     }
 
@@ -114,10 +115,18 @@ public class QuadTreeNodeTest extends BaseTest {
     public void test() {
         QuadTreeNode quadTreeRoot = new QuadTreeNode(this.tileController);
         this.lock.writeLock().lock();
-        quadTreeRoot.markRectSeen(this.bounds, this.minTilesWidth, this.tileController);
-        quadTreeRoot.checkIntegrity();
 
-        for (int i = 0; i<referenceTiles.length; i++) {
+        for (int i = 0; i<this.seenRects.length; i++) {
+            Object[] seenRectInfo = this.seenRects[i];
+            System.out.format("Marking seen rect %d\n", i);
+            Bounds bounds = (Bounds)seenRectInfo[0];
+            double minTilesWidth = (double)seenRectInfo[1];
+
+            quadTreeRoot.markRectSeen(bounds, minTilesWidth, this.tileController);
+            quadTreeRoot.checkIntegrity();
+        }
+
+        for (int i = 0; i<this.referenceTiles.length; i++) {
             Object[] referenceTileInfo = this.referenceTiles[i];
             System.out.format("Checking reference tile %d\n", i);
             int zoom = (int)referenceTileInfo[0];
@@ -142,9 +151,9 @@ public class QuadTreeNodeTest extends BaseTest {
             ).getMask(true, this.tileController);
             quadTreeRoot.checkIntegrity();
 
-//             System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(
-//                 ((DataBufferByte) result.getData().getDataBuffer()).getData())
-//             );
+            System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(
+                ((DataBufferByte) result.getData().getDataBuffer()).getData())
+            );
 
             assertArrayEquals(
                 ((DataBufferByte) result.getData().getDataBuffer()).getData(),
