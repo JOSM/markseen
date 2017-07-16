@@ -68,6 +68,44 @@ public class QuadTreeNodeTest extends BaseTest {
                     { 11, 1024, 680, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/0/11-1024-680.bin") },
                     { 7, 63, 42, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/0/7-63-42.bin") }
                 }
+            },
+            {
+                new Object [][] {
+                    { new Bounds(-24.68, -48.99, -14.9, -45.35), 4. },
+                    { new Bounds(-19.39, -52.734375, -17.47, -45.6591797), 6. },
+                    { new Bounds(-20.365, -51.152, -20.014, -50.581), 3. }
+                },
+                new Object[][] {
+                    { 10, 50, 50, false },
+                    { 3, 1, 4, false },
+                    { 10, 375, 559, true },
+                    { 15, 12018, 17916, true },
+                    { 4, 5, 8, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/4-5-8.bin") },
+                    { 11, 749, 1119, true },
+                    { 12, 1490, 2272, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/12-1490-2272.bin") },
+                    { 14, 5960, 9091, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/14-5960-9091.bin") },
+                    { 14, 5960, 9092, false },
+                    { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/0-0-0.bin") }
+                }
+            },
+            {
+                new Object [][] {
+                    { new Bounds(0., 0., 20., 20.), 7. },
+                    { new Bounds(-10., -10., 0., 0.), 5. },
+                    { new Bounds(0., 90., 10., 100.), 4. },
+                    { new Bounds(-9., 81., 0., 90.), 9. }
+                },
+                new Object[][] {
+                    { 10, 50, 50, false },
+                    { 10, 512, 512, false },
+                    { 10, 511, 511, false },
+                    { 10, 512, 511, true },
+                    { 10, 511, 512, true },
+                    { 7, 96, 64, false },
+                    { 7, 95, 63, false },
+                    { 7, 96, 63, true },
+                    { 7, 95, 64, true }
+                }
             }
         });
     }
