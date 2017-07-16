@@ -277,7 +277,7 @@ class QuadTreeNode {
         for (int i=0; i<this.children.length; i++) {
             QuadTreeNode child = this.getChild(i, false);
             if (child != null) {
-                this.dirtyDescendants(true);
+                child.dirtyDescendants(true);
             }
         }
     }
@@ -290,7 +290,7 @@ class QuadTreeNode {
         for (int i=0; i<this.children.length; i++) {
             QuadTreeNode child = this.getChild(i, false);
             if (child != null) {
-                this.setDescendantsBelowCanonical(true);
+                child.setDescendantsBelowCanonical(true);
             }
         }
     }
