@@ -50,6 +50,7 @@ in {
       pkgs.ant
       pkgs.openjdk
       pkgs.rlwrap  # just try using jdb without it
+      pkgs.man
       mockitoCore
     ];
 

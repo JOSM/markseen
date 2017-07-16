@@ -90,6 +90,7 @@
                 <junit printsummary="yes" fork="true" forkmode="once" dir="${basedir}">
                     <jvmarg value="-Dfile.encoding=UTF-8"/>
                     <jvmarg value="-ea"/>
+                    <!--<jvmarg value="-agentlib:jdwp=transport=dt_socket,server=y,address=9888"/>-->
                     <sysproperty key="josm.home" value="${testconfig.dir}/unit-josm.home"/>
                     <sysproperty key="josm.test.data" value="${plugin.test.dir}/data"/>
                     <sysproperty key="java.awt.headless" value="true"/>
