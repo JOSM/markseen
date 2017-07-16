@@ -329,9 +329,7 @@ class QuadTreeNode {
                 this.canonicalMask = tileController.getFullMask();
                 this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
 
-                if (this.isAboveCanonical()) {
-                    this.setDescendantsBelowCanonical(false);
-                }
+                this.setDescendantsBelowCanonical(false);
                 this.belowCanonical = false;
 
                 // mark ancestors & descendants dirty
