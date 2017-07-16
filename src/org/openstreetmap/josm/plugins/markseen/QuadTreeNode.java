@@ -367,7 +367,7 @@ class QuadTreeNode {
                 this.belowCanonical = false;
             } else {
                 Main.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": drawing to\n");
-                // this is a node we should be drawing to
+                // this is a node we should be drawing to - it should be canonical or belowCanonical
                 if (this.belowCanonical) {
                     // claim canonicalism for this node
                     this.canonicalMask = this.getMask(true, tileController);
@@ -378,7 +378,12 @@ class QuadTreeNode {
                 Graphics2D g = this.canonicalMask.createGraphics();
                 g.setPaint(new Color(255,255,255,255));
                 g.translate(-xThis, -yThis);
-                g.fill(new Rectangle((int)x0, (int)y0, (int)(x1-x0), (int)(y1-y0)));
+                g.fill(new Rectangle(
+                    (int)Math.round(x0),
+                    (int)Math.round(y0),
+                    (int)Math.round(x1-x0),
+                    (int)Math.round(y1-y0)
+                ));
 
                 // mark ancestors & descendants dirty
                 this.dirtyAncestors(false);
