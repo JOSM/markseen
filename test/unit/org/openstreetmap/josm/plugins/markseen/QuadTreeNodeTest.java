@@ -40,11 +40,11 @@ public class QuadTreeNodeTest extends BaseTest {
     private IndexColorModel indexColorModel;
     private BufferedImage EMPTY_MASK;
     private BufferedImage FULL_MASK;
-    private int tileSize = 256;
 
     private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     // parametrized variables
+    private int tileSize;
     private Object[][] seenRects;
     private Object[][] referenceTiles;
 
@@ -52,6 +52,7 @@ public class QuadTreeNodeTest extends BaseTest {
     public static Collection<Object[]> getParameters() throws IOException {
         return Arrays.asList(new Object[][] {
             {
+                256,
                 new Object [][] {
                     // bounds, minTilesWidth
                     { new Bounds(51.36, -0.35, 51.61, 0.10), 4. }
@@ -70,6 +71,7 @@ public class QuadTreeNodeTest extends BaseTest {
                 }
             },
             {
+                256,
                 new Object [][] {
                     { new Bounds(-24.68, -48.99, -14.9, -45.35), 4. },
                     { new Bounds(-19.39, -52.734375, -17.47, -45.6591797), 6. },
@@ -89,6 +91,7 @@ public class QuadTreeNodeTest extends BaseTest {
                 }
             },
             {
+                127,
                 new Object [][] {
                     { new Bounds(0., 0., 20., 20.), 7. },
                     { new Bounds(-10., -10., 0., 0.), 5. },
@@ -104,13 +107,31 @@ public class QuadTreeNodeTest extends BaseTest {
                     { 7, 96, 64, false },
                     { 7, 95, 63, false },
                     { 7, 96, 63, true },
-                    { 7, 95, 64, true }
+                    { 7, 95, 64, true },
+                    { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/2/0-0-0.bin") }
+                }
+            },
+            {
+                200,
+                new Object [][] {
+                    { new Bounds(80., 12.8, 88., 25.6), 7. },
+                    { new Bounds(82., 25.6, 89., 26.6), 3. },
+                    { new Bounds(60., -67., 89., -66.), 3. },
+                    { new Bounds(-86.9, 10.6, -70., 21.6), 8. }
+                },
+                new Object[][] {
+                    { 10, 50, 50, false },
+                    { 10, 0, 0, false },
+                    { 18, 140500, 0, true },
+                    { 12, 1286, 10, true },
+                    { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/3/0-0-0.bin") }
                 }
             }
         });
     }
 
-    public QuadTreeNodeTest(Object[][] seenRects_, Object[][] referenceTiles_) {
+    public QuadTreeNodeTest(int tileSize_, Object[][] seenRects_, Object[][] referenceTiles_) {
+        this.tileSize = tileSize_;
         this.seenRects = seenRects_;
         this.referenceTiles = referenceTiles_;
     }
