@@ -139,7 +139,7 @@ class QuadTreeNode {
         }
     }
 
-    private void drawOntoDescendent(Graphics2D g, QuadTreeNode child, MarkSeenTileController tileController) {
+    private BufferedImage drawOntoDescendent(Graphics2D g, QuadTreeNode child, MarkSeenTileController tileController) {
         int childIndex = Arrays.asList(this.children).indexOf(child);
         assert childIndex != -1;
 
@@ -162,10 +162,13 @@ class QuadTreeNode {
         // using a `false` write arg here because we don't want to bother generating a mask which is only going to be
         // used as an intermediary
         BufferedImage mask_ = this.getMask(false, tileController);
-        if (mask_ != null) {
+        if (mask_ == tileController.getEmptyMask() || mask_ == tileController.getFullMask()) {
+            return mask_;
+        } else if (mask_ != null) {
             g.drawImage(mask_, new AffineTransform(), null);
+            return null;
         } else {
-            this.parent.drawOntoDescendent(g, this, tileController);
+            return this.parent.drawOntoDescendent(g, this, tileController);
         }
     }
 
@@ -251,7 +254,12 @@ class QuadTreeNode {
             g.setBackground(new Color(0,0,0,0));
             g.clearRect(0, 0, tileSize, tileSize);
             if (this.belowCanonical) {
-                this.parent.drawOntoDescendent(g, this, tileController);
+                // TODO add ability to avoid allocation of new mask entirely if not required
+                BufferedImage replacementMask = this.parent.drawOntoDescendent(g, this, tileController);
+                if (replacementMask != null) {
+                    mask_ = replacementMask;
+                    this.mask = new SoftReference<BufferedImage>(mask_);
+                }
             } else {
                 this.drawChildrenOntoAncestor(g, tileController);
             }
