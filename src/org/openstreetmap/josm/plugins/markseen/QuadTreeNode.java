@@ -374,20 +374,35 @@ class QuadTreeNode {
                     this.belowCanonical = false;
                 }
 
-                // draw.
-                Graphics2D g = this.canonicalMask.createGraphics();
-                g.setPaint(new Color(255,255,255,255));
-                g.translate(-xThis, -yThis);
-                g.fill(new Rectangle(
-                    (int)Math.round(x0),
-                    (int)Math.round(y0),
-                    (int)Math.round(x1-x0),
-                    (int)Math.round(y1-y0)
-                ));
+                if (this.canonicalMask != tileController.getFullMask()) {  // else drawing this will make no difference
+                    Graphics2D g;
+                    if (this.canonicalMask == tileController.getEmptyMask()) {
+                        // we can't write to this mask - allocate another one
+                        this.canonicalMask = this.newBufferedImage(tileController);
+                        this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
 
-                // mark ancestors & descendants dirty
-                this.dirtyAncestors(false);
-                this.dirtyDescendants(false);
+                        // clear it
+                        g = this.canonicalMask.createGraphics();
+                        g.setBackground(new Color(0,0,0,0));
+                        g.clearRect(0, 0, tileSize, tileSize);
+                    } else {
+                        g = this.canonicalMask.createGraphics();
+                    }
+
+                    // draw.
+                    g.setPaint(new Color(255,255,255,255));
+                    g.translate(-xThis, -yThis);
+                    g.fill(new Rectangle(
+                        (int)Math.round(x0),
+                        (int)Math.round(y0),
+                        (int)Math.round(x1-x0),
+                        (int)Math.round(y1-y0)
+                    ));
+
+                    // mark ancestors & descendants dirty
+                    this.dirtyAncestors(false);
+                    this.dirtyDescendants(false);
+                }
             }
         }
     }
