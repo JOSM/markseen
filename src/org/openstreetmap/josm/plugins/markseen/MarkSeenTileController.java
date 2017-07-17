@@ -34,6 +34,15 @@ public class MarkSeenTileController extends TileController {
         }
 
         @Override
+        public Graphics2D createGraphics() {
+            if (this.inhibitWrites) {
+                throw new RuntimeException("Attempt to draw to WriteInhibitedBufferedImage with inhibitWrites set");
+            } else {
+                return super.createGraphics();
+            }
+        }
+
+        @Override
         public WritableRaster getWritableTile(int tileX, int tileY) {
             if (this.inhibitWrites) {
                 throw new RuntimeException("Attempt to draw to WriteInhibitedBufferedImage with inhibitWrites set");
