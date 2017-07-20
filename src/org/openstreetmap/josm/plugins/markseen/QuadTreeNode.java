@@ -425,7 +425,7 @@ class QuadTreeNode {
         }
     }
 
-    public void markRectSeen(Bounds bbox, double minTilesWidth, MarkSeenTileController tileController) {
+    public void markRectSeen(Bounds bbox, double minTilesAcross, MarkSeenTileController tileController) {
         assert tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread();
         // *should* only be called on root node, right?
         assert this.parent == null;
@@ -437,9 +437,10 @@ class QuadTreeNode {
         double x1 = merc.lonToX(bbox.getMaxLon(), 0);
         double y1 = merc.latToY(bbox.getMinLat(), 0);
 
-        // calculate the factor that the x coord delta would have to be multiplied by to get it to occupy minTilesWidth
+        double longSideLen = (x1-x0) > (y1-y0) ? (x1-x0) : (y1-y0);
+        // calculate the factor that the longSideLen would have to be multiplied by to get it to occupy minTilesAcross
         // tiles
-        double factor = minTilesWidth*tileController.getTileSource().getTileSize()/(x1-x0);
+        double factor = minTilesAcross*tileController.getTileSource().getTileSize()/longSideLen;
         // now calculate how many zoom levels this would equate to
         int preferredZoom = (int) Math.ceil(Math.log(factor)/Math.log(2));
 

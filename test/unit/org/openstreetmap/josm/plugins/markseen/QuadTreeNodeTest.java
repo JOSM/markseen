@@ -54,7 +54,7 @@ public class QuadTreeNodeTest extends BaseTest {
             {
                 256,
                 new Object [][] {
-                    // bounds, minTilesWidth
+                    // bounds, minTilesAcross
                     { new Bounds(51.36, -0.35, 51.61, 0.10), 4. }
                 },
                 new Object[][] {
@@ -179,9 +179,9 @@ public class QuadTreeNodeTest extends BaseTest {
             Object[] seenRectInfo = this.seenRects[i];
             System.out.format("Marking seen rect %d\n", i);
             Bounds bounds = (Bounds)seenRectInfo[0];
-            double minTilesWidth = (double)seenRectInfo[1];
+            double minTilesAcross = (double)seenRectInfo[1];
 
-            quadTreeRoot.markRectSeen(bounds, minTilesWidth, this.tileController);
+            quadTreeRoot.markRectSeen(bounds, minTilesAcross, this.tileController);
             quadTreeRoot.checkIntegrity();
         }
 
