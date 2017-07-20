@@ -139,25 +139,31 @@ class QuadTreeNode {
         }
     }
 
-    private BufferedImage drawOntoDescendent(Graphics2D g, QuadTreeNode child, MarkSeenTileController tileController) {
+    private BufferedImage transformedToDescendant(
+        AffineTransform affineTransform,
+        BufferedImage targetImage,  // can be null if descendant doesn't have an allocated image to donate
+        QuadTreeNode child,
+        MarkSeenTileController tileController
+    ) {
         int childIndex = Arrays.asList(this.children).indexOf(child);
         assert childIndex != -1;
 
         int tileSize = tileController.getTileSource().getTileSize();
 
-        // when traversing *up* the quadtree, the transform of the g object has to be performed *after* propagating the
-        // recursion because it's the *parent* (the callee) which holds the information about the child's
-        // positioning.
+        // when traversing *up* the quadtree, adding the transform to the AffineTransform must happen *after*
+        // propagating the recursion because it's the *parent* (the callee) which holds the information about the
+        // child's positioning.
 
-        // g was supplied to us as the Graphics2D that the calling child would have used had it drawn *itself* onto the
-        // descendent. we have to transform it so that has the appropriate AffineTransform for *us* to use for drawing.
+        // affineTransform was supplied to us as the AffineTransform that the calling child would have used had it
+        // drawn *itself* for the descendant. we have to transform it so that has the appropriate transform for
+        // *us* to use for drawing.
         if ((childIndex & 1) != 0) {
-            g.translate(-tileSize, 0);
+            affineTransform.translate(-tileSize, 0);
         }
         if ((childIndex & (1<<1)) != 0) {
-            g.translate(0, -tileSize);
+            affineTransform.translate(0, -tileSize);
         }
-        g.scale(2, 2);
+        affineTransform.scale(2, 2);
 
         // using a `false` write arg here because we don't want to bother generating a mask which is only going to be
         // used as an intermediary
@@ -165,10 +171,16 @@ class QuadTreeNode {
         if (mask_ == tileController.getEmptyMask() || mask_ == tileController.getFullMask()) {
             return mask_;
         } else if (mask_ != null) {
-            g.drawImage(mask_, new AffineTransform(), null);
-            return null;
+            if (targetImage == null) {
+                // we have to allocate an image ourselves
+                targetImage = this.newBufferedImage(tileController);
+            }
+            Graphics2D g = targetImage.createGraphics();
+            g.drawImage(mask_, affineTransform, null);
+            return targetImage;
         } else {
-            return this.parent.drawOntoDescendent(g, this, tileController);
+            // we don't currently have a valid mask to use. recurse.
+            return this.parent.transformedToDescendant(affineTransform, targetImage, this, tileController);
         }
     }
 
@@ -240,27 +252,25 @@ class QuadTreeNode {
                 return null;
             }
 
-            if (mask_ == null || mask_ == tileController.getEmptyMask() || mask_ == tileController.getFullMask()) {
-                // we don't have an image allocated that we can write to - allocate one
-                mask_ = this.newBufferedImage(tileController);
-                this.mask = new SoftReference<BufferedImage>(mask_);
-            }
-
-            // TODO: we're missing a memory-saving trick here in cases we might be able to set ourselves to either
-            // EMPTY_MASK or FULL_MASK
-
-            int tileSize = tileController.getTileSource().getTileSize();
-            Graphics2D g = mask_.createGraphics();
-            g.setBackground(new Color(0,0,0,0));
-            g.clearRect(0, 0, tileSize, tileSize);
             if (this.belowCanonical) {
-                // TODO add ability to avoid allocation of new mask entirely if not required
-                BufferedImage replacementMask = this.parent.drawOntoDescendent(g, this, tileController);
-                if (replacementMask != null) {
-                    mask_ = replacementMask;
+                mask_ = this.parent.transformedToDescendant(
+                    new AffineTransform(),
+                    mask_ != tileController.getEmptyMask() && mask_ != tileController.getFullMask() ? mask_ : null,
+                    this,
+                    tileController
+                );
+                this.mask = new SoftReference<BufferedImage>(mask_);
+            } else {
+                // TODO make this memory efficient
+                if (mask_ == null || mask_ == tileController.getEmptyMask() || mask_ == tileController.getFullMask()) {
+                    // drawChildrenOntoAncestor needs a writable image pre-allocated for it
+                    mask_ = this.newBufferedImage(tileController);
                     this.mask = new SoftReference<BufferedImage>(mask_);
                 }
-            } else {
+                int tileSize = tileController.getTileSource().getTileSize();
+                Graphics2D g = mask_.createGraphics();
+                g.setBackground(new Color(0,0,0,0));
+                g.clearRect(0, 0, tileSize, tileSize);
                 this.drawChildrenOntoAncestor(g, tileController);
             }
             this.dirty = false;
