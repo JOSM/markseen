@@ -87,7 +87,8 @@ public class QuadTreeNodeTest extends BaseTest {
                     { 12, 1490, 2272, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/12-1490-2272.bin") },
                     { 14, 5960, 9091, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/14-5960-9091.bin") },
                     { 14, 5960, 9092, false },
-                    { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/0-0-0.bin") }
+                    { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/0-0-0.bin") },
+                    { 16, 23520, 36514, true }
                 }
             },
             {
@@ -125,6 +126,41 @@ public class QuadTreeNodeTest extends BaseTest {
                     { 18, 140500, 0, true },
                     { 12, 1286, 10, true },
                     { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/3/0-0-0.bin") }
+                }
+            },
+            {
+                211,
+                new Object [][] {
+                    { new Bounds(83.008, 10.519, 86.27, 10.97), 3. },
+                    { new Bounds(40.56, -111.14, 41.603, -110.926), 3. },
+                    { new Bounds(40.6, -111.1, 41.5, -110.95), 3. },
+                    { new Bounds(-0.947, 149.27, -0.181, 149.29), 3. },
+                    { new Bounds(-13.73, -94.34, 1.842, -94.31), 3. },
+                    { new Bounds(62.922, 110.68, 67.624, 114.47), 3. },
+                    { new Bounds(-70.711, 88.09, -70.69, 88.12), 3. },
+                    { new Bounds(-63.262, -166.86, -61.569, -153.71), 3. },
+                    { new Bounds(66.574, -137., 66.5887, -131.649), 3. },
+                    { new Bounds(19.349, 8.83, 19.654, 8.93), 3. },
+                    { new Bounds(-60.945, 54.83, -57.83, 54.878), 3. },
+                    { new Bounds(-25.75, -125.32, -23.47, -125.28), 3. },
+                    { new Bounds(2.862, -142.95, 2.875, -137.32), 3. },
+                    { new Bounds(1.217, 152.528, 1.382, 153.14), 3. },
+                    { new Bounds(2.767, -49.3, 5.744, -18.), 3. },
+                    { new Bounds(-11.27, -128.55, 15.666, -124.664), 3. },
+                    { new Bounds(84.481, -108.96, 86.207, -107.67), 3. },
+                    { new Bounds(-84.49, -118.07, -82.096, -117.37), 3. },
+                    { new Bounds(52.9984, -96.679, 86.024, -96.6547), 3. },
+                    { new Bounds(-46.08, -81.72, -44.403, -38.19), 3. }
+                },
+                new Object[][] {
+                    { 10, 50, 50, false },
+                    { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/0-0-0.bin") },
+                    { 12, 784, 1535, true },
+                    { 12, 786, 1535, false },
+                    { 11, 392, 767, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/11-392-767.bin") },
+                    { 19, 342025, 366377, true },
+                    { 11, 1336, 1431, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/11-1336-1431.bin") },
+                    { 6, 40, 44, false }
                 }
             }
         });
