@@ -129,7 +129,7 @@ public class QuadTreeNodeTest extends BaseTest {
                 }
             },
             {
-                211,
+                256,
                 new Object [][] {
                     { new Bounds(83.008, 10.519, 86.27, 10.97), 3. },
                     { new Bounds(40.56, -111.14, 41.603, -110.926), 3. },
@@ -160,7 +160,13 @@ public class QuadTreeNodeTest extends BaseTest {
                     { 11, 392, 767, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/11-392-767.bin") },
                     { 19, 342025, 366377, true },
                     { 11, 1336, 1431, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/11-1336-1431.bin") },
-                    { 6, 40, 44, false }
+                    { 6, 40, 44, false },
+                    { 10, 837, 279, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/10-837-279.bin") },
+                    { 6, 7, 16, false },
+                    { 3, 0, 1, false },
+                    { 2, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/2-0-0.bin") },
+                    { 1, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/1-0-0.bin") },
+                    { 6, 7, 15, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/6-7-15.bin") }
                 }
             }
         });
