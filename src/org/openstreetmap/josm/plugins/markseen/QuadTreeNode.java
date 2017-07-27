@@ -444,14 +444,26 @@ class QuadTreeNode {
         // now calculate how many zoom levels this would equate to
         int preferredZoom = (int) Math.ceil(Math.log(factor)/Math.log(2));
 
+        // calculate "snapped" versions of these coordinates so that we don't get discontinuities between different
+        // zoom levels able to render them with different precision.
+        int preferredZoomFactor = 1<<preferredZoom;
+        double x0s = Math.rint(x0*preferredZoomFactor)/preferredZoomFactor;
+        double x1s = Math.rint(x1*preferredZoomFactor)/preferredZoomFactor;
+        double y0s = Math.rint(y0*preferredZoomFactor)/preferredZoomFactor;
+        double y1s = Math.rint(y1*preferredZoomFactor)/preferredZoomFactor;
+
+        if (x0s == x1s || y0s == y1s) {
+            throw new RuntimeException("Proposed rect has such extreme aspect ratio that it would be zero-width at preferredZoom");
+        }
+
         this.markRectSeenInner(
             0,
             0,
             0,
-            x0,
-            y0,
-            x1,
-            y1,
+            x0s,
+            y0s,
+            x1s,
+            y1s,
             preferredZoom,
             tileController
         );

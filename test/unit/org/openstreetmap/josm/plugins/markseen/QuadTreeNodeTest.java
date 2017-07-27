@@ -149,7 +149,7 @@ public class QuadTreeNodeTest extends BaseTest {
                     { new Bounds(-11.27, -128.55, 15.666, -124.664), 3. },
                     { new Bounds(84.481, -108.96, 86.207, -107.67), 3. },
                     { new Bounds(-84.49, -118.07, -82.096, -117.37), 3. },
-                    { new Bounds(52.9984, -96.679, 86.024, -96.6547), 3. },
+                    { new Bounds(52.9984, -96.69, 86.024, -96.63), 3. },
                     { new Bounds(-46.08, -81.72, -44.403, -38.19), 3. }
                 },
                 new Object[][] {
@@ -195,7 +195,7 @@ public class QuadTreeNodeTest extends BaseTest {
                     { new Bounds(30.68,  -1.58, 39.55,  -1.44), 5. },
                     { new Bounds(25.20,  -4.21, 59.81,  -2.48), 3. },
                     { new Bounds(58.94,  15.02, 59.33,  43.95), 5. },
-                    { new Bounds(21.00,  -4.28, 21.01,  14.14), 3. },
+                    { new Bounds(21.00,  -4.28, 21.02,  14.14), 3. },
                     { new Bounds(50.21,  -0.42, 50.24,  -0.20), 5. },
                     { new Bounds(68.01, -19.97, 68.05, -18.65), 3. },
                     { new Bounds(31.51,  20.17, 33.73,  20.41), 5. },
@@ -208,9 +208,11 @@ public class QuadTreeNodeTest extends BaseTest {
                     { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/5/0-0-0.bin") },
                     { 10, 537, 450, true },
                     { 9, 270, 224, false },
-                    { 7, 67, 64, true },
+                    { 7, 67, 54, true },
+                    { 7, 67, 64, false },
                     { 8, 134, 106, true },
-                    { 15, 17312, 13455, true },
+                    { 15, 17312, 13455, false },
+                    { 15, 17313, 13419, true },
                     { 10, 500, 362, true },
                     { 10, 498, 362, false },
                     { 14, 8768, 5355, true },
@@ -218,8 +220,10 @@ public class QuadTreeNodeTest extends BaseTest {
                     { 8, 132, 72, true },
                     { 19, 271123, 151470, false },
                     { 10, 504, 332, true },
-                    { 14, 8079, 5357, false },
-                    { 4, 9, 4, false }
+                    { 14, 8079, 5357, true },
+                    // the following tile covers an interesting potential discontinuity due to varying canonical depths
+                    { 7, 66, 56, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/5/7-66-56.bin") },
+                    { 4, 9, 4, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/5/4-9-4.bin") }
                 }
             }
         });
