@@ -142,6 +142,7 @@ class QuadTreeNode {
     private BufferedImage transformedToDescendant(
         AffineTransform affineTransform,
         BufferedImage targetImage,  // can be null if descendant doesn't have an allocated image to donate
+        boolean construct,
         QuadTreeNode child,
         MarkSeenTileController tileController
     ) {
@@ -167,10 +168,13 @@ class QuadTreeNode {
 
         // using a `false` write arg here because we don't want to bother generating a mask which is only going to be
         // used as an intermediary
-        BufferedImage mask_ = this.getMask(false, tileController);
+        BufferedImage mask_ = this.getMask(false, false, tileController);
         if (mask_ == tileController.getEmptyMask() || mask_ == tileController.getFullMask()) {
             return mask_;
         } else if (mask_ != null) {
+            if (!construct) {
+                return null;
+            }
             if (targetImage == null) {
                 // we have to allocate an image ourselves
                 targetImage = this.newBufferedImage(tileController);
@@ -180,7 +184,7 @@ class QuadTreeNode {
             return targetImage;
         } else {
             // we don't currently have a valid mask to use. recurse.
-            return this.parent.transformedToDescendant(affineTransform, targetImage, this, tileController);
+            return this.parent.transformedToDescendant(affineTransform, targetImage, construct, this, tileController);
         }
     }
 
@@ -219,7 +223,7 @@ class QuadTreeNode {
         assert !this.belowCanonical;
         // using a `false` write arg here because we don't want to bother generating a mask which is only going to be
         // used as an intermediary
-        BufferedImage mask_ = this.getMask(false, tileController);
+        BufferedImage mask_ = this.getMask(false, false, tileController);
         if (mask_ != null) {
             g.drawImage(mask_, new AffineTransform(), null);
         } else {
@@ -227,8 +231,17 @@ class QuadTreeNode {
         }
     }
 
-    public BufferedImage getMask(boolean write, MarkSeenTileController tileController) {
+    /** Get a BufferedImage "mask" for this node.
+
+     * @param write Whether getMask is permitted to perform operations that will modify the quadtree to retrieve this
+     *              mask. If false and getMask finds this necessary, null will be returned.
+     * @param write Whether getMask is permitted to construct a mask from a mask at a different zoomlevel, as opposed
+                    to simply passing back an aliased BufferedImage. Again, null will be returned if getMask can't
+                    return a sensible result without this flag.
+     */
+    public BufferedImage getMask(boolean write, boolean construct, MarkSeenTileController tileController) {
         assert (!write) || tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread();
+        assert write || !construct : "Use of the construct argument requires write access";
 
         if (this.canonicalMask != null) {
             return this.canonicalMask;
@@ -256,11 +269,19 @@ class QuadTreeNode {
                 mask_ = this.parent.transformedToDescendant(
                     new AffineTransform(),
                     mask_ != tileController.getEmptyMask() && mask_ != tileController.getFullMask() ? mask_ : null,
+                    construct,
                     this,
                     tileController
                 );
+                if (mask_ == null) {
+                    // transformedToDescendant would have had to construct a mask and we must have told it not to
+                    return null;
+                }
                 this.mask = new SoftReference<BufferedImage>(mask_);
             } else {
+                if (!construct) {
+                    return null;
+                }
                 // TODO make this memory efficient
                 if (mask_ == null || mask_ == tileController.getEmptyMask() || mask_ == tileController.getFullMask()) {
                     // drawChildrenOntoAncestor needs a writable image pre-allocated for it
@@ -335,7 +356,7 @@ class QuadTreeNode {
                 // we have to claim canonicalism for this node - an ancestor must be being split for us to have arrived
                 // here (also we should be able to rely on any ancestors relinquishing their canonicalism during the
                 // unwind without us having to do anything about it)
-                this.canonicalMask = this.getMask(true, tileController);
+                this.canonicalMask = this.getMask(true, true, tileController);
                 this.belowCanonical = false;
             }
             // otherwise nothing else to do
@@ -349,16 +370,28 @@ class QuadTreeNode {
 
                 this.setDescendantsBelowCanonical(false);
                 this.belowCanonical = false;
+                // (again ancestors should be relinquishing their canonicalism during the unwind)
 
                 // mark ancestors & descendants dirty
                 this.dirtyAncestors(false);
                 this.dirtyDescendants(false);
             }
-        // TODO optimization
-        // } else if (this node's mask is FULL_MASK anyway) {
-        //     claim canonicalism (potentially from above?)
-        //     do nothing else
-        // }
+        } else if (this.getMask(true, false, tileController) == tileController.getFullMask()) {
+            // using the false construct argument to getMask above as we don't want to bother building a mask - we just
+            // want to poke it to know if we can take a shortcut, which it appears we can - drawing to this mask
+            // wouldn't make a difference anyway.
+            Main.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": ignoring as FULL_MASK\n");
+            if (this.belowCanonical) {
+                // claim canonicalism for this node from below
+                this.canonicalMask = this.getMask(true, true, tileController);
+                this.belowCanonical = false;
+                // (again ancestors should be relinquishing their canonicalism during the unwind)
+            } else if (this.canonicalMask == null) {
+                // claim canonicalism for this node from above
+                this.canonicalMask = this.getMask(true, true, tileController);
+                this.setDescendantsBelowCanonical(false);
+            }
+            // no dirtying required - nothing has actually changed
         } else {
             // tile straddles at least one edge of rect
             if (zoomThis < preferredZoom || this.isAboveCanonical()) {
@@ -388,8 +421,9 @@ class QuadTreeNode {
                 // this is a node we should be drawing to - it should be canonical or belowCanonical
                 if (this.belowCanonical) {
                     // claim canonicalism for this node
-                    this.canonicalMask = this.getMask(true, tileController);
+                    this.canonicalMask = this.getMask(true, true, tileController);
                     this.belowCanonical = false;
+                    // (again ancestors should be relinquishing their canonicalism during the unwind)
                 }
 
                 if (this.canonicalMask != tileController.getFullMask()) {  // else drawing this will make no difference

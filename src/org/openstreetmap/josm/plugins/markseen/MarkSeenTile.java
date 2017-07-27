@@ -70,6 +70,7 @@ public class MarkSeenTile extends Tile {
         // getMask if this tile didn't previously have a valid quadTreeNodeMemo
         BufferedImage mask_ = node.getMask(
             this.tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread(),
+            this.tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread(),
             this.tileController
         );
         if (mask_ == null) {
@@ -79,7 +80,7 @@ public class MarkSeenTile extends Tile {
             // reacquire with write lock so that any required resources can be created or modified
             this.tileController.getQuadTreeRWLock().readLock().unlock();
             this.tileController.getQuadTreeRWLock().writeLock().lock();
-            mask_ = node.getMask(true, this.tileController);
+            mask_ = node.getMask(true, true, this.tileController);
         }
 
         if (ignoreWH) {
