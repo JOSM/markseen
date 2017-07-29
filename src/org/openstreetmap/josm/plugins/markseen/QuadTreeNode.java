@@ -459,7 +459,7 @@ class QuadTreeNode {
         }
     }
 
-    public void markRectSeen(Bounds bbox, double minTilesAcross, MarkSeenTileController tileController) {
+    public void markBoundsSeen(Bounds bbox, double minTilesAcross, MarkSeenTileController tileController) {
         assert tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread();
         // *should* only be called on root node, right?
         assert this.parent == null;

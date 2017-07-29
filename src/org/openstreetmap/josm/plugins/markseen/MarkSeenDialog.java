@@ -52,6 +52,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
                     mv.getLatLon(mv.getWidth(), 0)
             );
             skipEvents = true;
+            slippyMap.markBoundsSeen(currentBounds, 4);
             slippyMap.setBoundingBox(currentBounds);
             slippyMap.zoomOut(); // to give a better overview
             skipEvents = false;

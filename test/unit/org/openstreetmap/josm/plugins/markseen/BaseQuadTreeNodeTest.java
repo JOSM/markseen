@@ -302,7 +302,7 @@ public class BaseQuadTreeNodeTest extends BaseTest {
             Bounds bounds = (Bounds)seenRectInfo[0];
             double minTilesAcross = (double)seenRectInfo[1];
 
-            quadTreeRoot.markRectSeen(bounds, minTilesAcross, this.tileController);
+            quadTreeRoot.markBoundsSeen(bounds, minTilesAcross, this.tileController);
             quadTreeRoot.checkIntegrity();
         }
     }
