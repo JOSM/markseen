@@ -17,7 +17,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 
 @RunWith(Parameterized.class)
-public class QuadTreeNodeTestSeenRectOrder extends BaseQuadTreeNodeTest {
+public class QuadTreeNodeSeenRectOrderTest extends BaseQuadTreeNodeTest {
     private static final int variants = 16;
 
     @Parameters(name="{index}-scenario-{0}-seed-{1}")
@@ -39,7 +39,7 @@ public class QuadTreeNodeTestSeenRectOrder extends BaseQuadTreeNodeTest {
         return paramSets;
     }
 
-    public QuadTreeNodeTestSeenRectOrder(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
+    public QuadTreeNodeSeenRectOrderTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
     throws IOException {
         super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
     }
