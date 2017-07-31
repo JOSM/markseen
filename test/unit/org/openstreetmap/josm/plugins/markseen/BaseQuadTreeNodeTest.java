@@ -38,17 +38,6 @@ import org.mockito.junit.MockitoRule;
 
 @Ignore
 public class BaseQuadTreeNodeTest extends BaseTest {
-    @Rule public MockitoRule rule = MockitoJUnit.rule();
-
-    @Mock protected MarkSeenTileController tileController;
-    @Mock protected TileSource tileSource;
-
-    protected IndexColorModel indexColorModel;
-    protected BufferedImage EMPTY_MASK;
-    protected BufferedImage FULL_MASK;
-
-    protected ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-
     // parametrized variables
     protected int scenarioIndex;
     protected Integer seenRectOrderSeed;
@@ -255,41 +244,7 @@ public class BaseQuadTreeNodeTest extends BaseTest {
         this.referenceTiles = (Object[][])scenario[2];
     }
 
-    @Before
-    public void setUp() {
-        Mockito.when(this.tileSource.getTileSize()).thenReturn(this.tileSize);
-
-        this.indexColorModel = new IndexColorModel(
-            1,
-            2,
-            new byte[]{(byte)0, (byte)255},
-            new byte[]{(byte)0, (byte)0},
-            new byte[]{(byte)0, (byte)255},
-            new byte[]{(byte)0, (byte)128}
-        );
-        this.EMPTY_MASK = new MarkSeenTileController.WriteInhibitedBufferedImage(
-            tileSize,
-            tileSize,
-            BufferedImage.TYPE_BYTE_BINARY,
-            this.indexColorModel,
-            new Color(0,0,0,0)
-        );
-        this.FULL_MASK = new MarkSeenTileController.WriteInhibitedBufferedImage(
-            tileSize,
-            tileSize,
-            BufferedImage.TYPE_BYTE_BINARY,
-            this.indexColorModel,
-            new Color(255,255,255,255)
-        );
-
-        Mockito.when(this.tileController.getTileSource()).thenReturn(this.tileSource);
-        Mockito.when(this.tileController.getMaskColorModel()).thenReturn(this.indexColorModel);
-        Mockito.when(this.tileController.getEmptyMask()).thenReturn(this.EMPTY_MASK);
-        Mockito.when(this.tileController.getFullMask()).thenReturn(this.FULL_MASK);
-        Mockito.when(this.tileController.getQuadTreeRWLock()).thenReturn(this.lock);
-    }
-
-    protected void markRects(QuadTreeNode quadTreeRoot, Integer orderSeed) {
+    protected void markRects(QuadTreeMeta quadTreeMeta, Integer orderSeed) {
         List<Integer> remapping = IntStream.range(0, this.seenRects.length).boxed().collect(Collectors.toList());
         if (orderSeed != null) {
             Collections.shuffle(remapping, new Random((long)orderSeed));
@@ -302,12 +257,12 @@ public class BaseQuadTreeNodeTest extends BaseTest {
             Bounds bounds = (Bounds)seenRectInfo[0];
             double minTilesAcross = (double)seenRectInfo[1];
 
-            quadTreeRoot.markBoundsSeen(bounds, minTilesAcross, this.tileController);
-            quadTreeRoot.checkIntegrity();
+            quadTreeMeta.quadTreeRoot.markBoundsSeen(bounds, minTilesAcross);
+            quadTreeMeta.quadTreeRoot.checkIntegrity();
         }
     }
 
-    protected void checkReferenceTiles(QuadTreeNode quadTreeRoot, Integer orderSeed) {
+    protected void checkReferenceTiles(QuadTreeMeta quadTreeMeta, Integer orderSeed) {
         List<Integer> remapping = IntStream.range(0, this.referenceTiles.length).boxed().collect(Collectors.toList());
         if (orderSeed != null) {
             Collections.shuffle(remapping, new Random((long)orderSeed));
@@ -324,20 +279,19 @@ public class BaseQuadTreeNodeTest extends BaseTest {
                 (
                     (DataBufferByte) (
                         ((boolean)referenceTileInfo[3]) ?
-                                    this.FULL_MASK :
-                                    this.EMPTY_MASK
+                                    quadTreeMeta.FULL_MASK :
+                                    quadTreeMeta.EMPTY_MASK
                     ).getData().getDataBuffer()
                 ).getData() :
                 (byte[])referenceTileInfo[3];
 
-            BufferedImage result = quadTreeRoot.getNodeForTile(
+            BufferedImage result = quadTreeMeta.quadTreeRoot.getNodeForTile(
                 tilex,
                 tiley,
                 zoom,
-                true,
-                this.tileController
-            ).getMask(true, true, this.tileController);
-            quadTreeRoot.checkIntegrity();
+                true
+            ).getMask(true, true);
+            quadTreeMeta.quadTreeRoot.checkIntegrity();
 
 //             System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(
 //                 ((DataBufferByte) result.getData().getDataBuffer()).getData())

@@ -20,7 +20,8 @@ class QuadTreeNode {
     private SoftReference<BufferedImage> mask;
     private BufferedImage canonicalMask;
 
-    private QuadTreeNode parent;
+    private final QuadTreeNode parent;
+    private final QuadTreeMeta quadTreeMeta;
     private boolean belowCanonical;
     private boolean dirty;
 
@@ -28,28 +29,31 @@ class QuadTreeNode {
     private final QuadTreeNode [] children = {null, null, null, null};
 
     /** Intended for constructing the root node */
-    public QuadTreeNode(MarkSeenTileController tileController) {
-        this.belowCanonical = false;
+    public QuadTreeNode(QuadTreeMeta quadTreeMeta_) {
+        this.quadTreeMeta = quadTreeMeta_;
 
-        this.canonicalMask = tileController.getEmptyMask();
+        this.belowCanonical = false;
+        this.parent = null;
+
+        this.canonicalMask = this.quadTreeMeta.EMPTY_MASK;
         this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
     }
 
     /** Intended for constructing child nodes */
-    public QuadTreeNode(QuadTreeNode parent) {
+    public QuadTreeNode(QuadTreeNode parent, QuadTreeMeta quadTreeMeta_) {
         assert parent != null;
         this.parent = parent;
+        this.quadTreeMeta = quadTreeMeta_;
         this.belowCanonical = true;
     }
 
-    private static BufferedImage newBufferedImage(MarkSeenTileController tileController) {
-        int tileSize = tileController.getTileSource().getTileSize();
-        assert tileSize > 0;
+    private BufferedImage newBufferedImage() {
+        assert this.quadTreeMeta.tileSize > 0;
         return new BufferedImage(
-            tileSize,
-            tileSize,
+            this.quadTreeMeta.tileSize,
+            this.quadTreeMeta.tileSize,
             BufferedImage.TYPE_BYTE_BINARY,
-            tileController.getMaskColorModel()
+            this.quadTreeMeta.maskColorModel
         );
     }
 
@@ -60,7 +64,7 @@ class QuadTreeNode {
     private QuadTreeNode getChild(int childIndex, boolean write) {
         QuadTreeNode child = this.children[childIndex];
         if (child == null && write) {
-            this.children[childIndex] = child = new QuadTreeNode(this);
+            this.children[childIndex] = child = new QuadTreeNode(this, this.quadTreeMeta);
         }
         return child;
     }
@@ -69,10 +73,9 @@ class QuadTreeNode {
         int xtile,
         int ytile,
         int zoom,
-        boolean write,
-        MarkSeenTileController tileController
+        boolean write
     ) {
-        assert (!write) || tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread();
+        assert (!write) || this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread();
         // if we don't know we're the root we can't be sure we're not belowCanonical
         assert parent == null;
 
@@ -143,13 +146,12 @@ class QuadTreeNode {
         AffineTransform affineTransform,
         BufferedImage targetImage,  // can be null if descendant doesn't have an allocated image to donate
         boolean construct,
-        QuadTreeNode child,
-        MarkSeenTileController tileController
+        QuadTreeNode child
     ) {
         int childIndex = Arrays.asList(this.children).indexOf(child);
         assert childIndex != -1;
 
-        int tileSize = tileController.getTileSource().getTileSize();
+        int tileSize = this.quadTreeMeta.tileSize;
 
         // when traversing *up* the quadtree, adding the transform to the AffineTransform must happen *after*
         // propagating the recursion because it's the *parent* (the callee) which holds the information about the
@@ -168,8 +170,8 @@ class QuadTreeNode {
 
         // using a `false` write arg here because we don't want to bother generating a mask which is only going to be
         // used as an intermediary
-        BufferedImage mask_ = this.getMask(false, false, tileController);
-        if (mask_ == tileController.getEmptyMask() || mask_ == tileController.getFullMask()) {
+        BufferedImage mask_ = this.getMask(false, false);
+        if (mask_ == this.quadTreeMeta.EMPTY_MASK || mask_ == this.quadTreeMeta.FULL_MASK) {
             return mask_;
         } else if (mask_ != null) {
             if (!construct) {
@@ -177,23 +179,23 @@ class QuadTreeNode {
             }
             if (targetImage == null) {
                 // we have to allocate an image ourselves
-                targetImage = this.newBufferedImage(tileController);
+                targetImage = this.newBufferedImage();
             }
             Graphics2D g = targetImage.createGraphics();
             g.drawImage(mask_, affineTransform, null);
             return targetImage;
         } else {
             // we don't currently have a valid mask to use. recurse.
-            return this.parent.transformedToDescendant(affineTransform, targetImage, construct, this, tileController);
+            return this.parent.transformedToDescendant(affineTransform, targetImage, construct, this);
         }
     }
 
     /** Effectively a way of accessing the latter half of drawOntoAncestor, needed for initial entry point into
      *  recursion */
-    private void drawChildrenOntoAncestor(Graphics2D g, MarkSeenTileController tileController) {
+    private void drawChildrenOntoAncestor(Graphics2D g) {
         assert this.isAboveCanonical();
 
-        int tileSize = tileController.getTileSource().getTileSize();
+        int tileSize = this.quadTreeMeta.tileSize;
         Graphics2D gCopy;
         QuadTreeNode child;
 
@@ -214,20 +216,20 @@ class QuadTreeNode {
             if ((i & (1<<1)) != 0) {
                 gCopy.translate(0, tileSize);
             }
-            child.drawOntoAncestor(gCopy, tileController);
+            child.drawOntoAncestor(gCopy);
             gCopy.dispose();
         }
     }
 
-    private void drawOntoAncestor(Graphics2D g, MarkSeenTileController tileController) {
+    private void drawOntoAncestor(Graphics2D g) {
         assert !this.belowCanonical;
         // using a `false` write arg here because we don't want to bother generating a mask which is only going to be
         // used as an intermediary
-        BufferedImage mask_ = this.getMask(false, false, tileController);
+        BufferedImage mask_ = this.getMask(false, false);
         if (mask_ != null) {
             g.drawImage(mask_, new AffineTransform(), null);
         } else {
-            this.drawChildrenOntoAncestor(g, tileController);
+            this.drawChildrenOntoAncestor(g);
         }
     }
 
@@ -239,8 +241,8 @@ class QuadTreeNode {
                     to simply passing back an aliased BufferedImage. Again, null will be returned if getMask can't
                     return a sensible result without this flag.
      */
-    public BufferedImage getMask(boolean write, boolean construct, MarkSeenTileController tileController) {
-        assert (!write) || tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread();
+    public BufferedImage getMask(boolean write, boolean construct) {
+        assert (!write) || this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread();
         assert write || !construct : "Use of the construct argument requires write access";
 
         if (this.canonicalMask != null) {
@@ -268,10 +270,9 @@ class QuadTreeNode {
             if (this.belowCanonical) {
                 mask_ = this.parent.transformedToDescendant(
                     new AffineTransform(),
-                    mask_ != tileController.getEmptyMask() && mask_ != tileController.getFullMask() ? mask_ : null,
+                    mask_ != this.quadTreeMeta.EMPTY_MASK && mask_ != this.quadTreeMeta.FULL_MASK ? mask_ : null,
                     construct,
-                    this,
-                    tileController
+                    this
                 );
                 if (mask_ == null) {
                     // transformedToDescendant would have had to construct a mask and we must have told it not to
@@ -283,16 +284,16 @@ class QuadTreeNode {
                     return null;
                 }
                 // TODO make this memory efficient
-                if (mask_ == null || mask_ == tileController.getEmptyMask() || mask_ == tileController.getFullMask()) {
+                if (mask_ == null || mask_ == this.quadTreeMeta.EMPTY_MASK || mask_ == this.quadTreeMeta.FULL_MASK) {
                     // drawChildrenOntoAncestor needs a writable image pre-allocated for it
-                    mask_ = this.newBufferedImage(tileController);
+                    mask_ = this.newBufferedImage();
                     this.mask = new SoftReference<BufferedImage>(mask_);
                 }
-                int tileSize = tileController.getTileSource().getTileSize();
+                int tileSize = this.quadTreeMeta.tileSize;
                 Graphics2D g = mask_.createGraphics();
                 g.setBackground(new Color(0,0,0,0));
                 g.clearRect(0, 0, tileSize, tileSize);
-                this.drawChildrenOntoAncestor(g, tileController);
+                this.drawChildrenOntoAncestor(g);
             }
             this.dirty = false;
         }
@@ -342,10 +343,9 @@ class QuadTreeNode {
         double y0,
         double x1,
         double y1,
-        int preferredZoom,
-        MarkSeenTileController tileController
+        int preferredZoom
     ) {
-        int tileSize = tileController.getTileSource().getTileSize();
+        int tileSize = this.quadTreeMeta.tileSize;
         // the central task of this method is to descend the quadtree to the point it can classify each branch as
         // either fully contained by bbox, fully outside bbox or is forced to create a new node at or below
         // preferredZoom
@@ -356,16 +356,16 @@ class QuadTreeNode {
                 // we have to claim canonicalism for this node - an ancestor must be being split for us to have arrived
                 // here (also we should be able to rely on any ancestors relinquishing their canonicalism during the
                 // unwind without us having to do anything about it)
-                this.canonicalMask = this.getMask(true, true, tileController);
+                this.canonicalMask = this.getMask(true, true);
                 this.belowCanonical = false;
             }
             // otherwise nothing else to do
         } else if (x0 < xThis && x1 > xThis+tileSize && y0 < yThis && y1 > yThis+tileSize) {
             // this tile lies completely inside the rect - make this node canonical, set mask to all-seen (unless this
             // is already the case)
-            if (this.canonicalMask != tileController.getFullMask()) {
+            if (this.canonicalMask != this.quadTreeMeta.FULL_MASK) {
                 Main.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": marking as FULL_MASK\n");
-                this.canonicalMask = tileController.getFullMask();
+                this.canonicalMask = this.quadTreeMeta.FULL_MASK;
                 this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
 
                 this.setDescendantsBelowCanonical(false);
@@ -376,19 +376,19 @@ class QuadTreeNode {
                 this.dirtyAncestors(false);
                 this.dirtyDescendants(false);
             }
-        } else if (this.getMask(true, false, tileController) == tileController.getFullMask()) {
+        } else if (this.getMask(true, false) == this.quadTreeMeta.FULL_MASK) {
             // using the false construct argument to getMask above as we don't want to bother building a mask - we just
             // want to poke it to know if we can take a shortcut, which it appears we can - drawing to this mask
             // wouldn't make a difference anyway.
             Main.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": ignoring as FULL_MASK\n");
             if (this.belowCanonical) {
                 // claim canonicalism for this node from below
-                this.canonicalMask = this.getMask(true, true, tileController);
+                this.canonicalMask = this.getMask(true, true);
                 this.belowCanonical = false;
                 // (again ancestors should be relinquishing their canonicalism during the unwind)
             } else if (this.canonicalMask == null) {
                 // claim canonicalism for this node from above
-                this.canonicalMask = this.getMask(true, true, tileController);
+                this.canonicalMask = this.getMask(true, true);
                 this.setDescendantsBelowCanonical(false);
             }
             // no dirtying required - nothing has actually changed
@@ -407,8 +407,7 @@ class QuadTreeNode {
                         y0*2,
                         x1*2,
                         y1*2,
-                        preferredZoom,
-                        tileController
+                        preferredZoom
                     );
                 }
 
@@ -421,28 +420,28 @@ class QuadTreeNode {
                 // this is a node we should be drawing to - it should be canonical or belowCanonical
                 if (this.belowCanonical) {
                     // claim canonicalism for this node
-                    this.canonicalMask = this.getMask(true, true, tileController);
+                    this.canonicalMask = this.getMask(true, true);
                     this.belowCanonical = false;
                     // (again ancestors should be relinquishing their canonicalism during the unwind)
                 }
 
-                if (this.canonicalMask != tileController.getFullMask()) {  // else drawing this will make no difference
+                if (this.canonicalMask != this.quadTreeMeta.FULL_MASK) {  // else drawing this will make no difference
                     Graphics2D g;
-                    if (this.canonicalMask == tileController.getEmptyMask()) {
+                    if (this.canonicalMask == this.quadTreeMeta.EMPTY_MASK) {
                         // we can't write to this mask - allocate another one
-                        this.canonicalMask = this.newBufferedImage(tileController);
+                        this.canonicalMask = this.newBufferedImage();
                         this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
 
                         // clear it
                         g = this.canonicalMask.createGraphics();
-                        g.setBackground(new Color(0,0,0,0));
+                        g.setBackground(this.quadTreeMeta.UNMARK_COLOR);
                         g.clearRect(0, 0, tileSize, tileSize);
                     } else {
                         g = this.canonicalMask.createGraphics();
                     }
 
                     // draw.
-                    g.setPaint(new Color(255,255,255,255));
+                    g.setPaint(this.quadTreeMeta.MARK_COLOR);
                     g.translate(-xThis, -yThis);
                     g.fill(new Rectangle(
                         (int)Math.round(x0),
@@ -459,12 +458,12 @@ class QuadTreeNode {
         }
     }
 
-    public void markBoundsSeen(Bounds bbox, double minTilesAcross, MarkSeenTileController tileController) {
-        assert tileController.getQuadTreeRWLock().isWriteLockedByCurrentThread();
+    public void markBoundsSeen(Bounds bbox, double minTilesAcross) {
+        assert this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread();
         // *should* only be called on root node, right?
         assert this.parent == null;
 
-        OsmMercator merc = new OsmMercator(tileController.getTileSource().getTileSize());
+        OsmMercator merc = new OsmMercator(this.quadTreeMeta.tileSize);
 
         double x0 = merc.lonToX(bbox.getMinLon(), 0);
         double y0 = merc.latToY(bbox.getMaxLat(), 0);
@@ -474,7 +473,7 @@ class QuadTreeNode {
         double longSideLen = (x1-x0) > (y1-y0) ? (x1-x0) : (y1-y0);
         // calculate the factor that the longSideLen would have to be multiplied by to get it to occupy minTilesAcross
         // tiles
-        double factor = minTilesAcross*tileController.getTileSource().getTileSize()/longSideLen;
+        double factor = minTilesAcross*this.quadTreeMeta.tileSize/longSideLen;
         // now calculate how many zoom levels this would equate to
         int preferredZoom = (int) Math.ceil(Math.log(factor)/Math.log(2));
 
@@ -498,8 +497,7 @@ class QuadTreeNode {
             y0s,
             x1s,
             y1s,
-            preferredZoom,
-            tileController
+            preferredZoom
         );
     }
 
