@@ -17,17 +17,19 @@ import org.openstreetmap.josm.gui.dialogs.ToggleDialog;
 public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent.ZoomChangeListener, PropertyChangeListener {
     private MarkSeenSlippyMapBBoxChooser slippyMap;
     private boolean skipEvents;
+    private final QuadTreeMeta quadTreeMeta;
     /**
      * Constructs a new {@code MarkSeenDialog}.
      */
-    public MarkSeenDialog() {
+    public MarkSeenDialog(QuadTreeMeta quadTreeMeta_) {
         super(tr("MarkSeen Viewer"), "minimap", tr("Shows viewed map areas on a familiar small map"), null, 150);
+        this.quadTreeMeta = quadTreeMeta_;
     }
     private synchronized void initialize() {
         if (slippyMap != null) {
             return;
         }
-        slippyMap = new MarkSeenSlippyMapBBoxChooser();
+        slippyMap = new MarkSeenSlippyMapBBoxChooser(this.quadTreeMeta);
         createLayout(slippyMap, false, Collections.emptyList());
         slippyMap.setSizeButtonVisible(false);
         slippyMap.addPropertyChangeListener(BBoxChooser.BBOX_PROP, this);

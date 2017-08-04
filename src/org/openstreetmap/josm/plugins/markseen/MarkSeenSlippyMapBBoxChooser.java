@@ -5,8 +5,9 @@ import org.openstreetmap.josm.gui.bbox.SlippyMapBBoxChooser;
 
 
 public class MarkSeenSlippyMapBBoxChooser extends SlippyMapBBoxChooser {
-    public MarkSeenSlippyMapBBoxChooser() {
+    public MarkSeenSlippyMapBBoxChooser(QuadTreeMeta quadTreeMeta_) {
         this.tileController = new MarkSeenTileController(
+            quadTreeMeta_,
             this.tileController.getTileSource(),
             this.tileController.getTileCache(),
             this

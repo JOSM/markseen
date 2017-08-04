@@ -21,9 +21,14 @@ import org.openstreetmap.josm.data.Bounds;
 public class MarkSeenTileController extends TileController {
     public final QuadTreeMeta quadTreeMeta;
 
-    public MarkSeenTileController(TileSource source, TileCache tileCache, TileLoaderListener listener) {
-        super(source, tileCache, listener);
-        this.quadTreeMeta = new QuadTreeMeta(source.getTileSize());
+    public MarkSeenTileController(
+        QuadTreeMeta quadTreeMeta_,
+        TileSource source_,
+        TileCache tileCache_,
+        TileLoaderListener listener_
+    ) {
+        super(source_, tileCache_, listener_);
+        this.quadTreeMeta = quadTreeMeta_;
     }
 
     public void markBoundsSeen(Bounds bbox, double minTilesAcross) {
