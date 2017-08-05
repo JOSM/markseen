@@ -31,12 +31,6 @@ public class MarkSeenTileController extends TileController {
         this.quadTreeMeta = quadTreeMeta_;
     }
 
-    public void markBoundsSeen(Bounds bbox, double minTilesAcross) {
-        this.quadTreeMeta.quadTreeRWLock.writeLock().lock();
-        this.quadTreeMeta.quadTreeRoot.markBoundsSeen(bbox, minTilesAcross);
-        this.quadTreeMeta.quadTreeRWLock.writeLock().unlock();
-    }
-
     /**
      * Verbatim copy of TileController.getTile, generating MarkSeenTiles instead of regular Tiles
      */
