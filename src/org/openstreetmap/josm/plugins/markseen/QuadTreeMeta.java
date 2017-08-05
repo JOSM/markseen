@@ -1,9 +1,13 @@
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.lang.Runnable;
+import java.lang.Thread;
+import java.lang.Throwable;
 
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.awt.Color;
@@ -48,6 +52,38 @@ public class QuadTreeMeta {
         }
     }
 
+    private class MarkBoundsSeenExecutor extends ThreadPoolExecutor {
+        public MarkBoundsSeenExecutor() {
+            super(1, 1, 5, java.util.concurrent.TimeUnit.MINUTES, new ArrayBlockingQueue<Runnable>(8));
+        }
+
+        @Override
+        public void beforeExecute(Thread thread, Runnable runnable) {
+                QuadTreeMeta.this.quadTreeRWLock.writeLock().lock();
+        }
+
+        @Override
+        public void afterExecute(Runnable runnable, Throwable throwable) {
+                QuadTreeMeta.this.quadTreeRWLock.writeLock().unlock();
+        }
+
+        @Override
+        public void setMaximumPoolSize(int maximumPoolSize) {
+            if (maximumPoolSize > 1) {
+                throw new UnsupportedOperationException("MarkBoundsSeenExecutor cannot have >1 thread");
+            }
+            super.setMaximumPoolSize(maximumPoolSize);
+        }
+
+        @Override
+        public void setCorePoolSize(int corePoolSize) {
+            if (corePoolSize > 1) {
+                throw new UnsupportedOperationException("MarkBoundsSeenExecutor cannot have >1 thread");
+            }
+            super.setCorePoolSize(corePoolSize);
+        }
+    }
+
     private class MarkBoundsSeenRequest implements Runnable {
         private final Bounds bounds;
         private final double minTilesAcross;
@@ -57,10 +93,9 @@ public class QuadTreeMeta {
             this.minTilesAcross = minTilesAcross_;
         }
 
+        @Override
         public void run() {
-            QuadTreeMeta.this.quadTreeRWLock.writeLock().lock();
             QuadTreeMeta.this.quadTreeRoot.markBoundsSeen(this.bounds, this.minTilesAcross);
-            QuadTreeMeta.this.quadTreeRWLock.writeLock().unlock();
         }
     }
  
@@ -76,7 +111,7 @@ public class QuadTreeMeta {
     protected final BufferedImage EMPTY_MASK;
     protected final BufferedImage FULL_MASK;
 
-    private final Executor boundsMarkingExecutor;
+    private final Executor markBoundsSeenExecutor;
 
     public QuadTreeNode quadTreeRoot;
 
@@ -107,10 +142,10 @@ public class QuadTreeMeta {
         );
 
         this.quadTreeRoot = new QuadTreeNode(this);
-        this.boundsMarkingExecutor = Executors.newSingleThreadExecutor();
+        this.markBoundsSeenExecutor = new MarkBoundsSeenExecutor();
     }
 
     public void requestSeenBoundsMark(Bounds bounds, double minTilesAcross) {
-        this.boundsMarkingExecutor.execute(new MarkBoundsSeenRequest(bounds, minTilesAcross));
+        this.markBoundsSeenExecutor.execute(new MarkBoundsSeenRequest(bounds, minTilesAcross));
     }
 }
