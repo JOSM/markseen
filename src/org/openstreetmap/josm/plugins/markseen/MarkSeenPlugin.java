@@ -37,9 +37,7 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
                     mv.getLatLon(mv.getWidth(), 0)
             );
 
-            this.quadTreeMeta.quadTreeRWLock.writeLock().lock();
-            this.quadTreeMeta.quadTreeRoot.markBoundsSeen(currentBounds, 4);
-            this.quadTreeMeta.quadTreeRWLock.writeLock().unlock();
+            this.quadTreeMeta.requestSeenBoundsMark(currentBounds, 4);
         }
     }
 }

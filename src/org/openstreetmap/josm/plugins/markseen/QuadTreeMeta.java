@@ -1,5 +1,9 @@
 package org.openstreetmap.josm.plugins.markseen;
 
+import java.lang.Runnable;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.awt.Color;
@@ -8,11 +12,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 
+import org.openstreetmap.josm.data.Bounds;
+
 public class QuadTreeMeta {
     // is there a better way to create a properly read-only BufferedImage? don't know. for now, all we want to be able
     // to do is catch potential bugs where something attempts to write to a mask that is intended to be shared &
     // constant
-    public static class WriteInhibitedBufferedImage extends BufferedImage {
+    private static class WriteInhibitedBufferedImage extends BufferedImage {
         public boolean inhibitWrites = false;
 
         public WriteInhibitedBufferedImage(int width, int height, int imageType, IndexColorModel cm, Color constColor) {
@@ -41,6 +47,22 @@ public class QuadTreeMeta {
             }
         }
     }
+
+    private class MarkBoundsSeenRequest implements Runnable {
+        private final Bounds bounds;
+        private final double minTilesAcross;
+
+        public MarkBoundsSeenRequest(Bounds bounds_, double minTilesAcross_) {
+            this.bounds = bounds_;
+            this.minTilesAcross = minTilesAcross_;
+        }
+
+        public void run() {
+            QuadTreeMeta.this.quadTreeRWLock.writeLock().lock();
+            QuadTreeMeta.this.quadTreeRoot.markBoundsSeen(this.bounds, this.minTilesAcross);
+            QuadTreeMeta.this.quadTreeRWLock.writeLock().unlock();
+        }
+    }
  
     protected final static Color UNMARK_COLOR = new Color(0, 0, 0, 0);
     protected final static Color MARK_COLOR = new Color(255, 255, 255, 255);
@@ -53,6 +75,8 @@ public class QuadTreeMeta {
 
     protected final BufferedImage EMPTY_MASK;
     protected final BufferedImage FULL_MASK;
+
+    private final Executor boundsMarkingExecutor;
 
     public QuadTreeNode quadTreeRoot;
 
@@ -83,5 +107,10 @@ public class QuadTreeMeta {
         );
 
         this.quadTreeRoot = new QuadTreeNode(this);
+        this.boundsMarkingExecutor = Executors.newSingleThreadExecutor();
+    }
+
+    public void requestSeenBoundsMark(Bounds bounds, double minTilesAcross) {
+        this.boundsMarkingExecutor.execute(new MarkBoundsSeenRequest(bounds, minTilesAcross));
     }
 }
