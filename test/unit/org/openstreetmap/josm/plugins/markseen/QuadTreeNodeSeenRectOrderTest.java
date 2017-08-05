@@ -46,7 +46,7 @@ public class QuadTreeNodeSeenRectOrderTest extends BaseQuadTreeNodeTest {
 
     @Test
     public void test() {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize);
+        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
         this.markRects(quadTreeMeta, this.seenRectOrderSeed);

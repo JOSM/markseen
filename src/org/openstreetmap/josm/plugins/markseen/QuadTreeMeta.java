@@ -122,6 +122,8 @@ public class QuadTreeMeta {
     protected IndexColorModel maskColorModel;
 
     protected final int tileSize;
+    protected final Color maskColor;
+    protected final double maskOpacity;
 
     protected final BufferedImage EMPTY_MASK;
     protected final BufferedImage FULL_MASK;
@@ -130,15 +132,17 @@ public class QuadTreeMeta {
 
     public QuadTreeNode quadTreeRoot;
 
-    public QuadTreeMeta(int tileSize_) {
+    public QuadTreeMeta(int tileSize_, Color maskColor_, double maskOpacity_) {
         this.tileSize = tileSize_;
+        this.maskColor = maskColor_;
+        this.maskOpacity = maskOpacity_;
         this.maskColorModel = new IndexColorModel(
             1,
             2,
-            new byte[]{(byte)0, (byte)255},
-            new byte[]{(byte)0, (byte)0},
-            new byte[]{(byte)0, (byte)255},
-            new byte[]{(byte)0, (byte)128}
+            new byte[]{(byte)0, (byte)this.maskColor.getRed()},
+            new byte[]{(byte)0, (byte)this.maskColor.getGreen()},
+            new byte[]{(byte)0, (byte)this.maskColor.getBlue()},
+            new byte[]{(byte)0, (byte)(this.maskOpacity*255)}
         );
 
         this.EMPTY_MASK = new WriteInhibitedBufferedImage(

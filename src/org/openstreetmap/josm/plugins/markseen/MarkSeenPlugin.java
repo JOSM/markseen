@@ -10,6 +10,7 @@ import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
 import org.openstreetmap.josm.plugins.Plugin;
 import org.openstreetmap.josm.plugins.PluginInformation;
+import org.openstreetmap.josm.tools.ColorHelper;
 
 
 public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomChangeListener {
@@ -17,7 +18,11 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
 
     public MarkSeenPlugin(PluginInformation info) {
         super(info);
-        this.quadTreeMeta = new QuadTreeMeta(256);
+        this.quadTreeMeta = new QuadTreeMeta(
+            Main.pref.getInteger("markseen.quadTreeTileSize", 256),
+            ColorHelper.html2color(Main.pref.get("color.markseen.maskColor", "#ff00ff")),
+            Main.pref.getDouble("markseen.maskOpacity", 0.5)
+        );
     }
 
     @Override
@@ -37,7 +42,7 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
                     mv.getLatLon(mv.getWidth(), 0)
             );
 
-            this.quadTreeMeta.requestSeenBoundsMark(currentBounds, 4);
+            this.quadTreeMeta.requestSeenBoundsMark(currentBounds, Main.pref.getDouble("markseen.minTilesAcross", 4.));
         }
     }
 }
