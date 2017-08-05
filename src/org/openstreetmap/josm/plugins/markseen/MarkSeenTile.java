@@ -85,10 +85,11 @@ public class MarkSeenTile extends Tile {
         }
 
         if (ignoreWH) {
-            g.drawImage(mask_, x, y, null);
-        } else {
-            g.drawImage(mask_, x, y, width, height, null);
+            // we're mimicking the drawing of the underlying tile image, so drawing with an unspecified size should
+            // draw the mask at the size of that tile
+            width = height = source.getTileSize();
         }
+        g.drawImage(mask_, x, y, width, height, null);
 
         // release whichever lock we had
         if (this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread()) {
