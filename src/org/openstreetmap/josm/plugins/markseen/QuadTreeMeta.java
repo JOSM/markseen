@@ -59,12 +59,27 @@ public class QuadTreeMeta {
 
         @Override
         public void beforeExecute(Thread thread, Runnable runnable) {
+            if (!QuadTreeMeta.this.quadTreeRWLock.isWriteLockedByCurrentThread()) {
                 QuadTreeMeta.this.quadTreeRWLock.writeLock().lock();
+            }
         }
 
         @Override
         public void afterExecute(Runnable runnable, Throwable throwable) {
+            if (this.getQueue().isEmpty()) {
                 QuadTreeMeta.this.quadTreeRWLock.writeLock().unlock();
+            }
+            // else we will elide the lock re-acquisition to allow our worker thread to pick the next Bounds to mark
+            // immediately. the reason we do this is that any other threads that managed to acquire the write-lock
+            // before we could would presumably be involved in the task of painting tiles - if we know we've got a
+            // Bounds-marking request in the queue there's no point in letting it go ahead and paint something which
+            // we're probably going to dirty immediately anyway.
+            //
+            // we're only able to do this because we know we only have one thread consuming this queue. if we had >1
+            // thread there would be a possibility that the Runnable which we observed on the queue gets claimed by
+            // a different thread which *didn't* have the write-lock. if that were the last Runnable in the queue it
+            // would lose this thread its chance to release this lock (which it could only do by picking up another
+            // Runnable and completing that)
         }
 
         @Override
