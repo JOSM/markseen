@@ -1,10 +1,19 @@
 package org.openstreetmap.josm.plugins.markseen;
 
+import java.awt.BorderLayout;
+
+import javax.swing.BoundedRangeModel;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.JSlider;
+
 import static org.openstreetmap.josm.tools.I18n.tr;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Collections;
 import org.openstreetmap.josm.Main;
+import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
@@ -17,22 +26,39 @@ import org.openstreetmap.josm.gui.dialogs.ToggleDialog;
 public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent.ZoomChangeListener, PropertyChangeListener {
     private MarkSeenSlippyMapBBoxChooser slippyMap;
     private boolean skipEvents;
+
+
     private final QuadTreeMeta quadTreeMeta;
+    private final JSlider recordMinZoomSlider;
+    private final JToggleButton recordToggleButton;
+    private final JToolBar toolBar;
+    private final JPanel innerPanel;
+    private boolean initialized = false;
+
     /**
      * Constructs a new {@code MarkSeenDialog}.
      */
-    public MarkSeenDialog(QuadTreeMeta quadTreeMeta_) {
+    public MarkSeenDialog(QuadTreeMeta quadTreeMeta_, ToggleAction recordAction_, BoundedRangeModel recordMinZoom_) {
         super(tr("MarkSeen Viewer"), "minimap", tr("Shows viewed map areas on a familiar small map"), null, 150);
         this.quadTreeMeta = quadTreeMeta_;
+        this.recordMinZoomSlider = new JSlider(recordMinZoom_);
+        this.recordToggleButton = new JToggleButton(recordAction_);
+        this.toolBar = new JToolBar();
+        this.innerPanel = new JPanel(new BorderLayout());
+        this.slippyMap = new MarkSeenSlippyMapBBoxChooser(this.quadTreeMeta);
     }
     private synchronized void initialize() {
-        if (slippyMap != null) {
-            return;
+        if (!this.initialized) {
+            slippyMap.setSizeButtonVisible(false);
+            slippyMap.addPropertyChangeListener(BBoxChooser.BBOX_PROP, this);
+            createLayout(innerPanel, false, Collections.emptyList());
+            this.toolBar.add(this.recordToggleButton);
+            this.toolBar.add(this.recordMinZoomSlider);
+            this.innerPanel.add(this.toolBar, BorderLayout.NORTH);
+            this.innerPanel.add(this.slippyMap, BorderLayout.CENTER);
+
+            this.initialized = true;
         }
-        slippyMap = new MarkSeenSlippyMapBBoxChooser(this.quadTreeMeta);
-        createLayout(slippyMap, false, Collections.emptyList());
-        slippyMap.setSizeButtonVisible(false);
-        slippyMap.addPropertyChangeListener(BBoxChooser.BBOX_PROP, this);
     }
     @Override
     public void showDialog() {

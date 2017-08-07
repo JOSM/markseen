@@ -22,8 +22,4 @@ public class MarkSeenSlippyMapBBoxChooser extends SlippyMapBBoxChooser implement
         // to call .repaint() on a JComponent on a foreign thread, so...
         this.repaint();
     }
-
-    public void markBoundsSeen(Bounds bbox, double minTilesAcross) {
-        ((MarkSeenTileController) this.tileController).markBoundsSeen(bbox, minTilesAcross);
-    }
 }
