@@ -4,6 +4,9 @@ import java.lang.Runnable;
 import java.lang.Thread;
 import java.lang.Throwable;
 
+import java.util.HashSet;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -68,6 +71,11 @@ public class QuadTreeMeta {
         public void afterExecute(Runnable runnable, Throwable throwable) {
             if (this.getQueue().isEmpty()) {
                 QuadTreeMeta.this.quadTreeRWLock.writeLock().unlock();
+                synchronized(QuadTreeMeta.this.modifiedListeners) {
+                    for (QuadTreeModifiedListener listener: QuadTreeMeta.this.modifiedListeners) {
+                        listener.quadTreeModified();
+                    }
+                }
             }
             // else we will elide the lock re-acquisition to allow our worker thread to pick the next Bounds to mark
             // immediately. the reason we do this is that any other threads that managed to acquire the write-lock
@@ -113,6 +121,10 @@ public class QuadTreeMeta {
             QuadTreeMeta.this.quadTreeRoot.markBoundsSeen(this.bounds, this.minTilesAcross);
         }
     }
+
+    interface QuadTreeModifiedListener {
+        void quadTreeModified();
+    }
  
     protected final static Color UNMARK_COLOR = new Color(0, 0, 0, 0);
     protected final static Color MARK_COLOR = new Color(255, 255, 255, 255);
@@ -129,6 +141,8 @@ public class QuadTreeMeta {
     protected final BufferedImage FULL_MASK;
 
     private final Executor markBoundsSeenExecutor;
+
+    private final Set<QuadTreeModifiedListener> modifiedListeners;
 
     public QuadTreeNode quadTreeRoot;
 
@@ -162,9 +176,17 @@ public class QuadTreeMeta {
 
         this.quadTreeRoot = new QuadTreeNode(this);
         this.markBoundsSeenExecutor = new MarkBoundsSeenExecutor();
+        this.modifiedListeners = Collections.synchronizedSet(new HashSet<QuadTreeModifiedListener>());
     }
 
     public void requestSeenBoundsMark(Bounds bounds, double minTilesAcross) {
         this.markBoundsSeenExecutor.execute(new MarkBoundsSeenRequest(bounds, minTilesAcross));
+    }
+
+    /**
+     *  A word of caution - handlers could be called from any thread
+     */
+    public void addModifiedListener(QuadTreeModifiedListener modifiedListener) {
+        this.modifiedListeners.add(modifiedListener);
     }
 }
