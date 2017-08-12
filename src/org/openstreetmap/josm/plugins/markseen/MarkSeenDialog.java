@@ -2,11 +2,14 @@ package org.openstreetmap.josm.plugins.markseen;
 
 import java.awt.BorderLayout;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
 import java.beans.PropertyChangeEvent;
@@ -19,20 +22,21 @@ import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
 import org.openstreetmap.josm.gui.bbox.BBoxChooser;
 import org.openstreetmap.josm.gui.dialogs.ToggleDialog;
+import org.openstreetmap.josm.tools.ImageProvider;
 
 /**
  * Essentially a modified copy of {@link MinimapDialog} rather than an subclass because it's keen on its privacy.
  */
-public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent.ZoomChangeListener, PropertyChangeListener {
+public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent.ZoomChangeListener, PropertyChangeListener, ChangeListener {
     private MarkSeenSlippyMapBBoxChooser slippyMap;
-    private boolean skipEvents;
-
+    private boolean skipZoomEvents;
 
     private final QuadTreeMeta quadTreeMeta;
     private final JSlider recordMinZoomSlider;
     private final JToggleButton recordToggleButton;
     private final JToolBar toolBar;
     private final JPanel innerPanel;
+    private final JToggleButton showToolBarToggleButton;
     private boolean initialized = false;
 
     /**
@@ -45,6 +49,14 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         this.recordToggleButton = new JToggleButton(recordAction_);
         this.toolBar = new JToolBar();
         this.innerPanel = new JPanel(new BorderLayout());
+
+        final boolean showToolBarInitially = Main.pref.getBoolean("markseen.dialog.showToolBar", true);
+        this.showToolBarToggleButton = new JToggleButton(ImageProvider.get("misc", "buttonshow"), showToolBarInitially);
+        this.showToolBarToggleButton.setToolTipText(tr("Toggle toolbar visbility"));
+        this.showToolBarToggleButton.setBorder(BorderFactory.createEmptyBorder());
+        this.showToolBarToggleButton.getModel().addChangeListener(this);
+        this.updateShowToolBarToggleButton();
+
         this.slippyMap = new MarkSeenSlippyMapBBoxChooser(this.quadTreeMeta);
     }
     private synchronized void initialize() {
@@ -56,6 +68,8 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
             this.toolBar.add(this.recordMinZoomSlider);
             this.innerPanel.add(this.toolBar, BorderLayout.NORTH);
             this.innerPanel.add(this.slippyMap, BorderLayout.CENTER);
+
+            this.titleBar.add(this.showToolBarToggleButton, this.titleBar.getComponentCount()-2);
 
             this.initialized = true;
         }
@@ -73,24 +87,42 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
     }
     @Override
     public void zoomChanged() {
-        if (!skipEvents && Main.isDisplayingMapView()) {
+        if (!skipZoomEvents && Main.isDisplayingMapView()) {
             MapView mv = Main.map.mapView;
             final Bounds currentBounds = new Bounds(
                     mv.getLatLon(0, mv.getHeight()),
                     mv.getLatLon(mv.getWidth(), 0)
             );
-            skipEvents = true;
+            skipZoomEvents = true;
             slippyMap.setBoundingBox(currentBounds);
             slippyMap.zoomOut(); // to give a better overview
-            skipEvents = false;
+            skipZoomEvents = false;
         }
     }
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (!skipEvents) {
-            skipEvents = true;
+        if (!skipZoomEvents) {
+            skipZoomEvents = true;
             Main.map.mapView.zoomTo(slippyMap.getBoundingBox());
-            skipEvents = false;
+            skipZoomEvents = false;
+        }
+    }
+
+    private void updateShowToolBarToggleButton() {
+        final boolean isSelected = this.showToolBarToggleButton.getModel().isSelected();
+        this.showToolBarToggleButton.setIcon(
+            ImageProvider.get("misc", isSelected ? "buttonshow" : "buttonhide")
+        );
+        this.toolBar.setVisible(isSelected);
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        if (e.getSource() == this.showToolBarToggleButton.getModel()) {
+            this.updateShowToolBarToggleButton();
+            Main.pref.put("markseen.dialog.showToolBar", this.showToolBarToggleButton.getModel().isSelected());
+        } else {
+            throw new RuntimeException("Unknown/unexpected ChangeEvent source");
         }
     }
 }
