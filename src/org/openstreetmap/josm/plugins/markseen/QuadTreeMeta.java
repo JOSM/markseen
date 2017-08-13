@@ -55,8 +55,8 @@ public class QuadTreeMeta {
         }
     }
 
-    private class MarkBoundsSeenExecutor extends ThreadPoolExecutor {
-        public MarkBoundsSeenExecutor() {
+    private class QuadTreeEditExecutor extends ThreadPoolExecutor {
+        public QuadTreeEditExecutor() {
             super(1, 1, 5, java.util.concurrent.TimeUnit.MINUTES, new ArrayBlockingQueue<Runnable>(8));
         }
 
@@ -77,10 +77,10 @@ public class QuadTreeMeta {
                     }
                 }
             }
-            // else we will elide the lock re-acquisition to allow our worker thread to pick the next Bounds to mark
+            // else we will elide the lock re-acquisition to allow our worker thread to pick the next edit to make
             // immediately. the reason we do this is that any other threads that managed to acquire the write-lock
             // before we could would presumably be involved in the task of painting tiles - if we know we've got a
-            // Bounds-marking request in the queue there's no point in letting it go ahead and paint something which
+            // tree-modifying request in the queue there's no point in letting it go ahead and paint something which
             // we're probably going to dirty immediately anyway.
             //
             // we're only able to do this because we know we only have one thread consuming this queue. if we had >1
@@ -93,7 +93,7 @@ public class QuadTreeMeta {
         @Override
         public void setMaximumPoolSize(int maximumPoolSize) {
             if (maximumPoolSize > 1) {
-                throw new UnsupportedOperationException("MarkBoundsSeenExecutor cannot have >1 thread");
+                throw new UnsupportedOperationException("QuadTreeEditExecutor cannot have >1 thread");
             }
             super.setMaximumPoolSize(maximumPoolSize);
         }
@@ -101,7 +101,7 @@ public class QuadTreeMeta {
         @Override
         public void setCorePoolSize(int corePoolSize) {
             if (corePoolSize > 1) {
-                throw new UnsupportedOperationException("MarkBoundsSeenExecutor cannot have >1 thread");
+                throw new UnsupportedOperationException("QuadTreeEditExecutor cannot have >1 thread");
             }
             super.setCorePoolSize(corePoolSize);
         }
@@ -140,7 +140,7 @@ public class QuadTreeMeta {
     protected final BufferedImage EMPTY_MASK;
     protected final BufferedImage FULL_MASK;
 
-    private final Executor markBoundsSeenExecutor;
+    private final Executor quadTreeEditExecutor;
 
     private final Set<QuadTreeModifiedListener> modifiedListeners;
 
@@ -175,12 +175,12 @@ public class QuadTreeMeta {
         );
 
         this.quadTreeRoot = new QuadTreeNode(this);
-        this.markBoundsSeenExecutor = new MarkBoundsSeenExecutor();
+        this.quadTreeEditExecutor = new QuadTreeEditExecutor();
         this.modifiedListeners = Collections.synchronizedSet(new HashSet<QuadTreeModifiedListener>());
     }
 
     public void requestSeenBoundsMark(Bounds bounds, double minTilesAcross) {
-        this.markBoundsSeenExecutor.execute(new MarkBoundsSeenRequest(bounds, minTilesAcross));
+        this.quadTreeEditExecutor.execute(new MarkBoundsSeenRequest(bounds, minTilesAcross));
     }
 
     /**
