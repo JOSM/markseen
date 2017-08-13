@@ -263,6 +263,10 @@ public class BaseQuadTreeNodeTest extends BaseTest {
     }
 
     protected void checkReferenceTiles(QuadTreeMeta quadTreeMeta, Integer orderSeed) {
+        this.checkReferenceTiles(quadTreeMeta, orderSeed, null);
+    }
+
+    protected void checkReferenceTiles(QuadTreeMeta quadTreeMeta, Integer orderSeed, Object constReferenceMask) {
         List<Integer> remapping = IntStream.range(0, this.referenceTiles.length).boxed().collect(Collectors.toList());
         if (orderSeed != null) {
             Collections.shuffle(remapping, new Random((long)orderSeed));
@@ -275,15 +279,16 @@ public class BaseQuadTreeNodeTest extends BaseTest {
             int zoom = (int)referenceTileInfo[0];
             int tilex = (int)referenceTileInfo[1];
             int tiley = (int)referenceTileInfo[2];
-            byte[] maskBytes = Boolean.class.isInstance(referenceTileInfo[3]) ?
+            Object referenceMask = constReferenceMask != null ? constReferenceMask : referenceTileInfo[3];
+            byte[] maskBytes = Boolean.class.isInstance(referenceMask) ?
                 (
                     (DataBufferByte) (
-                        ((boolean)referenceTileInfo[3]) ?
+                        ((boolean)referenceMask) ?
                                     quadTreeMeta.FULL_MASK :
                                     quadTreeMeta.EMPTY_MASK
                     ).getData().getDataBuffer()
                 ).getData() :
-                (byte[])referenceTileInfo[3];
+                (byte[])referenceMask;
 
             BufferedImage result = quadTreeMeta.quadTreeRoot.getNodeForTile(
                 tilex,
