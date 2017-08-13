@@ -1,9 +1,11 @@
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
@@ -11,10 +13,13 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import static org.openstreetmap.josm.tools.I18n.tr;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+
 import java.util.Collections;
+import java.util.Hashtable;
+
+import static org.openstreetmap.josm.tools.I18n.tr;
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
@@ -33,11 +38,14 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
 
     private final QuadTreeMeta quadTreeMeta;
     private final JSlider recordMinZoomSlider;
+    private final JLabel recordMinZoomSliderLabel;
     private final JToggleButton recordToggleButton;
     private final JToolBar toolBar;
     private final JPanel innerPanel;
     private final JToggleButton showToolBarToggleButton;
     private boolean initialized = false;
+
+    private static final String recordMinZoomSliderToolTip = tr("Do not record area as seen when viewport is larger than this");
 
     /**
      * Constructs a new {@code MarkSeenDialog}.
@@ -46,6 +54,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         super(tr("MarkSeen Viewer"), "minimap", tr("Shows viewed map areas on a familiar small map"), null, 150);
         this.quadTreeMeta = quadTreeMeta_;
         this.recordMinZoomSlider = new JSlider(recordMinZoom_);
+        this.recordMinZoomSliderLabel = new JLabel(tr("Max viewport size"));
         this.recordToggleButton = new JToggleButton(recordAction_);
         this.toolBar = new JToolBar();
         this.innerPanel = new JPanel(new BorderLayout());
@@ -61,10 +70,30 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
     }
     private synchronized void initialize() {
         if (!this.initialized) {
-            slippyMap.setSizeButtonVisible(false);
-            slippyMap.addPropertyChangeListener(BBoxChooser.BBOX_PROP, this);
+            this.slippyMap.setSizeButtonVisible(false);
+            this.slippyMap.addPropertyChangeListener(BBoxChooser.BBOX_PROP, this);
+
+            final Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+            labelTable.put(4, new JLabel(tr("16m")));
+            labelTable.put(10, new JLabel(tr("1km")));
+            labelTable.put(20, new JLabel(tr("1,000km")));
+            this.recordMinZoomSlider.setLabelTable(labelTable);
+
+            this.recordMinZoomSlider.setPaintLabels(true);
+            this.recordMinZoomSlider.setSnapToTicks(true);
+            this.recordMinZoomSlider.setMinimumSize(
+                new Dimension(100, (int) this.recordMinZoomSlider.getMinimumSize().getHeight())
+            );
+            this.recordMinZoomSlider.setToolTipText(recordMinZoomSliderToolTip);
+            this.recordMinZoomSliderLabel.setLabelFor(this.recordMinZoomSliderLabel);
+            this.recordMinZoomSliderLabel.setMinimumSize(
+                new Dimension(64, (int) this.recordMinZoomSliderLabel.getMinimumSize().getHeight())
+            );
+            this.recordMinZoomSliderLabel.setToolTipText(recordMinZoomSliderToolTip);
+
             createLayout(innerPanel, false, Collections.emptyList());
             this.toolBar.add(this.recordToggleButton);
+            this.toolBar.add(this.recordMinZoomSliderLabel);
             this.toolBar.add(this.recordMinZoomSlider);
             this.innerPanel.add(this.toolBar, BorderLayout.NORTH);
             this.innerPanel.add(this.slippyMap, BorderLayout.CENTER);
