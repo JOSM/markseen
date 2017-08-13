@@ -262,11 +262,20 @@ public class BaseQuadTreeNodeTest extends BaseTest {
         }
     }
 
-    protected void checkReferenceTiles(QuadTreeMeta quadTreeMeta, Integer orderSeed) {
-        this.checkReferenceTiles(quadTreeMeta, orderSeed, null);
+    protected void inspectReferenceTiles(QuadTreeMeta quadTreeMeta, Integer orderSeed) {
+        this.inspectReferenceTiles(quadTreeMeta, orderSeed, true);
     }
 
-    protected void checkReferenceTiles(QuadTreeMeta quadTreeMeta, Integer orderSeed, Object constReferenceMask) {
+    protected void inspectReferenceTiles(QuadTreeMeta quadTreeMeta, Integer orderSeed, boolean assertContents) {
+        this.inspectReferenceTiles(quadTreeMeta, orderSeed, assertContents, null);
+    }
+
+    protected void inspectReferenceTiles(
+        QuadTreeMeta quadTreeMeta,
+        Integer orderSeed,
+        boolean assertContents,
+        Object constReferenceMask
+    ) {
         List<Integer> remapping = IntStream.range(0, this.referenceTiles.length).boxed().collect(Collectors.toList());
         if (orderSeed != null) {
             Collections.shuffle(remapping, new Random((long)orderSeed));
@@ -302,10 +311,12 @@ public class BaseQuadTreeNodeTest extends BaseTest {
 //                 ((DataBufferByte) result.getData().getDataBuffer()).getData())
 //             );
 
-            assertArrayEquals(
-                ((DataBufferByte) result.getData().getDataBuffer()).getData(),
-                maskBytes
-            );
+            if (assertContents) {
+                assertArrayEquals(
+                    ((DataBufferByte) result.getData().getDataBuffer()).getData(),
+                    maskBytes
+                );
+            }
         }
     }
 }
