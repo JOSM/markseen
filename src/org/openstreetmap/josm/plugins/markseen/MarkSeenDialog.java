@@ -77,6 +77,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
             labelTable.put(4, new JLabel(tr("16m")));
             labelTable.put(10, new JLabel(tr("1km")));
             labelTable.put(20, new JLabel(tr("1,000km")));
+            labelTable.put(this.recordMinZoomSlider.getModel().getMaximum(), new JLabel(tr("\u221E")));
             this.recordMinZoomSlider.setLabelTable(labelTable);
 
             this.recordMinZoomSlider.setPaintLabels(true);

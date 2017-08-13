@@ -100,8 +100,13 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
     }
 
     protected void updateRecordActionEnabled(Bounds currentBounds) {
-        final int recordMaxSpan = 1<<this.recordMinZoom.getValue();
-        this.recordAction.setEnabled(currentBounds.getMin().greatCircleDistance(currentBounds.getMax()) < recordMaxSpan);
+        if (this.recordMinZoom.getValue() == this.recordMinZoom.getMaximum()) {
+            // "infinity" setting - always recordable
+            this.recordAction.setEnabled(true);
+        } else {
+            final int recordMaxSpan = 1<<this.recordMinZoom.getValue();
+            this.recordAction.setEnabled(currentBounds.getMin().greatCircleDistance(currentBounds.getMax()) < recordMaxSpan);
+        }
     }
 
     @Override
