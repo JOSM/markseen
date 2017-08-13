@@ -27,12 +27,13 @@ public class QuadTreeNodeSeenRectOrderTest extends BaseQuadTreeNodeTest {
         for (int i=0; i<scenarios.length; i++) {
             Object[] seenRects = (Object[])scenarios[i][1];
 
-            int lenFact = 1;
-            for(int k=1; k<=scenarios.length; k++) {
-                lenFact = lenFact*k;
+            // we'd rather avoid testing against more permutations than exist for the number of seenRects
+            int srFact = 1;
+            for(int m=1; m<=seenRects.length; m++) {
+                srFact = srFact*m;
             }
 
-            for (int j=0; j<Math.min(lenFact, variants); j++) {
+            for (int j=0; j<Math.min(srFact, variants); j++) {
                 paramSets.add(new Object[] {i, j, null});
             }
         }
