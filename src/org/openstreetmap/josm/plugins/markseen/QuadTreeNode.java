@@ -486,7 +486,9 @@ class QuadTreeNode {
         double y1s = Math.rint(y1*preferredZoomFactor)/preferredZoomFactor;
 
         if (x0s == x1s || y0s == y1s) {
-            throw new RuntimeException("Proposed rect has such extreme aspect ratio that it would be zero-width at preferredZoom");
+            throw new UnsupportedOperationException(
+                "Proposed rect has such extreme aspect ratio that it would be zero-width at preferredZoom"
+            );
         }
 
         this.markRectSeenInner(
@@ -499,6 +501,24 @@ class QuadTreeNode {
             y1s,
             preferredZoom
         );
+    }
+
+    public void clear() {
+        assert this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread();
+        assert !this.belowCanonical;
+
+        this.canonicalMask = this.quadTreeMeta.EMPTY_MASK;
+        this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
+
+        this.setDescendantsBelowCanonical(false);
+
+        // mark ancestors & descendants dirty
+        this.dirtyAncestors(true);
+        this.dirtyDescendants(true);
+
+        // something we're notably *not* doing here is destroying all the child nodes because it is assumed the user
+        // will be working in a similar area and there will be opportunities to re-use these nodes. the majority of the
+        // node's memory can be reclaimed through mask SoftReferences anyway.
     }
 
     private void checkIntegrityInner(boolean recBelowCanonical, QuadTreeNode recParent) {
