@@ -6,7 +6,6 @@ import java.beans.PropertyChangeListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
-import javax.swing.JToggleButton;
 import javax.swing.BoundedRangeModel;
 import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.event.ChangeEvent;
@@ -15,6 +14,7 @@ import javax.swing.event.ChangeListener;
 import static org.openstreetmap.josm.tools.I18n.tr;
 
 import org.openstreetmap.josm.Main;
+import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.gui.MapFrame;
@@ -32,7 +32,7 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
             super(tr("Record seen areas"),
                 null, /* no icon */
                 tr("Mark seen areas of map in MarkSeen viewer"),
-                Shortcut.registerShortcut("menu:view:markseenrecord", tr("Toggle MarkSeen recording"), KeyEvent.VK_M, Shortcut.CTRL_SHIFT),
+                Shortcut.registerShortcut("menu:view:markseenrecord", tr("Toggle MarkSeen recording"), KeyEvent.VK_M, Shortcut.ALT_SHIFT),
                 false /* register toolbar */
             );
             this.setSelected(Main.pref.getBoolean("markseen.recordActive", false));
@@ -53,7 +53,25 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
         }
     }
 
+    private class MarkSeenClearAction extends JosmAction {
+        public MarkSeenClearAction() {
+            super(
+                tr("Clear"),
+                null, /* no icon */
+                tr("Clear record of seen areas"),
+                Shortcut.registerShortcut("menu:view:markseenclear", tr("Clear MarkSeen areas"), KeyEvent.VK_C, Shortcut.ALT_SHIFT),
+                false /* register toolbar */
+            );
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            MarkSeenPlugin.this.quadTreeMeta.requestClear();
+        }
+    }
+
     private final QuadTreeMeta quadTreeMeta;
+    private final JosmAction clearAction;
     private final ToggleAction recordAction;
     private final BoundedRangeModel recordMinZoom;
 
@@ -64,6 +82,7 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
             ColorHelper.html2color(Main.pref.get("color.markseen.seenarea", "#ff00ff")),
             Main.pref.getDouble("markseen.maskOpacity", 0.5)
         );
+        this.clearAction = new MarkSeenClearAction();
         this.recordAction = new MarkSeenToggleRecordAction();
         this.recordMinZoom = new DefaultBoundedRangeModel(
             Main.pref.getInteger("markseen.recordMinZoom", 11),
@@ -77,7 +96,7 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
     @Override
     public void mapFrameInitialized(MapFrame oldFrame, MapFrame newFrame) {
         if (oldFrame == null && newFrame != null) {
-            newFrame.addToggleDialog(new MarkSeenDialog(this.quadTreeMeta, this.recordAction, this.recordMinZoom));
+            newFrame.addToggleDialog(new MarkSeenDialog(this.quadTreeMeta, this.clearAction, this.recordAction, this.recordMinZoom));
         }
         NavigatableComponent.addZoomChangeListener(this);
     }

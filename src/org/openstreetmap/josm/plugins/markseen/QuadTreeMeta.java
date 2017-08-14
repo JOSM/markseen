@@ -122,6 +122,13 @@ public class QuadTreeMeta {
         }
     }
 
+    private class ClearRequest implements Runnable {
+        @Override
+        public void run() {
+            QuadTreeMeta.this.quadTreeRoot.clear();
+        }
+    }
+
     interface QuadTreeModifiedListener {
         void quadTreeModified();
     }
@@ -181,6 +188,10 @@ public class QuadTreeMeta {
 
     public void requestSeenBoundsMark(Bounds bounds, double minTilesAcross) {
         this.quadTreeEditExecutor.execute(new MarkBoundsSeenRequest(bounds, minTilesAcross));
+    }
+
+    public void requestClear() {
+        this.quadTreeEditExecutor.execute(new ClearRequest());
     }
 
     /**

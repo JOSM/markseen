@@ -7,6 +7,7 @@ import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JButton;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JSlider;
@@ -21,6 +22,7 @@ import java.util.Hashtable;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
 import org.openstreetmap.josm.Main;
+import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.gui.MapView;
@@ -40,6 +42,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
     private final JSlider recordMinZoomSlider;
     private final JLabel recordMinZoomSliderLabel;
     private final JToggleButton recordToggleButton;
+    private final JButton clearButton;
     private final JToolBar toolBar;
     private final JPanel innerPanel;
     private final JToggleButton showToolBarToggleButton;
@@ -50,12 +53,18 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
     /**
      * Constructs a new {@code MarkSeenDialog}.
      */
-    public MarkSeenDialog(QuadTreeMeta quadTreeMeta_, ToggleAction recordAction_, BoundedRangeModel recordMinZoom_) {
+    public MarkSeenDialog(
+        QuadTreeMeta quadTreeMeta_,
+        JosmAction clearAction_,
+        ToggleAction recordAction_,
+        BoundedRangeModel recordMinZoom_
+    ) {
         super(tr("MarkSeen Viewer"), "minimap", tr("Shows viewed map areas on a familiar small map"), null, 150);
         this.quadTreeMeta = quadTreeMeta_;
         this.recordMinZoomSlider = new JSlider(recordMinZoom_);
         this.recordMinZoomSliderLabel = new JLabel(tr("Max viewport size"));
         this.recordToggleButton = new JToggleButton(recordAction_);
+        this.clearButton = new JButton(clearAction_);
         this.toolBar = new JToolBar();
         this.innerPanel = new JPanel(new BorderLayout());
 
@@ -94,6 +103,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
 
             createLayout(innerPanel, false, Collections.emptyList());
             this.toolBar.add(this.recordToggleButton);
+            this.toolBar.add(this.clearButton);
             this.toolBar.add(this.recordMinZoomSliderLabel);
             this.toolBar.add(this.recordMinZoomSlider);
             this.innerPanel.add(this.toolBar, BorderLayout.NORTH);
