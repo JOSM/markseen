@@ -8,6 +8,9 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.DefaultBoundedRangeModel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -17,12 +20,14 @@ import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
+import org.openstreetmap.josm.gui.MainMenu;
 import org.openstreetmap.josm.gui.MapFrame;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
 import org.openstreetmap.josm.plugins.Plugin;
 import org.openstreetmap.josm.plugins.PluginInformation;
 import org.openstreetmap.josm.tools.ColorHelper;
+import org.openstreetmap.josm.tools.ImageProvider;
 import org.openstreetmap.josm.tools.Shortcut;
 
 
@@ -30,10 +35,17 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
     private class MarkSeenToggleRecordAction extends ToggleAction {
         public MarkSeenToggleRecordAction() {
             super(tr("Record seen areas"),
-                null, /* no icon */
+                (ImageProvider)null, /* no icon */
                 tr("Mark seen areas of map in MarkSeen viewer"),
-                Shortcut.registerShortcut("menu:view:markseenrecord", tr("Toggle MarkSeen recording"), KeyEvent.VK_M, Shortcut.ALT_SHIFT),
-                false /* register toolbar */
+                Shortcut.registerShortcut(
+                    "menu:view:markseen:record",
+                    tr("Toggle MarkSeen recording"),
+                    KeyEvent.CHAR_UNDEFINED,
+                    Shortcut.NONE
+                ),
+                true, /* register toolbar */
+                "MarkSeen/record",
+                false
             );
             this.setSelected(Main.pref.getBoolean("markseen.recordActive", false));
         }
@@ -57,10 +69,17 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
         public MarkSeenClearAction() {
             super(
                 tr("Clear"),
-                null, /* no icon */
+                (ImageProvider)null, /* no icon */
                 tr("Clear record of seen areas"),
-                Shortcut.registerShortcut("menu:view:markseenclear", tr("Clear MarkSeen areas"), KeyEvent.VK_C, Shortcut.ALT_SHIFT),
-                false /* register toolbar */
+                Shortcut.registerShortcut(
+                    "menu:view:markseen:clear",
+                    tr("Clear MarkSeen areas"),
+                    KeyEvent.CHAR_UNDEFINED,
+                    Shortcut.NONE
+                ),
+                true, /* register toolbar */
+                "MarkSeen/clear",
+                false
             );
         }
 
@@ -74,6 +93,11 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
     private final JosmAction clearAction;
     private final ToggleAction recordAction;
     private final BoundedRangeModel recordMinZoom;
+
+    private final JMenu markSeenMainMenu;
+
+    private final JMenuItem mainMenuRecordItem;
+    private final JMenuItem mainMenuClearItem;
 
     public MarkSeenPlugin(PluginInformation info) {
         super(info);
@@ -91,6 +115,13 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
             26
         );
         this.recordMinZoom.addChangeListener(this);
+
+        this.markSeenMainMenu = new JMenu(tr("MarkSeen"));
+        this.mainMenuRecordItem = new JCheckBoxMenuItem(this.recordAction);
+        this.mainMenuRecordItem.setAccelerator(this.recordAction.getShortcut().getKeyStroke());
+        this.recordAction.addButtonModel(this.mainMenuRecordItem.getModel());
+        this.markSeenMainMenu.add(this.mainMenuRecordItem);
+        this.mainMenuClearItem = MainMenu.add(this.markSeenMainMenu, this.clearAction, false);
     }
 
     @Override
@@ -99,6 +130,7 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
             newFrame.addToggleDialog(new MarkSeenDialog(this.quadTreeMeta, this.clearAction, this.recordAction, this.recordMinZoom));
         }
         NavigatableComponent.addZoomChangeListener(this);
+        Main.main.menu.viewMenu.add(this.markSeenMainMenu, 2);
     }
 
     @Override
