@@ -66,6 +66,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         this.recordToggleButton = new JToggleButton(recordAction_);
         this.recordToggleButton.setText(null);
         this.clearButton = new JButton(clearAction_);
+        this.clearButton.setText(null);
         this.toolBar = new JToolBar();
         this.innerPanel = new JPanel(new BorderLayout());
 

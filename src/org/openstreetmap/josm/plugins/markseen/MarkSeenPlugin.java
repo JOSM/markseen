@@ -69,7 +69,7 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
         public MarkSeenClearAction() {
             super(
                 tr("Clear"),
-                (ImageProvider)null, /* no icon */
+                new ImageProvider("icons/24x24/clear.png"),
                 tr("Clear record of seen areas"),
                 Shortcut.registerShortcut(
                     "menu:view:markseen:clear",
