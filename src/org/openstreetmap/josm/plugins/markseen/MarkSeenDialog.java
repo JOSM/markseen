@@ -64,6 +64,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         this.recordMinZoomSlider = new JSlider(recordMinZoom_);
         this.recordMinZoomSliderLabel = new JLabel(tr("Max viewport size"));
         this.recordToggleButton = new JToggleButton(recordAction_);
+        this.recordToggleButton.setText(null);
         this.clearButton = new JButton(clearAction_);
         this.toolBar = new JToolBar();
         this.innerPanel = new JPanel(new BorderLayout());

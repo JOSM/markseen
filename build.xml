@@ -41,6 +41,10 @@
 
     <property name="testconfig.dir"        location="test_config"/>
 
+    <condition property="inkscape.path" value="${env.INKSCAPE_PATH}" else="inkscape">
+        <isset property="env.INKSCAPE_PATH" />
+    </condition>
+
 
     <!-- ** include targets that all plugins have in common ** -->
     <import file="${env.JOSM_PLUGINS_SRC_DIR}/plugins/build-common.xml"/>
@@ -81,6 +85,27 @@
         <pathelement path="${annotations.jar}"/>
         <pathelement path="${env.CLASSPATH}"/>
     </path>
+    <target name="rendericons">
+        <apply executable="mkdir" dest="images" parallel="false" failonerror="true" addsourcefile="false">
+            <arg value="-p"/>
+            <targetfile/>
+            <fileset dir="images_src" includes="**/*.svg" erroronmissingdir="true"/>
+            <mapper type="regexp" from="(.*\/)[^\/]*$" to="\1"/>
+        </apply>
+        <apply executable="${inkscape.path}" dest="images" parallel="false" failonerror="true">
+            <arg value="-z"/>
+            <arg value="-C"/>
+            <arg value="-f"/>
+            <srcfile/>
+            <arg value="-e"/>
+            <targetfile/>
+            <fileset dir="images_src" includes="**/*.svg" erroronmissingdir="true"/>
+            <mapper type="glob" from="*.svg" to="*.png"/>
+        </apply>
+    </target>
+    <target name="setup-dist" depends="rendericons">
+        <antcall target="setup-dist-default" />
+    </target>
     <target name="test" depends="dist, test-clean, test-compile" if="test.present"
         description="Run unit tests. OSM API (TEST) account shall be set with -Dosm.username and -Dosm.password">
         <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml" classpath="${jacocoant.jar}" />

@@ -1,5 +1,6 @@
 build/
 dist/
+images/
 test/jacoco.exec
 test/build/
 test/report/

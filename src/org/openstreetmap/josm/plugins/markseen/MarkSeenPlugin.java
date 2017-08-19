@@ -35,7 +35,7 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
     private class MarkSeenToggleRecordAction extends ToggleAction {
         public MarkSeenToggleRecordAction() {
             super(tr("Record seen areas"),
-                (ImageProvider)null, /* no icon */
+                new ImageProvider("icons/24x24/record.png"),
                 tr("Mark seen areas of map in MarkSeen viewer"),
                 Shortcut.registerShortcut(
                     "menu:view:markseen:record",

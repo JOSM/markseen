@@ -52,9 +52,11 @@ in {
       pkgs.rlwrap  # just try using jdb without it
       pkgs.man
       mockitoCore
+      pkgs.inkscape  # for building icons
     ];
 
     JOSM_PLUGINS_SRC_DIR=josmPluginsSrc;
     JOSM_SRC_DIR=josmSrc;
+    INKSCAPE_PATH="${pkgs.inkscape}/bin/inkscape";
   };
 }
