@@ -132,7 +132,9 @@ public class QuadTreeMeta {
     interface QuadTreeModifiedListener {
         void quadTreeModified();
     }
- 
+
+    // we don't worry about using the specific configured color ("maskColor") for marking regions, instead just expect
+    // the palette to match opaque white to that color and transparent black to the "background" color
     protected final static Color UNMARK_COLOR = new Color(0, 0, 0, 0);
     protected final static Color MARK_COLOR = new Color(255, 255, 255, 255);
 
