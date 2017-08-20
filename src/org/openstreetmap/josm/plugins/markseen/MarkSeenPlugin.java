@@ -117,6 +117,7 @@ public class MarkSeenPlugin extends Plugin implements NavigatableComponent.ZoomC
         this.recordMinZoom.addChangeListener(this);
 
         this.markSeenMainMenu = new JMenu(tr("MarkSeen"));
+        this.markSeenMainMenu.setIcon(new ImageProvider("icons/16x16/markseen.png").get());
         this.mainMenuRecordItem = new JCheckBoxMenuItem(this.recordAction);
         this.mainMenuRecordItem.setAccelerator(this.recordAction.getShortcut().getKeyStroke());
         this.recordAction.addButtonModel(this.mainMenuRecordItem.getModel());
