@@ -50,8 +50,8 @@ public class QuadTreeNodeSeenRectOrderTest extends BaseQuadTreeNodeTest {
         QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
-        this.markRects(quadTreeMeta, this.seenRectOrderSeed);
-        this.inspectReferenceTiles(quadTreeMeta, this.referenceTileOrderSeed);
+        this.markRects(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
+        this.inspectReferenceTiles(quadTreeMeta, this.referenceTiles, this.referenceTileOrderSeed);
 
         quadTreeMeta.quadTreeRWLock.writeLock().unlock();
     }

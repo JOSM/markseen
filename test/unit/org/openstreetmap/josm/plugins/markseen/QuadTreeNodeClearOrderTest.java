@@ -53,11 +53,11 @@ public class QuadTreeNodeClearOrderTest extends BaseQuadTreeNodeTest {
         QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
-        this.markRects(quadTreeMeta, this.seenRectOrderSeed);
-        this.inspectReferenceTiles(quadTreeMeta, null, false);
+        this.markRects(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
+        this.inspectReferenceTiles(quadTreeMeta, this.referenceTiles, null, false);
         quadTreeMeta.quadTreeRoot.clear();
         quadTreeMeta.quadTreeRoot.checkIntegrity();
-        this.inspectReferenceTiles(quadTreeMeta, this.referenceTileOrderSeed, true, false);
+        this.inspectReferenceTiles(quadTreeMeta, this.referenceTiles, this.referenceTileOrderSeed, true, false);
 
         quadTreeMeta.quadTreeRWLock.writeLock().unlock();
     }
@@ -67,10 +67,10 @@ public class QuadTreeNodeClearOrderTest extends BaseQuadTreeNodeTest {
         QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
-        this.markRects(quadTreeMeta, this.seenRectOrderSeed);
+        this.markRects(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
         quadTreeMeta.quadTreeRoot.clear();
         quadTreeMeta.quadTreeRoot.checkIntegrity();
-        this.inspectReferenceTiles(quadTreeMeta, this.referenceTileOrderSeed, true, false);
+        this.inspectReferenceTiles(quadTreeMeta, this.referenceTiles, this.referenceTileOrderSeed, true, false);
 
         quadTreeMeta.quadTreeRWLock.writeLock().unlock();
     }

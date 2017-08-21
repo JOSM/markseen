@@ -39,13 +39,13 @@ import org.mockito.junit.MockitoRule;
 @Ignore
 public class BaseQuadTreeNodeTest extends BaseTest {
     // parametrized variables
-    protected int scenarioIndex;
-    protected Integer seenRectOrderSeed;
-    protected Integer referenceTileOrderSeed;
+    protected final int scenarioIndex;
+    protected final Integer seenRectOrderSeed;
+    protected final Integer referenceTileOrderSeed;
     // derived parametrized variables
-    protected int tileSize;
-    protected Object[][] seenRects;
-    protected Object[][] referenceTiles;
+    protected final int tileSize;
+    protected final Object[][] seenRects;
+    protected final Object[][] referenceTiles;
 
     private static Object[][] scenarios;
     protected static Object[][] getTestScenarios() throws IOException {
@@ -244,16 +244,16 @@ public class BaseQuadTreeNodeTest extends BaseTest {
         this.referenceTiles = (Object[][])scenario[2];
     }
 
-    protected void markRects(QuadTreeMeta quadTreeMeta, Integer orderSeed) {
-        List<Integer> remapping = IntStream.range(0, this.seenRects.length).boxed().collect(Collectors.toList());
+    protected void markRects(QuadTreeMeta quadTreeMeta, Object[][] seenRects_, Integer orderSeed) {
+        List<Integer> remapping = IntStream.range(0, seenRects_.length).boxed().collect(Collectors.toList());
         if (orderSeed != null) {
             Collections.shuffle(remapping, new Random((long)orderSeed));
         }
 
-        for (int i = 0; i<this.seenRects.length; i++) {
+        for (int i = 0; i<seenRects_.length; i++) {
             int j = remapping.get(i);
-            Object[] seenRectInfo = this.seenRects[j];
-            System.out.format("(%d of %d) Marking seen rect %d\n", i, this.seenRects.length, j);
+            Object[] seenRectInfo = seenRects_[j];
+            System.out.format("(%d of %d) Marking seen rect %d\n", i, seenRects_.length, j);
             Bounds bounds = (Bounds)seenRectInfo[0];
             double minTilesAcross = (double)seenRectInfo[1];
 
@@ -262,29 +262,30 @@ public class BaseQuadTreeNodeTest extends BaseTest {
         }
     }
 
-    protected void inspectReferenceTiles(QuadTreeMeta quadTreeMeta, Integer orderSeed) {
-        this.inspectReferenceTiles(quadTreeMeta, orderSeed, true);
+    protected void inspectReferenceTiles(QuadTreeMeta quadTreeMeta, Object [][] referenceTiles_, Integer orderSeed) {
+        this.inspectReferenceTiles(quadTreeMeta, referenceTiles_, orderSeed, true);
     }
 
-    protected void inspectReferenceTiles(QuadTreeMeta quadTreeMeta, Integer orderSeed, boolean assertContents) {
-        this.inspectReferenceTiles(quadTreeMeta, orderSeed, assertContents, null);
+    protected void inspectReferenceTiles(QuadTreeMeta quadTreeMeta, Object [][] referenceTiles_, Integer orderSeed, boolean assertContents) {
+        this.inspectReferenceTiles(quadTreeMeta, referenceTiles_, orderSeed, assertContents, null);
     }
 
     protected void inspectReferenceTiles(
         QuadTreeMeta quadTreeMeta,
+        Object [][] referenceTiles_,
         Integer orderSeed,
         boolean assertContents,
         Object constReferenceMask
     ) {
-        List<Integer> remapping = IntStream.range(0, this.referenceTiles.length).boxed().collect(Collectors.toList());
+        List<Integer> remapping = IntStream.range(0, referenceTiles_.length).boxed().collect(Collectors.toList());
         if (orderSeed != null) {
             Collections.shuffle(remapping, new Random((long)orderSeed));
         }
 
-        for (int i = 0; i<this.referenceTiles.length; i++) {
+        for (int i = 0; i<referenceTiles_.length; i++) {
             int j = remapping.get(i);
-            Object[] referenceTileInfo = this.referenceTiles[j];
-            System.out.format("(%d of %d) Checking reference tile %d\n", i, this.referenceTiles.length, j);
+            Object[] referenceTileInfo = referenceTiles_[j];
+            System.out.format("(%d of %d) Checking reference tile %d\n", i, referenceTiles_.length, j);
             int zoom = (int)referenceTileInfo[0];
             int tilex = (int)referenceTileInfo[1];
             int tiley = (int)referenceTileInfo[2];
