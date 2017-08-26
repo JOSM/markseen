@@ -2,6 +2,7 @@ package org.openstreetmap.josm.plugins.markseen;
 
 import java.io.IOException;
 import java.lang.Math;
+import java.lang.AssertionError;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -115,10 +116,16 @@ public class QuadTreeMetaSeenRectOrderTest extends BaseRectTest {
             );
 
             if (assertContents) {
-                assertArrayEquals(
-                    resultMaskBytes,
-                    refMaskBytes
-                );
+                try {
+                    assertArrayEquals(
+                        resultMaskBytes,
+                        refMaskBytes
+                    );
+                } catch (final AssertionError e) {
+                    System.out.format("assertArrayEquals failed on reference tile %d\n", j);
+                    System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes));
+                    throw e;
+                }
             }
         }
     }

@@ -2,6 +2,7 @@ package org.openstreetmap.josm.plugins.markseen;
 
 import java.io.IOException;
 import java.util.List;
+import java.lang.AssertionError;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -86,15 +87,19 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
             ).getMask(write, write);
             quadTreeMeta.quadTreeRoot.checkIntegrity();
 
-//             System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(
-//                 ((DataBufferByte) result.getData().getDataBuffer()).getData())
-//             );
+            byte[] resultMaskBytes = ((DataBufferByte) result.getData().getDataBuffer()).getData();
 
             if (assertContents) {
-                assertArrayEquals(
-                    ((DataBufferByte) result.getData().getDataBuffer()).getData(),
-                    maskBytes
-                );
+                try {
+                    assertArrayEquals(
+                        resultMaskBytes,
+                        maskBytes
+                    );
+                } catch (final AssertionError e) {
+                    System.out.format("assertArrayEquals failed on reference tile %d\n", j);
+                    System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes));
+                    throw e;
+                }
             }
         }
     }
