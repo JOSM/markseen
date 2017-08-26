@@ -3,7 +3,7 @@ package org.openstreetmap.josm.plugins.markseen;
 import java.awt.image.BufferedImage;
 
 import java.lang.ref.WeakReference;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.openstreetmap.gui.jmapviewer.Tile;
 
@@ -45,11 +45,15 @@ class QuadTreeNodeDynamicReference {
         return node;
     }
 
+    public <R> R maskReadOperation(Function<BufferedImage,R> operation) {
+        return this.maskReadOperation(operation, false);
+    }
+
     /**
      *  Performs minimal amount of locking required to be able to perform `operation`, a function which accepts the
      *  current QuadTreeNode mask as an argument and releases the lock(s) afterwards.
      */
-    public void maskReadOperation(Consumer<BufferedImage> operation) {
+    public <R> R maskReadOperation(Function<BufferedImage,R> operation, boolean checkIntegrity) {
         // attempt with read-lock first
         this.quadTreeMeta.quadTreeRWLock.readLock().lock();
         QuadTreeNode node = this.getQuadTreeNode(false);
@@ -78,7 +82,11 @@ class QuadTreeNodeDynamicReference {
         }
 
         try {
-            operation.accept(mask_);
+            R r = operation.apply(mask_);
+            if (checkIntegrity) {
+                this.quadTreeMeta.quadTreeRoot.checkIntegrity();
+            }
+            return r;
         } finally {
             // release whichever lock we had
             if (this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread()) {

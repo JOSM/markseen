@@ -47,6 +47,7 @@ public class MarkSeenTile extends Tile {
                 width_ = height_ = source.getTileSize();
             }
             g.drawImage(mask, x, y, width_, height_, null);
+            return null;
         });
     }
 
