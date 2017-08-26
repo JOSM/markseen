@@ -54,5 +54,10 @@ public class QuadTreeNodeSeenRectOrderTest extends BaseQuadTreeNodeTest {
         this.inspectReferenceTiles(quadTreeMeta, this.referenceTiles, this.referenceTileOrderSeed);
 
         quadTreeMeta.quadTreeRWLock.writeLock().unlock();
+
+        // now, we *should* be able to re-read those same tiles without the ability to write and nothing should
+        // complain. provided, of course, java hasn't decided to reclaim any of the SoftReferences, but that's a pretty
+        // slim possibility.
+        this.inspectReferenceTiles(quadTreeMeta, this.referenceTiles, this.referenceTileOrderSeed, true, null, false);
     }
 }

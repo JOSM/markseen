@@ -40,7 +40,12 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
         this.inspectReferenceTiles(quadTreeMeta, referenceTiles_, orderSeed, true);
     }
 
-    protected void inspectReferenceTiles(QuadTreeMeta quadTreeMeta, Object [][] referenceTiles_, Integer orderSeed, boolean assertContents) {
+    protected void inspectReferenceTiles(
+        QuadTreeMeta quadTreeMeta,
+        Object [][] referenceTiles_,
+        Integer orderSeed,
+        boolean assertContents
+    ) {
         this.inspectReferenceTiles(quadTreeMeta, referenceTiles_, orderSeed, assertContents, null);
     }
 
@@ -50,6 +55,17 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
         Integer orderSeed,
         boolean assertContents,
         Object constReferenceMask
+    ) {
+        this.inspectReferenceTiles(quadTreeMeta, referenceTiles_, orderSeed, assertContents, constReferenceMask, true);
+    }
+
+    protected void inspectReferenceTiles(
+        QuadTreeMeta quadTreeMeta,
+        Object [][] referenceTiles_,
+        Integer orderSeed,
+        boolean assertContents,
+        Object constReferenceMask,
+        boolean write
     ) {
         List<Integer> remapping = getRemapping(referenceTiles_.length, orderSeed);
 
@@ -66,8 +82,8 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
                 tilex,
                 tiley,
                 zoom,
-                true
-            ).getMask(true, true);
+                write
+            ).getMask(write, write);
             quadTreeMeta.quadTreeRoot.checkIntegrity();
 
 //             System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(
