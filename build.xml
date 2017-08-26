@@ -36,7 +36,7 @@
     <property name="annotations.jar"        location="${env.JOSM_SRC_DIR}/tools/findbugs/annotations.jar"/>
     <property name="jacocoant.jar"          location="${env.JOSM_SRC_DIR}/tools/jacocoant.jar"/>
 
-    <property name="josm"                   location="josm.jar"/>
+    <property name="josm"                   location="${env.JOSM_JAR}"/>
     <property name="plugin.dist.dir"        location="dist"/>
 
     <property name="testconfig.dir"        location="test_config"/>
