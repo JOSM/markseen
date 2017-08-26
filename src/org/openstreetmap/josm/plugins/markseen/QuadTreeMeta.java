@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -149,7 +148,7 @@ public class QuadTreeMeta {
     protected final BufferedImage EMPTY_MASK;
     protected final BufferedImage FULL_MASK;
 
-    private final Executor quadTreeEditExecutor;
+    private final ThreadPoolExecutor quadTreeEditExecutor;
 
     private final Set<QuadTreeModifiedListener> modifiedListeners;
 
@@ -194,6 +193,10 @@ public class QuadTreeMeta {
 
     public void requestClear() {
         this.quadTreeEditExecutor.execute(new ClearRequest());
+    }
+
+    protected boolean isEditRequestQueueEmpty() {
+        return this.quadTreeEditExecutor.getQueue().isEmpty();
     }
 
     /**
