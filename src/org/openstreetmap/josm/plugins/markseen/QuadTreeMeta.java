@@ -109,19 +109,30 @@ public class QuadTreeMeta {
     private class MarkBoundsSeenRequest implements Runnable {
         private final Bounds bounds;
         private final double minTilesAcross;
+        private final boolean checkIntegrity;
 
-        public MarkBoundsSeenRequest(Bounds bounds_, double minTilesAcross_) {
+        public MarkBoundsSeenRequest(Bounds bounds_, double minTilesAcross_, boolean checkIntegrity_) {
             this.bounds = bounds_;
             this.minTilesAcross = minTilesAcross_;
+            this.checkIntegrity = checkIntegrity_;
         }
 
         @Override
         public void run() {
             QuadTreeMeta.this.quadTreeRoot.markBoundsSeen(this.bounds, this.minTilesAcross);
+            if (this.checkIntegrity) {
+                QuadTreeMeta.this.quadTreeRoot.checkIntegrity();
+            }
         }
     }
 
     private class ClearRequest implements Runnable {
+        private final boolean checkIntegrity;
+
+        public ClearRequest(boolean checkIntegrity_) {
+            this.checkIntegrity = checkIntegrity_;
+        }
+
         @Override
         public void run() {
             QuadTreeMeta.this.quadTreeRoot.clear();
@@ -188,11 +199,19 @@ public class QuadTreeMeta {
     }
 
     public void requestSeenBoundsMark(Bounds bounds, double minTilesAcross) {
-        this.quadTreeEditExecutor.execute(new MarkBoundsSeenRequest(bounds, minTilesAcross));
+        this.requestSeenBoundsMark(bounds, minTilesAcross, false);
+    }
+
+    public void requestSeenBoundsMark(Bounds bounds, double minTilesAcross, boolean checkIntegrity) {
+        this.quadTreeEditExecutor.execute(new MarkBoundsSeenRequest(bounds, minTilesAcross, checkIntegrity));
     }
 
     public void requestClear() {
-        this.quadTreeEditExecutor.execute(new ClearRequest());
+        this.requestClear(false);
+    }
+
+    public void requestClear(boolean checkIntegrity) {
+        this.quadTreeEditExecutor.execute(new ClearRequest(checkIntegrity));
     }
 
     protected boolean isEditRequestQueueEmpty() {
