@@ -27,6 +27,7 @@ public class QuadTreeNodeClearOrderTest extends BaseQuadTreeNodeTest {
         Object[][] scenarios = getTestScenarios();
         for (int i=0; i<scenarios.length; i++) {
             Object[] seenRects = (Object[])scenarios[i][1];
+            Object[] referenceTiles = (Object[])scenarios[i][2];
 
             // we'd rather avoid testing against more permutations than exist for the number of seenRects
             int srFact = 1;
@@ -34,8 +35,14 @@ public class QuadTreeNodeClearOrderTest extends BaseQuadTreeNodeTest {
                 srFact = srFact*m;
             }
 
+            // we'd rather avoid testing against more permutations than exist for the number of referenceTiles
+            int rtFact = 1;
+            for(int m=1; m<=referenceTiles.length; m++) {
+                rtFact = rtFact*m;
+            }
+
             for (int j=0; j<Math.min(srFact, seenRectVariants); j++) {
-                for (int k=0; k<referenceTileVariants; k++) {
+                for (int k=0; k<Math.min(rtFact, referenceTileVariants); k++) {
                     paramSets.add(new Object[] {i, j, k});
                 }
             }

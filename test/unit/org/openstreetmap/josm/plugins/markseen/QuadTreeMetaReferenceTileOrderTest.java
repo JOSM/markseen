@@ -21,8 +21,8 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
-    private static final int seenRectVariants = 4;
-    private static final int referenceTileVariants = 4;
+    private static final int seenRectVariants = 8;
+    private static final int referenceTileVariants = 2;
 
     @Parameters(name="{index}-scenario-{0}-seeds-{1}-{2}")
     public static Collection<Object[]> getParameters() throws IOException {
@@ -30,6 +30,7 @@ public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
         Object[][] scenarios = getTestScenarios();
         for (int i=0; i<scenarios.length; i++) {
             Object[] seenRects = (Object[])scenarios[i][1];
+            Object[] referenceTiles = (Object[])scenarios[i][2];
 
             // we'd rather avoid testing against more permutations than exist for the number of seenRects
             int srFact = 1;
@@ -39,7 +40,7 @@ public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
 
             // we'd rather avoid testing against more permutations than exist for the number of referenceTiles
             int rtFact = 1;
-            for(int m=1; m<=seenRects.length; m++) {
+            for(int m=1; m<=referenceTiles.length; m++) {
                 rtFact = rtFact*m;
             }
 
