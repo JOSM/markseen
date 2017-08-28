@@ -214,8 +214,8 @@ public class QuadTreeMeta {
         this.quadTreeEditExecutor.execute(new ClearRequest(checkIntegrity));
     }
 
-    protected boolean isEditRequestQueueEmpty() {
-        return this.quadTreeEditExecutor.getQueue().isEmpty();
+    protected long getEditRequestQueueCompletedTaskCount() {
+        return this.quadTreeEditExecutor.getCompletedTaskCount();
     }
 
     /**

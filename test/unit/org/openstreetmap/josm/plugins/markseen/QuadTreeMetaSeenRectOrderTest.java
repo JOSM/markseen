@@ -137,8 +137,8 @@ public class QuadTreeMetaSeenRectOrderTest extends BaseRectTest {
 
         this.markRectsAsync(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
 
-        // wait until the edits have started (or have finished)
-        while (!(quadTreeMeta.quadTreeRWLock.isWriteLocked() || quadTreeMeta.isEditRequestQueueEmpty()));
+        // wait until the edits have properly started
+        while (quadTreeMeta.getEditRequestQueueCompletedTaskCount() == 0);
 
         this.inspectReferenceTiles(quadTreeMeta, dynamicReferences, this.referenceTiles, this.referenceTileOrderSeed);
     }
