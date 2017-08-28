@@ -61,8 +61,8 @@ public class QuadTreeNodeReferenceTileOrderTest extends BaseQuadTreeNodeTest {
 
         this.markRects(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
         // because some of the reference tiles are sensitive to the order they were requested in, we can't actually
-        // check the contents here - still, we're going to be executing all QuadTreeNode's assertions as we do this at
-        // least.
+        // check the contents here - still, we're going to be executing all QuadTreeNode's internal assertions as we do
+        // this at least.
         this.inspectReferenceTiles(quadTreeMeta, this.referenceTiles, this.referenceTileOrderSeed, false);
 
         quadTreeMeta.quadTreeRWLock.writeLock().unlock();
