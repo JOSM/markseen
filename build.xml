@@ -71,6 +71,12 @@
         <pathelement path="${annotations.jar}"/>
         <pathelement path="${env.CLASSPATH}"/>
     </path>
+    <target name="init-revision-fallback" if="git.fail" unless="skip-revision">
+        <tstamp>
+            <format property="current.time" pattern="yyyy-MM-dd'T'HH:mm:ss.SSS"/>
+        </tstamp>
+        <echo file="REVISION.XML"><![CDATA[<info><entry><commit revision="${plugin.version}"><date>${current.time}</date></commit></entry></info>]]></echo>
+    </target>
     <target name="rendericons">
         <apply executable="mkdir" dest="images" parallel="false" failonerror="true" addsourcefile="false">
             <arg value="-p"/>
