@@ -80,7 +80,7 @@ public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
     }
 
     @Test
-    public void testClearPreSeen() {
+    public void testClearPreRead() {
         QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
@@ -96,7 +96,7 @@ public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
     }
 
     @Test
-    public void testClearUnseen() {
+    public void testClearUnread() {
         QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
