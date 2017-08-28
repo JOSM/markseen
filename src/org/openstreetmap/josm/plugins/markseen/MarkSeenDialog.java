@@ -97,7 +97,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
                 new Dimension(100, (int) this.recordMinZoomSlider.getMinimumSize().getHeight())
             );
             this.recordMinZoomSlider.setToolTipText(recordMinZoomSliderToolTip);
-            this.recordMinZoomSliderLabel.setLabelFor(this.recordMinZoomSliderLabel);
+            this.recordMinZoomSliderLabel.setLabelFor(this.recordMinZoomSlider);
             this.recordMinZoomSliderLabel.setMinimumSize(
                 new Dimension(64, (int) this.recordMinZoomSliderLabel.getMinimumSize().getHeight())
             );
