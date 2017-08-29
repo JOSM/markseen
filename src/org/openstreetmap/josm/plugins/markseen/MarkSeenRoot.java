@@ -30,11 +30,13 @@ import org.openstreetmap.josm.tools.Shortcut;
 
 
 public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, ChangeListener {
-    private class MarkSeenToggleRecordAction extends ToggleAction {
+    private static final String recordActionBaseToolTipText = tr("Mark seen areas of map in MarkSeen viewer");
+
+    private class MarkSeenToggleRecordAction extends ToggleAction implements PropertyChangeListener {
         public MarkSeenToggleRecordAction() {
             super(tr("Record seen areas"),
                 new ImageProvider("icons/24x24/record.png"),
-                tr("Mark seen areas of map in MarkSeen viewer"),
+                recordActionBaseToolTipText,
                 Shortcut.registerShortcut(
                     "menu:view:markseen:record",
                     tr("Toggle MarkSeen recording"),
@@ -46,12 +48,19 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
                 false
             );
             this.setSelected(Main.pref.getBoolean("markseen.recordActive", false));
+            this.addPropertyChangeListener(this);
         }
 
-//         @Override
-//         protected void updateEnabledState() {
-//             setEnabled(Main.getLayerManager().getEditLayer() != null);
-//         }
+        @Override
+        public void propertyChange(PropertyChangeEvent e) {
+            if (e.getPropertyName().equals("enabled") && e.getSource() == this) {
+                String r = recordActionBaseToolTipText;
+                if (!(Boolean)e.getNewValue()) {
+                    r += tr(" (disabled while viewport larger than set limit)");
+                }
+                this.setTooltip(r);
+            }
+        }
 
         @Override
         public void actionPerformed(ActionEvent e) {
