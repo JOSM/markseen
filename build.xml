@@ -42,6 +42,11 @@
             <replace file="${testconfig.dir}/unit-josm.home/preferences.xml" encoding="UTF-8" token="@OSM_PASSWORD@" value="${osm.password}"/>
         </sequential>
     </macrodef>
+    <target name="clean">
+        <delete dir="${plugin.build.dir}"/>
+        <delete file="${plugin.jar}"/>
+        <delete dir="images"/>
+    </target>
     <target name="test-clean">
         <delete dir="${plugin.test.dir}/build"/>
         <delete dir="${plugin.test.dir}/report"/>
