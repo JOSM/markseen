@@ -83,22 +83,24 @@
         <echo file="REVISION.XML"><![CDATA[<info><entry><commit revision="${plugin.version}"><date>${current.time}</date></commit></entry></info>]]></echo>
     </target>
     <target name="rendericons">
-        <apply executable="mkdir" dest="images" parallel="false" failonerror="true" addsourcefile="false">
-            <arg value="-p"/>
-            <targetfile/>
-            <fileset dir="images_src" includes="**/*.svg" erroronmissingdir="true"/>
-            <mapper type="regexp" from="(.*\/)[^\/]*$" to="\1"/>
-        </apply>
-        <apply executable="${inkscape.path}" dest="images" parallel="false" failonerror="true">
-            <arg value="-z"/>
-            <arg value="-C"/>
-            <arg value="-f"/>
-            <srcfile/>
-            <arg value="-e"/>
-            <targetfile/>
-            <fileset dir="images_src" includes="**/*.svg" erroronmissingdir="true"/>
-            <mapper type="glob" from="*.svg" to="*.png"/>
-        </apply>
+        <sequential>
+            <apply executable="mkdir" dest="images" parallel="false" failonerror="true" addsourcefile="false">
+                <arg value="-p"/>
+                <targetfile/>
+                <fileset dir="images_src" includes="**/*.svg" erroronmissingdir="true"/>
+                <mapper type="regexp" from="(.*\/)[^\/]*$" to="\1"/>
+            </apply>
+            <apply executable="${inkscape.path}" dest="images" parallel="false" failonerror="true">
+                <arg value="-z"/>
+                <arg value="-C"/>
+                <arg value="-f"/>
+                <srcfile/>
+                <arg value="-e"/>
+                <targetfile/>
+                <fileset dir="images_src" includes="**/*.svg" erroronmissingdir="true"/>
+                <mapper type="glob" from="*.svg" to="*.png"/>
+            </apply>
+        </sequential>
     </target>
     <target name="setup-dist" depends="rendericons">
         <antcall target="setup-dist-default" />
