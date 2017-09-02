@@ -1,0 +1,35 @@
+diff --git a/build.xml b/build.xml
+index 13d1552..a7aeb0b 100644
+--- a/build.xml
++++ b/build.xml
+@@ -335,6 +335,7 @@ Build-Date: ${build.tstamp}
+             <compilerarg value="-Xep:ShortCircuitBoolean:OFF" compiler="com.google.errorprone.ErrorProneAntCompilerAdapter"/>
+             <compilerarg value="-Xep:LiteralClassName:OFF" compiler="com.google.errorprone.ErrorProneAntCompilerAdapter"/>
+             <compilerarg line="-Xmaxwarns 1000"/>
++            <exclude name="org/openstreetmap/josm/io/audio/JavaFxMediaPlayer.java" if:set="noJavaFX"/>
+         </javac>
+ 
+         <copy todir="build" failonerror="no" includeemptydirs="no">
+diff --git a/src/org/openstreetmap/josm/io/audio/AudioPlayer.java b/src/org/openstreetmap/josm/io/audio/AudioPlayer.java
+index 697b95f..b1bea03 100644
+--- a/src/org/openstreetmap/josm/io/audio/AudioPlayer.java
++++ b/src/org/openstreetmap/josm/io/audio/AudioPlayer.java
+@@ -236,10 +236,16 @@ public final class AudioPlayer extends Thread implements AudioListener {
+         double leadIn = Main.pref.getDouble("audio.leadin", 1.0 /* default, seconds */);
+         double calibration = Main.pref.getDouble("audio.calibration", 1.0 /* default, ratio */);
+         try {
+-            soundPlayer = new JavaFxMediaPlayer();
+-        } catch (NoClassDefFoundError | InterruptedException e) {
++            Class jfxmp = Class.forName("org.openstreetmap.josm.io.audio.JavaFxMediaPlayer");
++            soundPlayer = (SoundPlayer)jfxmp.newInstance();
++        } catch (ClassNotFoundException e) {
++            Logging.debug(e);
++            Logging.warn("JOSM compiled without Java FX support. Falling back to Java Sound API");
++        } catch (IllegalAccessException | InstantiationException | NoClassDefFoundError e) {
+             Logging.debug(e);
+             Logging.warn("Java FX is unavailable. Falling back to Java Sound API");
++        }
++        if (soundPlayer == null) {
+             soundPlayer = new JavaSoundPlayer(leadIn, calibration);
+         }
+         soundPlayer.addAudioListener(this);

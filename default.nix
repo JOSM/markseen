@@ -12,21 +12,7 @@ let
     rev="32680";
     ignoreExternals=true;
   };
-  josmSrcRev = "12275";
-  josmSrc = fetchsvnSafe rec {
-    name = "josm-r${rev}";
-    url = "https://josm.openstreetmap.de/svn/trunk";
-    sha256 = "0xnql92j09wdgvdbbalhlwhcbdi958j12yq699p903ri13ckpa9y";
-    rev=josmSrcRev;
-    ignoreExternals=true;
-  };
-  josmJar = pkgs.fetchurl {
-    urls = [
-      "https://josm.openstreetmap.de/download/josm-snapshot-${josmSrcRev}.jar"
-      "https://josm.openstreetmap.de/download/Archiv/josm-snapshot-${josmSrcRev}.jar"
-    ];
-    sha256 = "14y8ga1g3s9234zcgan16sw6va19jlwhfq39z0ayqmzna0fxi88a";
-  };
+  josm = import ./nix/josm.nix { fetchsvn = fetchsvnSafe; antBuild = pkgs.releaseTools.antBuild; stdenv = pkgs.stdenv; };
   byteBuddy = pkgs.fetchMavenArtifact {
     groupId = "net.bytebuddy";
     artifactId = "byte-buddy";
@@ -64,8 +50,9 @@ in {
     ];
 
     JOSM_PLUGINS_SRC_DIR=josmPluginsSrc;
-    JOSM_SRC_DIR=josmSrc;
-    JOSM_JAR=josmJar;
+    JOSM_SRC_DIR=josm.src;
+    JOSM_TEST_BUILD_DIR=josm.testBuildDir;
+    JOSM_JAR="${josm}/share/java/josm-custom.jar";
     INKSCAPE_PATH="${pkgs.inkscape}/bin/inkscape";
   };
 }

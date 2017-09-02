@@ -15,13 +15,18 @@
     <property name="plugin.icon" value="images/icons/24x24/markseen.png"/>
     <property name="plugin.link" value="https://github.com/risicle/josm-markseen"/>
 
-    <property name="groovy.jar"             location="${env.JOSM_SRC_DIR}/tools/groovy-all-2.4.11.jar"/>
     <property name="error_prone_ant.jar"    location="${env.JOSM_SRC_DIR}/tools/error_prone_ant.jar"/>
     <property name="checkstyle.jar"         location="${env.JOSM_SRC_DIR}/tools/checkstyle/checkstyle-all.jar"/>
     <property name="findbugs-ant.jar"       location="${env.JOSM_SRC_DIR}/tools/findbugs/findbugs-ant.jar"/>
     <property name="annotations.jar"        location="${env.JOSM_SRC_DIR}/tools/findbugs/annotations.jar"/>
     <property name="jacocoant.jar"          location="${env.JOSM_SRC_DIR}/tools/jacocoant.jar"/>
+    <!-- technique from https://stackoverflow.com/a/8576319 -->
+    <first id="firstGroovyJar">
+        <fileset dir="${env.JOSM_SRC_DIR}/tools" includes="groovy-all*.jar" />
+    </first>
+    <property name="groovy.jar"             location="${toString:firstGroovyJar}"/>
 
+    <property name="josm.test.build.dir"    location="${env.JOSM_TEST_BUILD_DIR}"/>
     <property name="josm"                   location="${env.JOSM_JAR}"/>
     <property name="plugin.dist.dir"        location="dist"/>
 
