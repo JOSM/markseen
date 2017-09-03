@@ -106,6 +106,9 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     private final JMenuItem mainMenuRecordItem;
     private final JMenuItem mainMenuClearItem;
 
+    private final static int recordMinZoomMin = 4;
+    private final static int recordMinZoomMax = 26;
+
     public MarkSeenRoot() {
         this.quadTreeMeta = new QuadTreeMeta(
             Main.pref.getInteger("markseen.quadTreeTileSize", 256),
@@ -115,10 +118,10 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         this.clearAction = new MarkSeenClearAction();
         this.recordAction = new MarkSeenToggleRecordAction();
         this.recordMinZoom = new DefaultBoundedRangeModel(
-            Main.pref.getInteger("markseen.recordMinZoom", 11),
+            Math.max(recordMinZoomMin, Math.min(Main.pref.getInteger("markseen.recordMinZoom", 11), recordMinZoomMax)),
             0,
-            4,
-            26
+            recordMinZoomMin,
+            recordMinZoomMax
         );
         this.recordMinZoom.addChangeListener(this);
 
