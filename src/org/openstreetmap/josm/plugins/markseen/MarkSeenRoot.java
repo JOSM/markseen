@@ -139,7 +139,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
             newFrame.addToggleDialog(new MarkSeenDialog(this.quadTreeMeta, this.clearAction, this.recordAction, this.recordMinZoom));
         }
         NavigatableComponent.addZoomChangeListener(this);
-        Main.main.menu.viewMenu.add(this.markSeenMainMenu, 2);
+        Main.main.menu.viewMenu.add(this.markSeenMainMenu, Math.min(2, Main.main.menu.viewMenu.getComponentCount()));
     }
 
     @Override
