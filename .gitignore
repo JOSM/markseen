@@ -5,4 +5,4 @@ test/jacoco.exec
 test/build/
 test/report/
 josm.jar
-test_config/
+test/config/unit-josm.home

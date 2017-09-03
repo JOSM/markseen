@@ -30,7 +30,7 @@
     <property name="josm"                   location="${env.JOSM_JAR}"/>
     <property name="plugin.dist.dir"        location="dist"/>
 
-    <property name="testconfig.dir"        location="test_config"/>
+    <property name="testconfig.dir"        location="test/config"/>
 
     <condition property="inkscape.path" value="${env.INKSCAPE_PATH}" else="inkscape">
         <isset property="env.INKSCAPE_PATH" />
