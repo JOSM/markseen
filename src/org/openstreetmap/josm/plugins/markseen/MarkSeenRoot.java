@@ -137,19 +137,16 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     public void mapFrameInitialized(MapFrame oldFrame, MapFrame newFrame) {
         if (oldFrame == null && newFrame != null) {
             newFrame.addToggleDialog(new MarkSeenDialog(this.quadTreeMeta, this.clearAction, this.recordAction, this.recordMinZoom));
+            NavigatableComponent.addZoomChangeListener(this);
+            Main.main.menu.viewMenu.add(this.markSeenMainMenu, Math.min(2, Main.main.menu.viewMenu.getComponentCount()));
+            this.updateRecordActionEnabled(getCurrentBounds());
         }
-        NavigatableComponent.addZoomChangeListener(this);
-        Main.main.menu.viewMenu.add(this.markSeenMainMenu, Math.min(2, Main.main.menu.viewMenu.getComponentCount()));
     }
 
     @Override
     public void zoomChanged() {
         if (Main.isDisplayingMapView()) {
-            MapView mv = Main.map.mapView;
-            final Bounds currentBounds = new Bounds(
-                    mv.getLatLon(0, mv.getHeight()),
-                    mv.getLatLon(mv.getWidth(), 0)
-            );
+            final Bounds currentBounds = getCurrentBounds();
 
             this.updateRecordActionEnabled(currentBounds);
 
@@ -157,6 +154,13 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
                 this.quadTreeMeta.requestSeenBoundsMark(currentBounds, Main.pref.getDouble("markseen.minTilesAcross", 4.));
             }
         }
+    }
+
+    private static Bounds getCurrentBounds() {
+        return new Bounds(
+                Main.map.mapView.getLatLon(0, Main.map.mapView.getHeight()),
+                Main.map.mapView.getLatLon(Main.map.mapView.getWidth(), 0)
+        );
     }
 
     protected void updateRecordActionEnabled(Bounds currentBounds) {
@@ -173,12 +177,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     public void stateChanged(ChangeEvent e) {
         if (e.getSource() == this.recordMinZoom) {
             if (Main.isDisplayingMapView()) {
-                MapView mv = Main.map.mapView;
-                final Bounds currentBounds = new Bounds(
-                        mv.getLatLon(0, mv.getHeight()),
-                        mv.getLatLon(mv.getWidth(), 0)
-                );
-                this.updateRecordActionEnabled(currentBounds);
+                this.updateRecordActionEnabled(getCurrentBounds());
             }
             Main.pref.putInteger("markseen.recordMinZoom", this.recordMinZoom.getValue());
         } else {
