@@ -109,6 +109,8 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     private final static int recordMinZoomMin = 4;
     private final static int recordMinZoomMax = 26;
 
+    private MarkSeenDialog dialog;
+
     public MarkSeenRoot() {
         this.quadTreeMeta = new QuadTreeMeta(
             Main.pref.getInteger("markseen.quadTreeTileSize", 256),
@@ -136,9 +138,13 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
 
     public void mapFrameInitialized(MapFrame oldFrame, MapFrame newFrame) {
         if (oldFrame == null && newFrame != null) {
-            newFrame.addToggleDialog(new MarkSeenDialog(this.quadTreeMeta, this.clearAction, this.recordAction, this.recordMinZoom));
+            this.dialog = new MarkSeenDialog(this.quadTreeMeta, this.clearAction, this.recordAction, this.recordMinZoom);
+            newFrame.addToggleDialog(this.dialog);
+
             NavigatableComponent.addZoomChangeListener(this);
+
             Main.main.menu.viewMenu.add(this.markSeenMainMenu, Math.min(2, Main.main.menu.viewMenu.getComponentCount()));
+
             this.updateRecordActionEnabled(getCurrentBounds());
         }
     }

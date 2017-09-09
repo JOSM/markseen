@@ -35,9 +35,9 @@ import org.openstreetmap.josm.tools.ImageProvider;
  * Essentially a modified copy of {@link MinimapDialog} rather than an subclass because it's keen on its privacy.
  */
 public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent.ZoomChangeListener, PropertyChangeListener, ChangeListener {
-    private MarkSeenSlippyMapBBoxChooser slippyMap;
     private boolean skipZoomEvents;
 
+    private final MarkSeenSlippyMapBBoxChooser slippyMap;
     private final QuadTreeMeta quadTreeMeta;
     private final JSlider recordMinZoomSlider;
     private final JLabel recordMinZoomSliderLabel;

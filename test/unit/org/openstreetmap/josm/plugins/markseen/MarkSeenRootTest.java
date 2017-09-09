@@ -1,6 +1,9 @@
 package org.openstreetmap.josm.plugins.markseen;
 
 import javax.swing.BoundedRangeModel;
+import javax.swing.JMenuItem;
+import javax.swing.JSlider;
+import javax.swing.JToggleButton;
 
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.ToggleAction;
@@ -28,7 +31,7 @@ public class MarkSeenRootTest {
     }
 
     @Test
-    public void testInitPrefRecordDisabled() throws ReflectiveOperationException {
+    public void testInitPrefRecordActiveDisabled() throws ReflectiveOperationException {
         Main.pref.putInteger("markseen.recordMinZoom", 2);  // deliberately out of range
         Main.pref.put("markseen.recordActive", true);
         Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.29, -18.16));
@@ -36,12 +39,82 @@ public class MarkSeenRootTest {
         MarkSeenRoot markSeenRoot = new MarkSeenRoot();
         markSeenRoot.mapFrameInitialized(null, Main.map);
 
-        ToggleAction recordAction = (ToggleAction)TestUtils.getPrivateField(markSeenRoot, "recordAction");
-        BoundedRangeModel recordMinZoom = (BoundedRangeModel)TestUtils.getPrivateField(markSeenRoot, "recordMinZoom");
+        final ToggleAction recordAction = (ToggleAction)TestUtils.getPrivateField(markSeenRoot, "recordAction");
+        final JMenuItem mainMenuRecordItem = (JMenuItem)TestUtils.getPrivateField(markSeenRoot, "mainMenuRecordItem");
+        final BoundedRangeModel recordMinZoom = (BoundedRangeModel)TestUtils.getPrivateField(markSeenRoot, "recordMinZoom");
+        final MarkSeenDialog dialog = (MarkSeenDialog)TestUtils.getPrivateField(markSeenRoot, "dialog");
+
+        final JSlider recordMinZoomSlider = (JSlider)TestUtils.getPrivateField(dialog, "recordMinZoomSlider");
+        final JToggleButton recordToggleButton = (JToggleButton)TestUtils.getPrivateField(dialog, "recordToggleButton");
+
+        dialog.showDialog();
 
         assertEquals(4, recordMinZoom.getValue());
+        assertEquals(4, recordMinZoomSlider.getValue());
+
         assertTrue(recordAction.isSelected());
+        assertTrue(mainMenuRecordItem.isSelected());
+        assertTrue(recordToggleButton.isSelected());
 
         assertFalse(recordAction.isEnabled());
+        assertFalse(mainMenuRecordItem.isEnabled());
+        assertFalse(recordToggleButton.isEnabled());
+
+        // should have no effect
+        Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.39, -18.06));
+
+        assertTrue(recordAction.isSelected());
+        assertTrue(mainMenuRecordItem.isSelected());
+        assertTrue(recordToggleButton.isSelected());
+
+        assertFalse(recordAction.isEnabled());
+        assertFalse(mainMenuRecordItem.isEnabled());
+        assertFalse(recordToggleButton.isEnabled());
+
+        // should have no effect on recording state
+        recordMinZoomSlider.setValue(12);
+
+        assertEquals(12, recordMinZoom.getValue());
+
+        assertTrue(recordAction.isSelected());
+        assertTrue(mainMenuRecordItem.isSelected());
+        assertTrue(recordToggleButton.isSelected());
+
+        assertFalse(recordAction.isEnabled());
+        assertFalse(mainMenuRecordItem.isEnabled());
+        assertFalse(recordToggleButton.isEnabled());
+
+        // should enable recording
+        Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.275, -18.22));
+
+        assertTrue(recordAction.isSelected());
+        assertTrue(mainMenuRecordItem.isSelected());
+        assertTrue(recordToggleButton.isSelected());
+
+        assertTrue(recordAction.isEnabled());
+        assertTrue(mainMenuRecordItem.isEnabled());
+        assertTrue(recordToggleButton.isEnabled());
+
+        // should deactivate recording
+        recordToggleButton.doClick();
+
+        assertFalse(recordAction.isSelected());
+        assertFalse(mainMenuRecordItem.isSelected());
+        assertFalse(recordToggleButton.isSelected());
+
+        assertTrue(recordAction.isEnabled());
+        assertTrue(mainMenuRecordItem.isEnabled());
+        assertTrue(recordToggleButton.isEnabled());
+
+        // should be unrecorded pan
+        Main.map.mapView.zoomTo(new Bounds(26.265, -18.23, 26.27, -18.22));
+
+        assertFalse(recordAction.isSelected());
+        assertFalse(mainMenuRecordItem.isSelected());
+        assertFalse(recordToggleButton.isSelected());
+
+        assertTrue(recordAction.isEnabled());
+        assertTrue(mainMenuRecordItem.isEnabled());
+        assertTrue(recordToggleButton.isEnabled());
     }
 }
