@@ -10,24 +10,32 @@ import java.util.concurrent.ExecutorService;
 import java.awt.image.DataBufferByte;
 
 import org.openstreetmap.gui.jmapviewer.Tile;
+import org.openstreetmap.gui.jmapviewer.interfaces.TileSource;
 import org.openstreetmap.josm.data.Bounds;
 
 import static org.junit.Assert.assertArrayEquals;
 
 import org.junit.Ignore;
-import org.mockito.Mockito;
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.Deencapsulation;
+import mockit.Invocation;
 
 
 @Ignore
 public class BaseQuadTreeMetaTest extends BaseRectTest {
     public static QuadTreeNodeDynamicReference[] createDynamicReferences(QuadTreeMeta quadTreeMeta, Object[][] referenceTiles_) {
+        new MockUp<Tile>() {
+            @Mock void $init(Invocation invocation, TileSource source, int xtile, int ytile, int zoom) {
+                Tile tile = invocation.getInvokedInstance();
+                Deencapsulation.setField(tile, "xtile", xtile);
+                Deencapsulation.setField(tile, "ytile", ytile);
+                Deencapsulation.setField(tile, "zoom", zoom);
+            }
+        };
         QuadTreeNodeDynamicReference[] refs = new QuadTreeNodeDynamicReference[referenceTiles_.length];
         for (int i=0; i<referenceTiles_.length; i++) {
-            Tile mockTile = Mockito.mock(Tile.class);
-            Mockito.when(mockTile.getZoom()).thenReturn((int)referenceTiles_[i][0]);
-            Mockito.when(mockTile.getXtile()).thenReturn((int)referenceTiles_[i][1]);
-            Mockito.when(mockTile.getYtile()).thenReturn((int)referenceTiles_[i][2]);
-
+            Tile mockTile = new Tile(null, (int)referenceTiles_[i][1], (int)referenceTiles_[i][2], (int)referenceTiles_[i][0]);
             refs[i] = new QuadTreeNodeDynamicReference(quadTreeMeta, mockTile);
         }
         return refs;

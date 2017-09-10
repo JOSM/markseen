@@ -60,6 +60,7 @@
         <delete dir="${testconfig.dir}/unit-josm.home/cache" failonerror="false"/>
     </target>
     <path id="test.classpath">
+        <pathelement path="${env.CLASSPATH}"/><!-- jmockit should apparently come before junit4, hence CLASSPATH here -->
         <fileset dir="${env.JOSM_SRC_DIR}/test/lib">
             <include name="**/*.jar"/>
         </fileset>
@@ -79,7 +80,6 @@
         <pathelement path="${plugin.jar}"/>
         <pathelement path="${groovy.jar}"/>
         <pathelement path="${annotations.jar}"/>
-        <pathelement path="${env.CLASSPATH}"/>
     </path>
     <target name="init-revision-fallback" if="git.fail" unless="skip-revision">
         <tstamp>
