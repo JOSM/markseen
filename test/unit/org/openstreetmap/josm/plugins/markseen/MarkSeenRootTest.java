@@ -170,82 +170,86 @@ public class MarkSeenRootTest {
         assertFirstNonWhitePixelValue(reversedArray(middleRow), right);
     }
 
+    MarkSeenRoot markSeenRoot;
+
+    ToggleAction recordAction;
+    JMenuItem mainMenuRecordItem;
+    BoundedRangeModel recordMinZoom;
+    MarkSeenDialog dialog;
+
+    JSlider recordMinZoomSlider;
+    JToggleButton recordToggleButton;
+    SlippyMapBBoxChooser slippyMap;
+
+    public void probeSlippyMapPixels(int top, int right, int bottom, int left) {
+        BufferedImage image = new BufferedImage(
+            this.slippyMap.getSize().width,
+            this.slippyMap.getSize().height,
+            BufferedImage.TYPE_INT_RGB
+        );
+        Graphics2D g = image.createGraphics();
+        this.slippyMap.paint(g);
+        probePixels(image, top, right, bottom, left);
+    }
+
+    public void setUpMarkSeenRoot() throws ReflectiveOperationException {
+        this.markSeenRoot = new MarkSeenRoot();
+        this.markSeenRoot.mapFrameInitialized(null, Main.map);
+
+        this.recordAction = (ToggleAction)TestUtils.getPrivateField(this.markSeenRoot, "recordAction");
+        this.mainMenuRecordItem = (JMenuItem)TestUtils.getPrivateField(this.markSeenRoot, "mainMenuRecordItem");
+        this.recordMinZoom = (BoundedRangeModel)TestUtils.getPrivateField(this.markSeenRoot, "recordMinZoom");
+        this.dialog = (MarkSeenDialog)TestUtils.getPrivateField(this.markSeenRoot, "dialog");
+
+        this.recordMinZoomSlider = (JSlider)TestUtils.getPrivateField(this.dialog, "recordMinZoomSlider");
+        this.recordToggleButton = (JToggleButton)TestUtils.getPrivateField(this.dialog, "recordToggleButton");
+        this.slippyMap = (SlippyMapBBoxChooser)TestUtils.getPrivateField(this.dialog, "slippyMap");
+
+        this.dialog.showDialog();
+    }
+
+    public void assertControlStates(int recordMinZoomValue, boolean recordActionSelected, boolean recordActionEnabled) {
+        assertEquals(recordMinZoomValue, this.recordMinZoom.getValue());
+        assertEquals(recordMinZoomValue, this.recordMinZoomSlider.getValue());
+
+        assertEquals(recordActionSelected, this.recordAction.isSelected());
+        assertEquals(recordActionSelected, this.mainMenuRecordItem.isSelected());
+        assertEquals(recordActionSelected, this.recordToggleButton.isSelected());
+
+        assertEquals(recordActionEnabled, this.recordAction.isEnabled());
+        assertEquals(recordActionEnabled, this.mainMenuRecordItem.isEnabled());
+        assertEquals(recordActionEnabled, this.recordToggleButton.isEnabled());
+    }
+
     @Test
     public void testInitPrefRecordActiveDisabled() throws ReflectiveOperationException {
         Main.pref.putInteger("markseen.recordMinZoom", 2);  // deliberately out of range
         Main.pref.put("markseen.recordActive", true);
         Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.29, -18.16));
 
-        MarkSeenRoot markSeenRoot = new MarkSeenRoot();
-        markSeenRoot.mapFrameInitialized(null, Main.map);
+        this.setUpMarkSeenRoot();
 
-        final ToggleAction recordAction = (ToggleAction)TestUtils.getPrivateField(markSeenRoot, "recordAction");
-        final JMenuItem mainMenuRecordItem = (JMenuItem)TestUtils.getPrivateField(markSeenRoot, "mainMenuRecordItem");
-        final BoundedRangeModel recordMinZoom = (BoundedRangeModel)TestUtils.getPrivateField(markSeenRoot, "recordMinZoom");
-        final MarkSeenDialog dialog = (MarkSeenDialog)TestUtils.getPrivateField(markSeenRoot, "dialog");
-
-        final JSlider recordMinZoomSlider = (JSlider)TestUtils.getPrivateField(dialog, "recordMinZoomSlider");
-        final JToggleButton recordToggleButton = (JToggleButton)TestUtils.getPrivateField(dialog, "recordToggleButton");
-        final SlippyMapBBoxChooser slippyMap = (SlippyMapBBoxChooser)TestUtils.getPrivateField(dialog, "slippyMap");
-
-        dialog.showDialog();
-
-        assertEquals(4, recordMinZoom.getValue());
-        assertEquals(4, recordMinZoomSlider.getValue());
-
-        assertTrue(recordAction.isSelected());
-        assertTrue(mainMenuRecordItem.isSelected());
-        assertTrue(recordToggleButton.isSelected());
-
-        assertFalse(recordAction.isEnabled());
-        assertFalse(mainMenuRecordItem.isEnabled());
-        assertFalse(recordToggleButton.isEnabled());
+        this.assertControlStates(4, true, false);
 
         // should have no effect
         Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.39, -18.06));
 
-        assertTrue(recordAction.isSelected());
-        assertTrue(mainMenuRecordItem.isSelected());
-        assertTrue(recordToggleButton.isSelected());
-
-        assertFalse(recordAction.isEnabled());
-        assertFalse(mainMenuRecordItem.isEnabled());
-        assertFalse(recordToggleButton.isEnabled());
+        this.assertControlStates(4, true, false);
 
         // should have no effect on recording state
         recordMinZoomSlider.setValue(12);
 
-        assertEquals(12, recordMinZoom.getValue());
-
-        assertTrue(recordAction.isSelected());
-        assertTrue(mainMenuRecordItem.isSelected());
-        assertTrue(recordToggleButton.isSelected());
-
-        assertFalse(recordAction.isEnabled());
-        assertFalse(mainMenuRecordItem.isEnabled());
-        assertFalse(recordToggleButton.isEnabled());
+        this.assertControlStates(12, true, false);
 
         // should enable recording
         Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.275, -18.22));
 
-        assertTrue(recordAction.isSelected());
-        assertTrue(mainMenuRecordItem.isSelected());
-        assertTrue(recordToggleButton.isSelected());
-
-        assertTrue(recordAction.isEnabled());
-        assertTrue(mainMenuRecordItem.isEnabled());
-        assertTrue(recordToggleButton.isEnabled());
+        this.assertControlStates(12, true, true);
 
         // should deactivate recording
         recordToggleButton.doClick();
 
-        assertFalse(recordAction.isSelected());
-        assertFalse(mainMenuRecordItem.isSelected());
-        assertFalse(recordToggleButton.isSelected());
-
-        assertTrue(recordAction.isEnabled());
-        assertTrue(mainMenuRecordItem.isEnabled());
-        assertTrue(recordToggleButton.isEnabled());
+        this.assertControlStates(12, false, true);
 
          // the actual bounds get adjusted to match the mapview's aspect ratio and for the next move we want to try and
          // do a pure pan, ensuring we aren't within an area already considered "seen"
@@ -254,18 +258,8 @@ public class MarkSeenRootTest {
         // should be unrecorded pan
         Main.map.mapView.zoomTo(new Bounds(actualBounds.getMinLat(), actualBounds.getMinLon()+0.005, actualBounds.getMaxLat(), actualBounds.getMaxLon()+0.005));
 
-        assertFalse(recordAction.isSelected());
-        assertFalse(mainMenuRecordItem.isSelected());
-        assertFalse(recordToggleButton.isSelected());
+        this.assertControlStates(12, false, true);
 
-        assertTrue(recordAction.isEnabled());
-        assertTrue(mainMenuRecordItem.isEnabled());
-        assertTrue(recordToggleButton.isEnabled());
-
-        BufferedImage image = new BufferedImage(slippyMap.getSize().width, slippyMap.getSize().height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = image.createGraphics();
-        slippyMap.paint(g);
-
-        probePixels(image, 0x0, 0x0, 0x0, 0xff80ff);
+        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
     }
 }
