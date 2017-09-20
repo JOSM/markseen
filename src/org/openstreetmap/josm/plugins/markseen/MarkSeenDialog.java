@@ -122,6 +122,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         initialize();
         NavigatableComponent.addZoomChangeListener(this);
         super.showDialog();
+        this.zoomChanged();
     }
     @Override
     public void hideDialog() {
