@@ -306,4 +306,38 @@ public class MarkSeenRootTest {
         this.assertControlStates(12, false, true);
         this.probeSlippyMapPixels(0xff80ff, 0x0, 0x0, 0xff80ff);
     }
+
+    @Test
+    public void testInitPrefRecordActiveEnabled() throws ReflectiveOperationException {
+        Main.pref.putInteger("markseen.recordMinZoom", 10);
+        Main.pref.put("markseen.recordActive", true);
+        Main.pref.put("color.markseen.seenarea", "#00ffff");
+        Main.pref.putDouble("markseen.maskOpacity", 1.0);
+        Main.map.mapView.zoomTo(new Bounds(-0.001, -0.001, 0.001, 0.001));
+
+        this.setUpMarkSeenRoot();
+        this.dialog.showDialog();
+
+        this.assertControlStates(10, true, true);
+        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0x0);
+
+        Main.map.mapView.zoomTo(new Bounds(-0.0005, -0.0005, 0.001, 0.001));
+        this.assertControlStates(10, true, true);
+        // it should be ok that the "initial" position wasn't recorded - the initial mapview position is often not
+        // reliable to use
+        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0x0);
+
+        Main.map.mapView.zoomTo(new Bounds(-0.0004, -0.0004, 0.001, 0.001));
+        this.assertControlStates(10, true, true);
+        this.probeSlippyMapPixels(0x0, 0x0, 0x00ffff, 0x00ffff);
+
+        this.dialog.hideDialog();
+
+        Main.map.mapView.zoomTo(new Bounds(-0.0004, -0.002, 0.001, -0.0005));
+        this.assertControlStates(10, true, true);
+
+        this.dialog.showDialog();
+        // slippy map should take heed of the movement while the dialog was closed
+        this.probeSlippyMapPixels(0x0, 0x00ffff, 0x0, 0x0);
+    }
 }
