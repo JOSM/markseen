@@ -11,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.awt.Point;
 
 import java.util.List;
+import java.lang.AssertionError;
 
 import static java.util.Arrays.asList;
 import static java.lang.String.format;
@@ -119,6 +120,8 @@ public class MarkSeenRootTest {
 
         g = Tile.LOADING_IMAGE.createGraphics();
         g.drawImage(originalLoadingImage, 0, 0, null);
+
+        probeScratchImage = null;
     }
 
     @Before
@@ -170,26 +173,41 @@ public class MarkSeenRootTest {
         assertFirstNonWhitePixelValue(reversedArray(middleRow), right);
     }
 
-    MarkSeenRoot markSeenRoot;
+    protected MarkSeenRoot markSeenRoot;
 
-    ToggleAction recordAction;
-    JMenuItem mainMenuRecordItem;
-    BoundedRangeModel recordMinZoom;
-    MarkSeenDialog dialog;
+    protected ToggleAction recordAction;
+    protected JMenuItem mainMenuRecordItem;
+    protected BoundedRangeModel recordMinZoom;
+    protected MarkSeenDialog dialog;
 
-    JSlider recordMinZoomSlider;
-    JToggleButton recordToggleButton;
-    SlippyMapBBoxChooser slippyMap;
+    protected JSlider recordMinZoomSlider;
+    protected JToggleButton recordToggleButton;
+    protected SlippyMapBBoxChooser slippyMap;
+
+    protected static BufferedImage probeScratchImage;
 
     public void probeSlippyMapPixels(int top, int right, int bottom, int left) {
-        BufferedImage image = new BufferedImage(
-            this.slippyMap.getSize().width,
-            this.slippyMap.getSize().height,
-            BufferedImage.TYPE_INT_RGB
-        );
-        Graphics2D g = image.createGraphics();
+        if (probeScratchImage == null || probeScratchImage.getWidth() != this.slippyMap.getSize().width || probeScratchImage.getHeight() != this.slippyMap.getSize().height) {
+            probeScratchImage = new BufferedImage(
+                this.slippyMap.getSize().width,
+                this.slippyMap.getSize().height,
+                BufferedImage.TYPE_INT_RGB
+            );
+        }
+        Graphics2D g = probeScratchImage.createGraphics();
         this.slippyMap.paint(g);
-        probePixels(image, top, right, bottom, left);
+        try {
+            probePixels(probeScratchImage, top, right, bottom, left);
+        } catch (AssertionError e) {
+            e.printStackTrace();
+            System.err.println("Writing problematic image to failed.png");
+            try {
+                javax.imageio.ImageIO.write(probeScratchImage, "png", new java.io.File("failed.png"));
+            } catch (java.io.IOException ioe) {
+                System.err.println("Failed writing image");
+            }
+            throw e;
+        }
     }
 
     public void setUpMarkSeenRoot() throws ReflectiveOperationException {
@@ -204,8 +222,6 @@ public class MarkSeenRootTest {
         this.recordMinZoomSlider = (JSlider)TestUtils.getPrivateField(this.dialog, "recordMinZoomSlider");
         this.recordToggleButton = (JToggleButton)TestUtils.getPrivateField(this.dialog, "recordToggleButton");
         this.slippyMap = (SlippyMapBBoxChooser)TestUtils.getPrivateField(this.dialog, "slippyMap");
-
-        this.dialog.showDialog();
     }
 
     public void assertControlStates(int recordMinZoomValue, boolean recordActionSelected, boolean recordActionEnabled) {
@@ -228,6 +244,8 @@ public class MarkSeenRootTest {
         Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.29, -18.16));
 
         this.setUpMarkSeenRoot();
+
+        this.dialog.showDialog();
 
         this.assertControlStates(4, true, false);
 
@@ -259,7 +277,33 @@ public class MarkSeenRootTest {
         Main.map.mapView.zoomTo(new Bounds(actualBounds.getMinLat(), actualBounds.getMinLon()+0.005, actualBounds.getMaxLat(), actualBounds.getMaxLon()+0.005));
 
         this.assertControlStates(12, false, true);
-
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
+
+        // another unrecorded pure pan
+        actualBounds = Main.map.mapView.getState().getViewArea().getLatLonBoundsBox();
+        Main.map.mapView.zoomTo(new Bounds(actualBounds.getMinLat()+0.001, actualBounds.getMinLon(), actualBounds.getMaxLat()+0.001, actualBounds.getMaxLon()));
+
+        this.assertControlStates(12, false, true);
+        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
+
+        // now we activate recording briefly
+        recordToggleButton.doClick();
+
+        this.assertControlStates(12, true, true);
+        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
+
+        // but we desctivate it without a viewport change
+        recordToggleButton.doClick();
+
+        this.assertControlStates(12, false, true);
+        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
+
+        // another unrecorded pure pan back down
+        actualBounds = Main.map.mapView.getState().getViewArea().getLatLonBoundsBox();
+        Main.map.mapView.zoomTo(new Bounds(actualBounds.getMinLat()-0.001, actualBounds.getMinLon(), actualBounds.getMaxLat()-0.001, actualBounds.getMaxLon()));
+
+        // should have revealed another painted region
+        this.assertControlStates(12, false, true);
+        this.probeSlippyMapPixels(0xff80ff, 0x0, 0x0, 0xff80ff);
     }
 }
