@@ -4,6 +4,7 @@ import javax.swing.BoundedRangeModel;
 import javax.swing.JMenuItem;
 import javax.swing.JSlider;
 import javax.swing.JComponent;
+import javax.swing.JButton;
 import javax.swing.JToggleButton;
 import java.awt.Graphics2D;
 import java.awt.Color;
@@ -182,6 +183,7 @@ public class MarkSeenRootTest {
 
     protected JSlider recordMinZoomSlider;
     protected JToggleButton recordToggleButton;
+    protected JButton clearButton;
     protected SlippyMapBBoxChooser slippyMap;
 
     protected static BufferedImage probeScratchImage;
@@ -221,6 +223,7 @@ public class MarkSeenRootTest {
 
         this.recordMinZoomSlider = (JSlider)TestUtils.getPrivateField(this.dialog, "recordMinZoomSlider");
         this.recordToggleButton = (JToggleButton)TestUtils.getPrivateField(this.dialog, "recordToggleButton");
+        this.clearButton = (JButton)TestUtils.getPrivateField(this.dialog, "clearButton");
         this.slippyMap = (SlippyMapBBoxChooser)TestUtils.getPrivateField(this.dialog, "slippyMap");
     }
 
@@ -265,7 +268,7 @@ public class MarkSeenRootTest {
         this.assertControlStates(12, true, true);
 
         // should deactivate recording
-        recordToggleButton.doClick();
+        this.recordToggleButton.doClick();
 
         this.assertControlStates(12, false, true);
 
@@ -287,13 +290,13 @@ public class MarkSeenRootTest {
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
 
         // now we activate recording briefly
-        recordToggleButton.doClick();
+        this.recordToggleButton.doClick();
 
         this.assertControlStates(12, true, true);
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
 
         // but we desctivate it without a viewport change
-        recordToggleButton.doClick();
+        this.recordToggleButton.doClick();
 
         this.assertControlStates(12, false, true);
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
@@ -339,5 +342,10 @@ public class MarkSeenRootTest {
         this.dialog.showDialog();
         // slippy map should take heed of the movement while the dialog was closed
         this.probeSlippyMapPixels(0x0, 0x00ffff, 0x0, 0x0);
+
+        this.clearButton.doClick();
+
+        this.assertControlStates(10, true, true);
+        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0x0);
     }
 }
