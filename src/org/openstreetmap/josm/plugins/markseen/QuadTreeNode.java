@@ -17,6 +17,12 @@ import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.Bounds;
 
 class QuadTreeNode {
+    public static class ExtremeAspectRatioException extends UnsupportedOperationException {
+        public ExtremeAspectRatioException() {
+            super("Proposed rect has such extreme aspect ratio that it would be zero-width at preferredZoom");
+        }
+    }
+
     private SoftReference<BufferedImage> mask;
     private BufferedImage canonicalMask;
 
@@ -486,9 +492,7 @@ class QuadTreeNode {
         double y1s = Math.rint(y1*preferredZoomFactor)/preferredZoomFactor;
 
         if (x0s == x1s || y0s == y1s) {
-            throw new UnsupportedOperationException(
-                "Proposed rect has such extreme aspect ratio that it would be zero-width at preferredZoom"
-            );
+            throw new ExtremeAspectRatioException();
         }
 
         this.markRectSeenInner(

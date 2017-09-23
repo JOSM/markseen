@@ -18,6 +18,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 
+import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.Bounds;
 
 public class QuadTreeMeta {
@@ -119,7 +120,11 @@ public class QuadTreeMeta {
 
         @Override
         public void run() {
-            QuadTreeMeta.this.quadTreeRoot.markBoundsSeen(this.bounds, this.minTilesAcross);
+            try {
+                QuadTreeMeta.this.quadTreeRoot.markBoundsSeen(this.bounds, this.minTilesAcross);
+            } catch (QuadTreeNode.ExtremeAspectRatioException e) {
+                Main.warn(e.getMessage());
+            }
             if (this.checkIntegrity) {
                 QuadTreeMeta.this.quadTreeRoot.checkIntegrity();
             }
