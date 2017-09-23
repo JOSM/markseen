@@ -251,6 +251,7 @@ public class MarkSeenRootTest {
         this.dialog.showDialog();
 
         this.assertControlStates(4, true, false);
+        assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
 
         // should have no effect
         Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.39, -18.06));
@@ -266,6 +267,7 @@ public class MarkSeenRootTest {
         Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.275, -18.22));
 
         this.assertControlStates(12, true, true);
+        assertFalse(this.recordToggleButton.getToolTipText().contains("disabled"));
 
         // should deactivate recording
         this.recordToggleButton.doClick();
@@ -310,7 +312,7 @@ public class MarkSeenRootTest {
         this.probeSlippyMapPixels(0xff80ff, 0x0, 0x0, 0xff80ff);
     }
 
-    @Test
+    @Test(timeout=60000)
     public void testInitPrefRecordActiveEnabled() throws ReflectiveOperationException {
         Main.pref.putInteger("markseen.recordMinZoom", 10);
         Main.pref.put("markseen.recordActive", true);
@@ -322,6 +324,7 @@ public class MarkSeenRootTest {
         this.dialog.showDialog();
 
         this.assertControlStates(10, true, true);
+        assertFalse(this.recordToggleButton.getToolTipText().contains("disabled"));
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0x0);
 
         Main.map.mapView.zoomTo(new Bounds(-0.0005, -0.0005, 0.001, 0.001));
