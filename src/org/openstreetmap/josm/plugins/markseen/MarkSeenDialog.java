@@ -25,6 +25,7 @@ import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
+import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
 import org.openstreetmap.josm.gui.bbox.BBoxChooser;
@@ -131,8 +132,8 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
     }
     @Override
     public void zoomChanged() {
-        if (!skipZoomEvents && Main.isDisplayingMapView()) {
-            MapView mv = Main.map.mapView;
+        if (!skipZoomEvents && MainApplication.isDisplayingMapView()) {
+            MapView mv = MainApplication.getMap().mapView;
             final Bounds currentBounds = new Bounds(
                     mv.getLatLon(0, mv.getHeight()),
                     mv.getLatLon(mv.getWidth(), 0)
@@ -147,7 +148,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
     public void propertyChange(PropertyChangeEvent evt) {
         if (!skipZoomEvents) {
             skipZoomEvents = true;
-            Main.map.mapView.zoomTo(slippyMap.getBoundingBox());
+            MainApplication.getMap().mapView.zoomTo(slippyMap.getBoundingBox());
             skipZoomEvents = false;
         }
     }
@@ -164,7 +165,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
     public void stateChanged(ChangeEvent e) {
         if (e.getSource() == this.showToolBarToggleButton.getModel()) {
             this.updateShowToolBarToggleButton();
-            Main.pref.put("markseen.dialog.showToolBar", this.showToolBarToggleButton.getModel().isSelected());
+            Main.pref.putBoolean("markseen.dialog.showToolBar", this.showToolBarToggleButton.getModel().isSelected());
         } else {
             throw new RuntimeException("Unknown/unexpected ChangeEvent source");
         }
