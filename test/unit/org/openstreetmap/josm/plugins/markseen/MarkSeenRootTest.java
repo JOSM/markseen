@@ -313,7 +313,7 @@ public class MarkSeenRootTest {
     }
 
     @Test(timeout=60000)
-    public void testInitPrefRecordActiveEnabled() throws ReflectiveOperationException {
+    public void testInitPrefRecordActiveEnabled() throws Throwable {
         Main.pref.putInteger("markseen.recordMinZoom", 10);
         Main.pref.put("markseen.recordActive", true);
         Main.pref.put("color.markseen.seenarea", "#00ffff");
@@ -347,6 +347,8 @@ public class MarkSeenRootTest {
         this.probeSlippyMapPixels(0x0, 0x00ffff, 0x0, 0x0);
 
         this.clearButton.doClick();
+
+        Thread.sleep(50);
 
         this.assertControlStates(10, true, true);
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0x0);
