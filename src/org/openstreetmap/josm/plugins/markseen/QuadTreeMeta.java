@@ -20,6 +20,7 @@ import java.awt.image.WritableRaster;
 
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.Bounds;
+import org.openstreetmap.josm.tools.Logging;
 
 public class QuadTreeMeta {
     // is there a better way to create a properly read-only BufferedImage? don't know. for now, all we want to be able
@@ -123,7 +124,7 @@ public class QuadTreeMeta {
             try {
                 QuadTreeMeta.this.quadTreeRoot.markBoundsSeen(this.bounds, this.minTilesAcross);
             } catch (QuadTreeNode.ExtremeAspectRatioException e) {
-                Main.warn(e.getMessage());
+                Logging.warn(e.getMessage());
             }
             if (this.checkIntegrity) {
                 QuadTreeMeta.this.quadTreeRoot.checkIntegrity();

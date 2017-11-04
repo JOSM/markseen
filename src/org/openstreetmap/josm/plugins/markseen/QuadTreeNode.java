@@ -15,6 +15,7 @@ import org.openstreetmap.gui.jmapviewer.JMapViewer;
 import org.openstreetmap.gui.jmapviewer.OsmMercator;
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.data.Bounds;
+import org.openstreetmap.josm.tools.Logging;
 
 class QuadTreeNode {
     public static class ExtremeAspectRatioException extends UnsupportedOperationException {
@@ -356,7 +357,7 @@ class QuadTreeNode {
         // either fully contained by bbox, fully outside bbox or is forced to create a new node at or below
         // preferredZoom
         if (x1 < xThis || x0 > xThis+tileSize || y1 < yThis || y0 > yThis+tileSize) {
-            Main.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": ignoring\n");
+            Logging.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": ignoring\n");
             // this tile lies completely outside the rect
             if (this.belowCanonical) {
                 // we have to claim canonicalism for this node - an ancestor must be being split for us to have arrived
@@ -370,7 +371,7 @@ class QuadTreeNode {
             // this tile lies completely inside the rect - make this node canonical, set mask to all-seen (unless this
             // is already the case)
             if (this.canonicalMask != this.quadTreeMeta.FULL_MASK) {
-                Main.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": marking as FULL_MASK\n");
+                Logging.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": marking as FULL_MASK\n");
                 this.canonicalMask = this.quadTreeMeta.FULL_MASK;
                 this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
 
@@ -386,7 +387,7 @@ class QuadTreeNode {
             // using the false construct argument to getMask above as we don't want to bother building a mask - we just
             // want to poke it to know if we can take a shortcut, which it appears we can - drawing to this mask
             // wouldn't make a difference anyway.
-            Main.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": ignoring as FULL_MASK\n");
+            Logging.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": ignoring as FULL_MASK\n");
             if (this.belowCanonical) {
                 // claim canonicalism for this node from below
                 this.canonicalMask = this.getMask(true, true);
@@ -422,7 +423,7 @@ class QuadTreeNode {
                 this.canonicalMask = null;
                 this.belowCanonical = false;
             } else {
-                Main.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": drawing to\n");
+                Logging.debug("Tile "+zoomThis+"/"+(xThis/tileSize)+"/"+(yThis/tileSize)+": drawing to\n");
                 // this is a node we should be drawing to - it should be canonical or belowCanonical
                 if (this.belowCanonical) {
                     // claim canonicalism for this node
