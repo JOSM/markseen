@@ -8,8 +8,8 @@ antBuild rec {
     name = "josm-r${rev}";
     url = "https://josm.openstreetmap.de/svn/trunk";
     sha256 = builtins.getAttr rev {
-      "12545" = "1f9w8dsmh79gpzdglmh4vnpkmdk1nx4f4k80qvsz4sbf7b8yy8sd";  # 2017-08-13 release
       "13053" = "12b1ai0gb9akm2jb95dlnmasgm20zlq4782y0skpsp05bgr02lf1";  # 2017-10-29 release
+      "13170" = "0xyyxzf0l3izfx8hj51m5gc4xmp3f4yq3k5n2c9w7dli6fvggk8p";  # 2017-11-26 release
     };
     rev=version;
   };

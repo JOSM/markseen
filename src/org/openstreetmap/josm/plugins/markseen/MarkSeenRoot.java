@@ -21,6 +21,7 @@ import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.gui.MainMenu;
+import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapFrame;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
@@ -68,7 +69,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
             toggleSelectedState(e);
             notifySelectedState();
             MarkSeenRoot.this.zoomChanged();
-            Main.pref.put("markseen.recordActive", this.isSelected());
+            Main.pref.putBoolean("markseen.recordActive", this.isSelected());
         }
     }
 
@@ -113,14 +114,14 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
 
     public MarkSeenRoot() {
         this.quadTreeMeta = new QuadTreeMeta(
-            Main.pref.getInteger("markseen.quadTreeTileSize", 256),
+            Main.pref.getInt("markseen.quadTreeTileSize", 256),
             ColorHelper.html2color(Main.pref.get("color.markseen.seenarea", "#ff00ff")),
             Main.pref.getDouble("markseen.maskOpacity", 0.5)
         );
         this.clearAction = new MarkSeenClearAction();
         this.recordAction = new MarkSeenToggleRecordAction();
         this.recordMinZoom = new DefaultBoundedRangeModel(
-            Math.max(recordMinZoomMin, Math.min(Main.pref.getInteger("markseen.recordMinZoom", 11), recordMinZoomMax)),
+            Math.max(recordMinZoomMin, Math.min(Main.pref.getInt("markseen.recordMinZoom", 11), recordMinZoomMax)),
             0,
             recordMinZoomMin,
             recordMinZoomMax
@@ -138,12 +139,13 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
 
     public void mapFrameInitialized(MapFrame oldFrame, MapFrame newFrame) {
         if (oldFrame == null && newFrame != null) {
+            MainMenu mainMenu = MainApplication.getMenu(); 
             this.dialog = new MarkSeenDialog(this.quadTreeMeta, this.clearAction, this.recordAction, this.recordMinZoom);
             newFrame.addToggleDialog(this.dialog);
 
             NavigatableComponent.addZoomChangeListener(this);
 
-            Main.main.menu.viewMenu.add(this.markSeenMainMenu, Math.min(2, Main.main.menu.viewMenu.getComponentCount()));
+            mainMenu.viewMenu.add(this.markSeenMainMenu, Math.min(2, mainMenu.viewMenu.getComponentCount()));
 
             this.updateRecordActionEnabled(getCurrentBounds());
         }
@@ -151,7 +153,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
 
     @Override
     public void zoomChanged() {
-        if (Main.isDisplayingMapView()) {
+        if (MainApplication.isDisplayingMapView()) {
             final Bounds currentBounds = getCurrentBounds();
 
             this.updateRecordActionEnabled(currentBounds);
@@ -163,9 +165,10 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     }
 
     private static Bounds getCurrentBounds() {
+        MapView mv = MainApplication.getMap().mapView;
         return new Bounds(
-                Main.map.mapView.getLatLon(0, Main.map.mapView.getHeight()),
-                Main.map.mapView.getLatLon(Main.map.mapView.getWidth(), 0)
+            mv.getLatLon(0, mv.getHeight()),
+            mv.getLatLon(mv.getWidth(), 0)
         );
     }
 
@@ -182,10 +185,10 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     @Override
     public void stateChanged(ChangeEvent e) {
         if (e.getSource() == this.recordMinZoom) {
-            if (Main.isDisplayingMapView()) {
+            if (MainApplication.isDisplayingMapView()) {
                 this.updateRecordActionEnabled(getCurrentBounds());
             }
-            Main.pref.putInteger("markseen.recordMinZoom", this.recordMinZoom.getValue());
+            Main.pref.putInt("markseen.recordMinZoom", this.recordMinZoom.getValue());
         } else {
             throw new RuntimeException("Unknown/unexpected ChangeEvent source");
         }

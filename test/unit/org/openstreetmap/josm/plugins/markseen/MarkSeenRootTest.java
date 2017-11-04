@@ -25,6 +25,8 @@ import org.openstreetmap.gui.jmapviewer.tilesources.TileSourceInfo;
 import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
+import org.openstreetmap.josm.gui.MainApplication;
+import org.openstreetmap.josm.gui.MapFrame;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.MapViewState;
 import org.openstreetmap.josm.gui.bbox.SlippyMapBBoxChooser;
@@ -127,9 +129,10 @@ public class MarkSeenRootTest {
 
     @Before
     public void setUp() {
-        Main.map.setSize(800, 800);
-        Main.map.mapView.setBounds(0, 0, 700, 700);
-        Deencapsulation.invoke(Main.map.mapView, "updateLocationState");
+        MapFrame mainMap = MainApplication.getMap();
+        mainMap.setSize(800, 800);
+        mainMap.mapView.setBounds(0, 0, 700, 700);
+        Deencapsulation.invoke(mainMap.mapView, "updateLocationState");
     }
 
     public static void assertFirstNonWhitePixelValue(int[] columnOrRow, int value) {
@@ -213,8 +216,9 @@ public class MarkSeenRootTest {
     }
 
     public void setUpMarkSeenRoot() throws ReflectiveOperationException {
+        MapFrame mainMap = MainApplication.getMap();
         this.markSeenRoot = new MarkSeenRoot();
-        this.markSeenRoot.mapFrameInitialized(null, Main.map);
+        this.markSeenRoot.mapFrameInitialized(null, mainMap);
 
         this.recordAction = (ToggleAction)TestUtils.getPrivateField(this.markSeenRoot, "recordAction");
         this.mainMenuRecordItem = (JMenuItem)TestUtils.getPrivateField(this.markSeenRoot, "mainMenuRecordItem");
@@ -242,9 +246,10 @@ public class MarkSeenRootTest {
 
     @Test
     public void testInitPrefRecordActiveDisabled() throws ReflectiveOperationException {
-        Main.pref.putInteger("markseen.recordMinZoom", 2);  // deliberately out of range
-        Main.pref.put("markseen.recordActive", true);
-        Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.29, -18.16));
+        MapFrame mainMap = MainApplication.getMap();
+        Main.pref.putInt("markseen.recordMinZoom", 2);  // deliberately out of range
+        Main.pref.putBoolean("markseen.recordActive", true);
+        mainMap.mapView.zoomTo(new Bounds(26.27, -18.23, 26.29, -18.16));
 
         this.setUpMarkSeenRoot();
 
@@ -254,7 +259,7 @@ public class MarkSeenRootTest {
         assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
 
         // should have no effect
-        Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.39, -18.06));
+        mainMap.mapView.zoomTo(new Bounds(26.27, -18.23, 26.39, -18.06));
 
         this.assertControlStates(4, true, false);
 
@@ -264,7 +269,7 @@ public class MarkSeenRootTest {
         this.assertControlStates(12, true, false);
 
         // should enable recording
-        Main.map.mapView.zoomTo(new Bounds(26.27, -18.23, 26.275, -18.22));
+        mainMap.mapView.zoomTo(new Bounds(26.27, -18.23, 26.275, -18.22));
 
         this.assertControlStates(12, true, true);
         assertFalse(this.recordToggleButton.getToolTipText().contains("disabled"));
@@ -276,17 +281,17 @@ public class MarkSeenRootTest {
 
          // the actual bounds get adjusted to match the mapview's aspect ratio and for the next move we want to try and
          // do a pure pan, ensuring we aren't within an area already considered "seen"
-        Bounds actualBounds = Main.map.mapView.getState().getViewArea().getLatLonBoundsBox();
+        Bounds actualBounds = mainMap.mapView.getState().getViewArea().getLatLonBoundsBox();
 
         // should be unrecorded pan
-        Main.map.mapView.zoomTo(new Bounds(actualBounds.getMinLat(), actualBounds.getMinLon()+0.005, actualBounds.getMaxLat(), actualBounds.getMaxLon()+0.005));
+        mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat(), actualBounds.getMinLon()+0.005, actualBounds.getMaxLat(), actualBounds.getMaxLon()+0.005));
 
         this.assertControlStates(12, false, true);
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
 
         // another unrecorded pure pan
-        actualBounds = Main.map.mapView.getState().getViewArea().getLatLonBoundsBox();
-        Main.map.mapView.zoomTo(new Bounds(actualBounds.getMinLat()+0.001, actualBounds.getMinLon(), actualBounds.getMaxLat()+0.001, actualBounds.getMaxLon()));
+        actualBounds = mainMap.mapView.getState().getViewArea().getLatLonBoundsBox();
+        mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat()+0.001, actualBounds.getMinLon(), actualBounds.getMaxLat()+0.001, actualBounds.getMaxLon()));
 
         this.assertControlStates(12, false, true);
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
@@ -304,8 +309,8 @@ public class MarkSeenRootTest {
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
 
         // another unrecorded pure pan back down
-        actualBounds = Main.map.mapView.getState().getViewArea().getLatLonBoundsBox();
-        Main.map.mapView.zoomTo(new Bounds(actualBounds.getMinLat()-0.001, actualBounds.getMinLon(), actualBounds.getMaxLat()-0.001, actualBounds.getMaxLon()));
+        actualBounds = mainMap.mapView.getState().getViewArea().getLatLonBoundsBox();
+        mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat()-0.001, actualBounds.getMinLon(), actualBounds.getMaxLat()-0.001, actualBounds.getMaxLon()));
 
         // should have revealed another painted region
         this.assertControlStates(12, false, true);
@@ -314,11 +319,12 @@ public class MarkSeenRootTest {
 
     @Test(timeout=60000)
     public void testInitPrefRecordActiveEnabled() throws Throwable {
-        Main.pref.putInteger("markseen.recordMinZoom", 10);
-        Main.pref.put("markseen.recordActive", true);
+        MapFrame mainMap = MainApplication.getMap();
+        Main.pref.putInt("markseen.recordMinZoom", 10);
+        Main.pref.putBoolean("markseen.recordActive", true);
         Main.pref.put("color.markseen.seenarea", "#00ffff");
         Main.pref.putDouble("markseen.maskOpacity", 1.0);
-        Main.map.mapView.zoomTo(new Bounds(-0.001, -0.001, 0.001, 0.001));
+        mainMap.mapView.zoomTo(new Bounds(-0.001, -0.001, 0.001, 0.001));
 
         this.setUpMarkSeenRoot();
         this.dialog.showDialog();
@@ -327,19 +333,19 @@ public class MarkSeenRootTest {
         assertFalse(this.recordToggleButton.getToolTipText().contains("disabled"));
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0x0);
 
-        Main.map.mapView.zoomTo(new Bounds(-0.0005, -0.0005, 0.001, 0.001));
+        mainMap.mapView.zoomTo(new Bounds(-0.0005, -0.0005, 0.001, 0.001));
         this.assertControlStates(10, true, true);
         // it should be ok that the "initial" position wasn't recorded - the initial mapview position is often not
         // reliable to use
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0x0);
 
-        Main.map.mapView.zoomTo(new Bounds(-0.0004, -0.0004, 0.001, 0.001));
+        mainMap.mapView.zoomTo(new Bounds(-0.0004, -0.0004, 0.001, 0.001));
         this.assertControlStates(10, true, true);
         this.probeSlippyMapPixels(0x0, 0x0, 0x00ffff, 0x00ffff);
 
         this.dialog.hideDialog();
 
-        Main.map.mapView.zoomTo(new Bounds(-0.0004, -0.002, 0.001, -0.0005));
+        mainMap.mapView.zoomTo(new Bounds(-0.0004, -0.002, 0.001, -0.0005));
         this.assertControlStates(10, true, true);
 
         this.dialog.showDialog();

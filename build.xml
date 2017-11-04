@@ -3,7 +3,7 @@
     <property environment="env"/>
 
     <!-- the *lowest* JOSM version this plugin is currently known to be compatible with -->
-    <property name="plugin.main.version" value="12545"/>
+    <property name="plugin.main.version" value="13053"/>
 
     <!--
          See https://josm.openstreetmap.de/wiki/DevelopersGuide/DevelopingPlugins
