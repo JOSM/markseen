@@ -8,11 +8,16 @@ let
   josmPluginsSrc = fetchsvnSafe rec {
     name = "josm-plugins-r${rev}";
     url = "https://svn.openstreetmap.org/applications/editors/josm";
-    sha256 = "18l5fb8hx5pag99rq3v77qfmh0al46lk2diwqmmvjp8i2rgd7603";
-    rev="32680";
+    sha256 = "10z8lflkkq8yi9302flh0zzvx2fgp7crcl5rj2p5689zhbl3m7sq";
+    rev="34621";
     ignoreExternals=true;
   };
-  josm = import ./nix/josm.nix { fetchsvn = fetchsvnSafe; antBuild = pkgs.releaseTools.antBuild; stdenv = pkgs.stdenv; };
+  josm = import ./nix/josm.nix {
+    fetchsvn = fetchsvnSafe;
+    antBuild = pkgs.releaseTools.antBuild;
+    stdenv = pkgs.stdenv;
+    version = "14178";
+  };
   jmockit = pkgs.fetchMavenArtifact {
     groupId = "org.jmockit";
     artifactId = "jmockit";
@@ -27,8 +32,9 @@ in {
       pkgs.openjdk
       pkgs.rlwrap  # just try using jdb without it
       pkgs.man
-      jmockit
       pkgs.inkscape  # for building icons
+    ] ++ pkgs.stdenv.lib.optional ((builtins.compareVersions josm.version "14052") == -1) [
+      jmockit
     ];
 
     JOSM_PLUGINS_SRC_DIR=josmPluginsSrc;

@@ -30,8 +30,10 @@ import org.openstreetmap.josm.gui.MapFrame;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.MapViewState;
 import org.openstreetmap.josm.gui.bbox.SlippyMapBBoxChooser;
+import org.openstreetmap.josm.gui.util.GuiHelper;
 
 import org.openstreetmap.josm.TestUtils;
+import org.openstreetmap.josm.gui.layer.LayerManagerTest.TestLayer;
 import org.openstreetmap.josm.testutils.JOSMTestRules;
 
 import static org.junit.Assert.assertEquals;
@@ -44,7 +46,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import mockit.Deencapsulation;
 import mockit.Mock;
 import mockit.MockUp;
 
@@ -90,7 +91,7 @@ public class MarkSeenRootTest {
     private static BufferedImage originalErrorImage;
     private static BufferedImage originalLoadingImage;
 
-    @Rule public JOSMTestRules test = new JOSMTestRules().commands().preferences().projection().platform().fakeAPI();
+    @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().projection();
 
     @BeforeClass
     public static void setUpClass() {
@@ -129,10 +130,16 @@ public class MarkSeenRootTest {
 
     @Before
     public void setUp() {
-        MapFrame mainMap = MainApplication.getMap();
-        mainMap.setSize(800, 800);
-        mainMap.mapView.setBounds(0, 0, 700, 700);
-        Deencapsulation.invoke(mainMap.mapView, "updateLocationState");
+        // Add a test layer to the layer manager to get the MapFrame & MapView
+        MainApplication.getLayerManager().addLayer(new TestLayer());
+
+        GuiHelper.runInEDTAndWaitWithException(() -> {
+            MapFrame mainMap = MainApplication.getMap();
+            mainMap.setSize(800, 800);
+            mainMap.mapView.addNotify();
+            mainMap.mapView.doLayout();
+            mainMap.mapView.setBounds(0, 0, 700, 700);
+        });
     }
 
     public static void assertFirstNonWhitePixelValue(int[] columnOrRow, int value) {

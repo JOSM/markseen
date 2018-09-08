@@ -20,6 +20,7 @@
     <property name="findbugs-ant.jar"       location="${env.JOSM_SRC_DIR}/tools/findbugs/findbugs-ant.jar"/>
     <property name="annotations.jar"        location="${env.JOSM_SRC_DIR}/tools/findbugs/annotations.jar"/>
     <property name="jacocoant.jar"          location="${env.JOSM_SRC_DIR}/tools/jacocoant.jar"/>
+    <property name="plugin.tools.dir"       location="${env.JOSM_PLUGINS_SRC_DIR}/plugins/00_tools/"/>
     <!-- technique from https://stackoverflow.com/a/8576319 -->
     <first id="firstGroovyJar">
         <fileset dir="${env.JOSM_SRC_DIR}/tools" includes="groovy-all*.jar" />
