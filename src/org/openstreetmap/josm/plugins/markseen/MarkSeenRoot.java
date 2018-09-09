@@ -137,7 +137,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     private final JMenuItem mainMenuSetMaxViewportItem;
 
     private final static int recordMinZoomMin = 4;
-    private final static int recordMinZoomMax = 26;
+    private final static int recordMinZoomMax = 25;
 
     private MarkSeenDialog dialog;
 
