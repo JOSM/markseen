@@ -97,15 +97,44 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         }
     }
 
+    private class MarkSeenSetMaxViewportAction extends JosmAction {
+        public MarkSeenSetMaxViewportAction() {
+            super(
+                tr("Set max viewport size from current"),
+                new ImageProvider("icons/24x24/setmaxviewportfromcurrent.png"),
+                tr("Set current viewport size as the maximum for recording as seen"),
+                Shortcut.registerShortcut(
+                    "menu:view:markseen:setmaxviewportfromcurrent",
+                    tr("Set max viewport size from current"),
+                    KeyEvent.CHAR_UNDEFINED,
+                    Shortcut.NONE
+                ),
+                true, /* register toolbar */
+                "MarkSeen/SetMaxViewportFromCurrent",
+                false
+            );
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            final double currentViewportSize = viewportSizeFromBounds(MarkSeenRoot.this.getCurrentBounds());
+            final int newMinZoom = (int) Math.ceil(Math.log(currentViewportSize) / Math.log(2));
+
+            MarkSeenRoot.this.recordMinZoom.setValue(newMinZoom);
+        }
+    }
+
     private final QuadTreeMeta quadTreeMeta;
     private final JosmAction clearAction;
     private final ToggleAction recordAction;
     private final BoundedRangeModel recordMinZoom;
+    private final JosmAction setMaxViewportAction;
 
     private final JMenu markSeenMainMenu;
 
     private final JMenuItem mainMenuRecordItem;
     private final JMenuItem mainMenuClearItem;
+    private final JMenuItem mainMenuSetMaxViewportItem;
 
     private final static int recordMinZoomMin = 4;
     private final static int recordMinZoomMax = 26;
@@ -120,6 +149,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         );
         this.clearAction = new MarkSeenClearAction();
         this.recordAction = new MarkSeenToggleRecordAction();
+        this.setMaxViewportAction = new MarkSeenSetMaxViewportAction();
         this.recordMinZoom = new DefaultBoundedRangeModel(
             Math.max(recordMinZoomMin, Math.min(Main.pref.getInt("markseen.recordMinZoom", 11), recordMinZoomMax)),
             0,
@@ -135,6 +165,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         this.recordAction.addButtonModel(this.mainMenuRecordItem.getModel());
         this.markSeenMainMenu.add(this.mainMenuRecordItem);
         this.mainMenuClearItem = MainMenu.add(this.markSeenMainMenu, this.clearAction, false);
+        this.mainMenuSetMaxViewportItem = MainMenu.add(this.markSeenMainMenu, this.setMaxViewportAction, false);
     }
 
     public void mapFrameInitialized(MapFrame oldFrame, MapFrame newFrame) {
@@ -172,13 +203,17 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         );
     }
 
-    protected void updateRecordActionEnabled(Bounds currentBounds) {
+    protected static double viewportSizeFromBounds(final Bounds bounds) {
+        return bounds.getMin().greatCircleDistance(bounds.getMax());
+    }
+
+    protected void updateRecordActionEnabled(final Bounds currentBounds) {
         if (this.recordMinZoom.getValue() == this.recordMinZoom.getMaximum()) {
             // "infinity" setting - always recordable
             this.recordAction.setEnabled(true);
         } else {
             final int recordMaxSpan = 1<<this.recordMinZoom.getValue();
-            this.recordAction.setEnabled(currentBounds.getMin().greatCircleDistance(currentBounds.getMax()) < recordMaxSpan);
+            this.recordAction.setEnabled(viewportSizeFromBounds(currentBounds) < recordMaxSpan);
         }
     }
 

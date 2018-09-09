@@ -91,7 +91,7 @@ public class MarkSeenRootTest {
     private static BufferedImage originalErrorImage;
     private static BufferedImage originalLoadingImage;
 
-    @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().projection();
+    @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().projection().timeout(60000);
 
     @BeforeClass
     public static void setUpClass() {
@@ -196,6 +196,8 @@ public class MarkSeenRootTest {
     protected JButton clearButton;
     protected SlippyMapBBoxChooser slippyMap;
 
+    protected JMenuItem mainMenuSetMaxViewportItem;
+
     protected static BufferedImage probeScratchImage;
 
     public void probeSlippyMapPixels(int top, int right, int bottom, int left) {
@@ -236,6 +238,8 @@ public class MarkSeenRootTest {
         this.recordToggleButton = (JToggleButton)TestUtils.getPrivateField(this.dialog, "recordToggleButton");
         this.clearButton = (JButton)TestUtils.getPrivateField(this.dialog, "clearButton");
         this.slippyMap = (SlippyMapBBoxChooser)TestUtils.getPrivateField(this.dialog, "slippyMap");
+
+        this.mainMenuSetMaxViewportItem = (JMenuItem)TestUtils.getPrivateField(this.markSeenRoot, "mainMenuSetMaxViewportItem");
     }
 
     public void assertControlStates(int recordMinZoomValue, boolean recordActionSelected, boolean recordActionEnabled) {
@@ -252,7 +256,7 @@ public class MarkSeenRootTest {
     }
 
     @Test
-    public void testInitPrefRecordActiveDisabled() throws ReflectiveOperationException {
+    public void testInitPrefRecordActiveDisabled() throws Exception {
         MapFrame mainMap = MainApplication.getMap();
         Main.pref.putInt("markseen.recordMinZoom", 2);  // deliberately out of range
         Main.pref.putBoolean("markseen.recordActive", true);
@@ -324,8 +328,8 @@ public class MarkSeenRootTest {
         this.probeSlippyMapPixels(0xff80ff, 0x0, 0x0, 0xff80ff);
     }
 
-    @Test(timeout=60000)
-    public void testInitPrefRecordActiveEnabled() throws Throwable {
+    @Test
+    public void testInitPrefRecordActiveEnabled() throws Exception {
         MapFrame mainMap = MainApplication.getMap();
         Main.pref.putInt("markseen.recordMinZoom", 10);
         Main.pref.putBoolean("markseen.recordActive", true);
@@ -365,5 +369,30 @@ public class MarkSeenRootTest {
 
         this.assertControlStates(10, true, true);
         this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0x0);
+    }
+
+    @Test
+    public void testSetMaxViewportFromCurrent() throws Exception {
+        MapFrame mainMap = MainApplication.getMap();
+        Main.pref.putInt("markseen.recordMinZoom", 4);
+        Main.pref.putBoolean("markseen.recordActive", false);
+        mainMap.mapView.zoomTo(new Bounds(-20.0, 0, -19.998, 0.002));
+
+        this.setUpMarkSeenRoot();
+        this.dialog.showDialog();
+
+        this.assertControlStates(4, false, false);
+        assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
+
+        GuiHelper.runInEDTAndWaitWithException(() -> this.mainMenuSetMaxViewportItem.doClick());
+        this.assertControlStates(9, false, true);
+
+        GuiHelper.runInEDTAndWaitWithException(() -> this.recordToggleButton.doClick());
+
+        mainMap.mapView.zoomTo(new Bounds(-20.0, 0, -19.996, 0.004));
+        this.assertControlStates(9, true, false);
+
+        GuiHelper.runInEDTAndWaitWithException(() -> this.mainMenuSetMaxViewportItem.doClick());
+        this.assertControlStates(10, true, true);
     }
 }
