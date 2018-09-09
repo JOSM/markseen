@@ -190,7 +190,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
             this.updateRecordActionEnabled(currentBounds);
 
             if (this.recordAction.isEnabled() && this.recordAction.isSelected()) {
-                this.quadTreeMeta.requestSeenBoundsMark(currentBounds, Main.pref.getDouble("markseen.minTilesAcross", 4.));
+                this.quadTreeMeta.requestSeenBoundsMark(currentBounds, Main.pref.getDouble("markseen.minTilesAcross", 3.5));
             }
         }
     }
