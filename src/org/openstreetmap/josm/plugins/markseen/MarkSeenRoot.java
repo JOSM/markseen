@@ -176,7 +176,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
 
             NavigatableComponent.addZoomChangeListener(this);
 
-            mainMenu.viewMenu.add(this.markSeenMainMenu, Math.min(2, mainMenu.viewMenu.getComponentCount()));
+            mainMenu.viewMenu.add(this.markSeenMainMenu, Math.min(2, mainMenu.viewMenu.getItemCount()));
 
             this.updateRecordActionEnabled(getCurrentBounds());
         }
