@@ -8,22 +8,11 @@ public class MarkSeenRegulaFalsi {
         // Hide constructor for utility classes
     }
 
-    public static class ExceededIterationsException extends Exception {};
+    public static class RegulaFalsiException extends Exception {};
 
-    protected static double regulaFalsi(
-        final DoubleUnaryOperator fx,
-        double x0,
-        double x1,
-        final double precision
-    ) throws ExceededIterationsException {
-        return regulaFalsi(
-            fx,
-            x0,
-            x1,
-            precision,
-            8
-        );
-    }
+    public static class ExceededIterationsException extends RegulaFalsiException {};
+
+    public static class ExceededRangeDetermination extends RegulaFalsiException {};
 
     protected static double regulaFalsi(
         final DoubleUnaryOperator fx,
@@ -69,4 +58,43 @@ public class MarkSeenRegulaFalsi {
             y1 = yn;
         }
     }
+
+    protected static double regulaFalsiLowerBound(
+        final DoubleUnaryOperator fx,
+        double lowerBoundX,
+        final double precision,
+        final int maxIterations
+    ) throws RegulaFalsiException {
+        if (lowerBoundX <= 0.) {
+            throw new UnsupportedOperationException("regulaFalsiLowerBound only works for a positive lowerBoundX");
+        }
+
+        double lowerBoundY = fx.applyAsDouble(lowerBoundX);
+        double upperBoundX = -1.;
+
+        for (int i=0; i<32; i++) {
+            double newBoundX = lowerBoundX * 2;
+            double newBoundY = fx.applyAsDouble(newBoundX);
+
+            if (lowerBoundY * newBoundY > 0) {
+                lowerBoundX = newBoundX;
+                lowerBoundY = newBoundY;
+            } else {
+                upperBoundX = newBoundX;
+                break;
+            }
+        }
+        if (upperBoundX <= 0.) {
+            throw new ExceededRangeDetermination();
+        }
+        System.out.println("calling regulaFalsi with x0=" + lowerBoundX + ", x1=" + upperBoundX);
+
+        return regulaFalsi(
+            fx,
+            lowerBoundX,
+            upperBoundX,
+            precision,
+            maxIterations
+        );
+    };
 }

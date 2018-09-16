@@ -36,4 +36,15 @@ public class MarkSeenRegulaFalsiFailureTest {
             8
         );
     }
+
+    @Test(expected=MarkSeenRegulaFalsi.ExceededRangeDetermination.class)
+    public void testLowerBoundExceedRange() throws Exception {
+        // searching upwards, this will never change sign
+        MarkSeenRegulaFalsi.regulaFalsiLowerBound(
+            x -> x*x,
+            9.9,
+            0.001,
+            8
+        );
+    }
 }
