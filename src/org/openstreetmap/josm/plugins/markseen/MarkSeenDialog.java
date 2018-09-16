@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.Hashtable;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
-import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
@@ -30,6 +29,7 @@ import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
 import org.openstreetmap.josm.gui.bbox.BBoxChooser;
 import org.openstreetmap.josm.gui.dialogs.ToggleDialog;
+import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.tools.ImageProvider;
 
 /**
@@ -71,7 +71,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         this.toolBar = new JToolBar();
         this.innerPanel = new JPanel(new BorderLayout());
 
-        final boolean showToolBarInitially = Main.pref.getBoolean("markseen.dialog.showToolBar", true);
+        final boolean showToolBarInitially = Config.getPref().getBoolean("markseen.dialog.showToolBar", true);
         this.showToolBarToggleButton = new JToggleButton(ImageProvider.get("misc", "buttonshow"), showToolBarInitially);
         this.showToolBarToggleButton.setToolTipText(tr("Toggle toolbar visbility"));
         this.showToolBarToggleButton.setBorder(BorderFactory.createEmptyBorder());
@@ -165,7 +165,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
     public void stateChanged(ChangeEvent e) {
         if (e.getSource() == this.showToolBarToggleButton.getModel()) {
             this.updateShowToolBarToggleButton();
-            Main.pref.putBoolean("markseen.dialog.showToolBar", this.showToolBarToggleButton.getModel().isSelected());
+            Config.getPref().putBoolean("markseen.dialog.showToolBar", this.showToolBarToggleButton.getModel().isSelected());
         } else {
             throw new RuntimeException("Unknown/unexpected ChangeEvent source");
         }

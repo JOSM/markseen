@@ -16,7 +16,6 @@ import javax.swing.event.ChangeListener;
 
 import static org.openstreetmap.josm.tools.I18n.tr;
 
-import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
@@ -25,6 +24,7 @@ import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapFrame;
 import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.NavigatableComponent;
+import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.tools.ColorHelper;
 import org.openstreetmap.josm.tools.ImageProvider;
 import org.openstreetmap.josm.tools.Shortcut;
@@ -48,7 +48,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
                 "MarkSeen/record",
                 false
             );
-            this.setSelected(Main.pref.getBoolean("markseen.recordActive", false));
+            this.setSelected(Config.getPref().getBoolean("markseen.recordActive", false));
             this.addPropertyChangeListener(this);
         }
 
@@ -69,7 +69,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
             toggleSelectedState(e);
             notifySelectedState();
             MarkSeenRoot.this.zoomChanged();
-            Main.pref.putBoolean("markseen.recordActive", this.isSelected());
+            Config.getPref().putBoolean("markseen.recordActive", this.isSelected());
         }
     }
 
@@ -143,15 +143,15 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
 
     public MarkSeenRoot() {
         this.quadTreeMeta = new QuadTreeMeta(
-            Main.pref.getInt("markseen.quadTreeTileSize", 256),
-            ColorHelper.html2color(Main.pref.get("color.markseen.seenarea", "#ff00ff")),
-            Main.pref.getDouble("markseen.maskOpacity", 0.5)
+            Config.getPref().getInt("markseen.quadTreeTileSize", 256),
+            ColorHelper.html2color(Config.getPref().get("color.markseen.seenarea", "#ff00ff")),
+            Config.getPref().getDouble("markseen.maskOpacity", 0.5)
         );
         this.clearAction = new MarkSeenClearAction();
         this.recordAction = new MarkSeenToggleRecordAction();
         this.setMaxViewportAction = new MarkSeenSetMaxViewportAction();
         this.recordMinZoom = new DefaultBoundedRangeModel(
-            Math.max(recordMinZoomMin, Math.min(Main.pref.getInt("markseen.recordMinZoom", 11), recordMinZoomMax)),
+            Math.max(recordMinZoomMin, Math.min(Config.getPref().getInt("markseen.recordMinZoom", 11), recordMinZoomMax)),
             0,
             recordMinZoomMin,
             recordMinZoomMax
@@ -190,7 +190,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
             this.updateRecordActionEnabled(currentBounds);
 
             if (this.recordAction.isEnabled() && this.recordAction.isSelected()) {
-                this.quadTreeMeta.requestSeenBoundsMark(currentBounds, Main.pref.getDouble("markseen.minTilesAcross", 3.5));
+                this.quadTreeMeta.requestSeenBoundsMark(currentBounds, Config.getPref().getDouble("markseen.minTilesAcross", 3.5));
             }
         }
     }
@@ -223,7 +223,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
             if (MainApplication.isDisplayingMapView()) {
                 this.updateRecordActionEnabled(getCurrentBounds());
             }
-            Main.pref.putInt("markseen.recordMinZoom", this.recordMinZoom.getValue());
+            Config.getPref().putInt("markseen.recordMinZoom", this.recordMinZoom.getValue());
         } else {
             throw new RuntimeException("Unknown/unexpected ChangeEvent source");
         }

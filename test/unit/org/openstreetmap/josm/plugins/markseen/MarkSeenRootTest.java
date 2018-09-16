@@ -22,7 +22,6 @@ import org.openstreetmap.gui.jmapviewer.interfaces.TileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.TMSTileSource;
 import org.openstreetmap.gui.jmapviewer.tilesources.TileSourceInfo;
 
-import org.openstreetmap.josm.Main;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.gui.MainApplication;
@@ -31,6 +30,7 @@ import org.openstreetmap.josm.gui.MapView;
 import org.openstreetmap.josm.gui.MapViewState;
 import org.openstreetmap.josm.gui.bbox.SlippyMapBBoxChooser;
 import org.openstreetmap.josm.gui.util.GuiHelper;
+import org.openstreetmap.josm.spi.preferences.Config;
 
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.gui.layer.LayerManagerTest.TestLayer;
@@ -258,8 +258,8 @@ public class MarkSeenRootTest {
     @Test
     public void testInitPrefRecordActiveDisabled() throws Exception {
         MapFrame mainMap = MainApplication.getMap();
-        Main.pref.putInt("markseen.recordMinZoom", 2);  // deliberately out of range
-        Main.pref.putBoolean("markseen.recordActive", true);
+        Config.getPref().putInt("markseen.recordMinZoom", 2);  // deliberately out of range
+        Config.getPref().putBoolean("markseen.recordActive", true);
         mainMap.mapView.zoomTo(new Bounds(26.27, -18.23, 26.29, -18.16));
 
         this.setUpMarkSeenRoot();
@@ -331,10 +331,10 @@ public class MarkSeenRootTest {
     @Test
     public void testInitPrefRecordActiveEnabled() throws Exception {
         MapFrame mainMap = MainApplication.getMap();
-        Main.pref.putInt("markseen.recordMinZoom", 10);
-        Main.pref.putBoolean("markseen.recordActive", true);
-        Main.pref.put("color.markseen.seenarea", "#00ffff");
-        Main.pref.putDouble("markseen.maskOpacity", 1.0);
+        Config.getPref().putInt("markseen.recordMinZoom", 10);
+        Config.getPref().putBoolean("markseen.recordActive", true);
+        Config.getPref().put("color.markseen.seenarea", "#00ffff");
+        Config.getPref().putDouble("markseen.maskOpacity", 1.0);
         mainMap.mapView.zoomTo(new Bounds(-0.001, -0.001, 0.001, 0.001));
 
         this.setUpMarkSeenRoot();
@@ -374,8 +374,8 @@ public class MarkSeenRootTest {
     @Test
     public void testSetMaxViewportFromCurrent() throws Exception {
         MapFrame mainMap = MainApplication.getMap();
-        Main.pref.putInt("markseen.recordMinZoom", 4);
-        Main.pref.putBoolean("markseen.recordActive", false);
+        Config.getPref().putInt("markseen.recordMinZoom", 4);
+        Config.getPref().putBoolean("markseen.recordActive", false);
         mainMap.mapView.zoomTo(new Bounds(-20.0, 0, -19.998, 0.002));
 
         this.setUpMarkSeenRoot();
