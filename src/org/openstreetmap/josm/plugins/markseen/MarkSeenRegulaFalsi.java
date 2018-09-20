@@ -59,40 +59,43 @@ public class MarkSeenRegulaFalsi {
         }
     }
 
-    protected static double regulaFalsiLowerBound(
+    protected static double regulaFalsiGeometricSearch(
         final DoubleUnaryOperator fx,
-        double lowerBoundX,
+        final double initialX,
+        final double searchFactor,
         final double precision,
         final int maxIterations
     ) throws RegulaFalsiException {
-        if (lowerBoundX <= 0.) {
-            throw new UnsupportedOperationException("regulaFalsiLowerBound only works for a positive lowerBoundX");
+        if (initialX <= 0.) {
+            throw new UnsupportedOperationException("regulaFalsiGeometricSearch only works for a positive initialX");
         }
 
-        double lowerBoundY = fx.applyAsDouble(lowerBoundX);
-        double upperBoundX = -1.;
+        double nearX = initialX;
+        double nearY = fx.applyAsDouble(nearX);
+        double farX = -1.;
 
         for (int i=0; i<32; i++) {
-            double newBoundX = lowerBoundX * 2;
-            double newBoundY = fx.applyAsDouble(newBoundX);
+            assert nearX * initialX > 0.;
 
-            if (lowerBoundY * newBoundY > 0) {
-                lowerBoundX = newBoundX;
-                lowerBoundY = newBoundY;
+            double newX = nearX * searchFactor;
+            double newY = fx.applyAsDouble(newX);
+
+            if (nearY * newY > 0) {
+                nearX = newX;
+                nearY = newY;
             } else {
-                upperBoundX = newBoundX;
+                farX = newX;
                 break;
             }
         }
-        if (upperBoundX <= 0.) {
+        if (farX <= 0.) {
             throw new ExceededRangeDetermination();
         }
-        System.out.println("calling regulaFalsi with x0=" + lowerBoundX + ", x1=" + upperBoundX);
 
         return regulaFalsi(
             fx,
-            lowerBoundX,
-            upperBoundX,
+            nearX,
+            farX,
             precision,
             maxIterations
         );

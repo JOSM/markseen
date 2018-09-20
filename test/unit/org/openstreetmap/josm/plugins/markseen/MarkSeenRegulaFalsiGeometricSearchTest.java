@@ -13,7 +13,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 
 @RunWith(Parameterized.class)
-public class MarkSeenRegulaFalsiLowerBoundTest {
+public class MarkSeenRegulaFalsiGeometricSearchTest {
     @Parameters(name="{index}-fx-{0}-{1}-lbx-{5}")
     public static Collection<Object[]> getParameters() throws Exception {
         final Object[][] unexpanded = new Object[][] {
@@ -27,7 +27,8 @@ public class MarkSeenRegulaFalsiLowerBoundTest {
                     1,
                     1.1,
                     4.5
-                }
+                },
+                2.
             },
             {
                 (DoubleUnaryOperator)(x -> 1./x - 0.5),
@@ -39,24 +40,50 @@ public class MarkSeenRegulaFalsiLowerBoundTest {
                     0.03,
                     0.6,
                     1.1
-                }
+                },
+                5.
             },
             {
-                (DoubleUnaryOperator)(x -> Math.sqrt(x)-120.),
+                (DoubleUnaryOperator)(x -> Math.sqrt(x)-105.),
                 0.0001,
                 12,
                 new double[] {
-                    0.0001,
+                    0.001,
                     1.1,
                     12,
                     1001
-                }
+                },
+                1.8
+            },
+            {
+                (DoubleUnaryOperator)(x -> 10./x - 50.),
+                0.001,
+                10,
+                new double[] {
+                    12.,
+                    50.,
+                    100.,
+                    785.3,
+                    1616.
+                },
+                0.5
+            },
+            {
+                ((DoubleUnaryOperator)(x -> (x*x - 30.) * 20.)).compose(x -> x-30.),
+                0.001,
+                6,
+                new double[] {
+                    35.,
+                    30.,
+                    25.
+                },
+                0.8
             }
         };
 
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         for (int i=0; i<unexpanded.length; i++) {
-            double[] lowerBoundXs = (double[])unexpanded[i][3];
+            double[] initialXs = (double[])unexpanded[i][3];
             DoubleUnaryOperator fx = (DoubleUnaryOperator)unexpanded[i][0];
 
             for (int m=0; m<2; m++) {
@@ -64,14 +91,15 @@ public class MarkSeenRegulaFalsiLowerBoundTest {
                 DoubleUnaryOperator fxm = m == 0 ? fx : fx.andThen(y -> -y);
                 String ySign = m == 0 ? "ypos" : "yneg";
 
-                for (int j=0; j<lowerBoundXs.length; j++) {
+                for (int j=0; j<initialXs.length; j++) {
                     paramSets.add(new Object[] {
                         i,
                         ySign,
                         fxm,
                         unexpanded[i][1],
                         unexpanded[i][2],
-                        lowerBoundXs[j]
+                        initialXs[j],
+                        unexpanded[i][4]
                     });
                 }
             }
@@ -82,27 +110,31 @@ public class MarkSeenRegulaFalsiLowerBoundTest {
     private final DoubleUnaryOperator fx;
     private final double precision;
     private final int maxIterations;
-    private final double lowerBoundX;
+    private final double initialX;
+    private final double searchFactor;
 
-    public MarkSeenRegulaFalsiLowerBoundTest(
+    public MarkSeenRegulaFalsiGeometricSearchTest(
         final int fxIndex,  // fxIndex only present to help in naming scheme
         final String ySign,  // ySign only present to help in naming scheme
         final DoubleUnaryOperator fx_,
         final double precision_,
         final int maxIterations_,
-        final double lowerBoundX_
+        final double initialX_,
+        final double searchFactor_
     ) {
         this.fx = fx_;
         this.precision = precision_;
         this.maxIterations = maxIterations_;
-        this.lowerBoundX = lowerBoundX_;
+        this.initialX = initialX_;
+        this.searchFactor = searchFactor_;
     }
 
     @Test
     public void testPositive() throws Exception {
-        double result = MarkSeenRegulaFalsi.regulaFalsiLowerBound(
+        double result = MarkSeenRegulaFalsi.regulaFalsiGeometricSearch(
             this.fx,
-            this.lowerBoundX,
+            this.initialX,
+            this.searchFactor,
             this.precision,
             this.maxIterations
         );

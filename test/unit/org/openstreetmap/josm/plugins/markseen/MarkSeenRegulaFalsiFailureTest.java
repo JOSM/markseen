@@ -38,11 +38,12 @@ public class MarkSeenRegulaFalsiFailureTest {
     }
 
     @Test(expected=MarkSeenRegulaFalsi.ExceededRangeDetermination.class)
-    public void testLowerBoundExceedRange() throws Exception {
+    public void testGeometricSearchExceedRange() throws Exception {
         // searching upwards, this will never change sign
-        MarkSeenRegulaFalsi.regulaFalsiLowerBound(
+        MarkSeenRegulaFalsi.regulaFalsiGeometricSearch(
             x -> x*x,
             9.9,
+            2.,
             0.001,
             8
         );
