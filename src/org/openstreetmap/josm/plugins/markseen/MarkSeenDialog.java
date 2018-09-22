@@ -71,6 +71,8 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         this.toolBar = new JToolBar();
         this.innerPanel = new JPanel(new BorderLayout());
 
+        this.recordMinZoomSlider.getModel().addChangeListener(this);
+
         final boolean showToolBarInitially = Config.getPref().getBoolean("markseen.dialog.showToolBar", true);
         this.showToolBarToggleButton = new JToggleButton(ImageProvider.get("misc", "buttonshow"), showToolBarInitially);
         this.showToolBarToggleButton.setToolTipText(tr("Toggle toolbar visbility"));
@@ -166,6 +168,17 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         if (e.getSource() == this.showToolBarToggleButton.getModel()) {
             this.updateShowToolBarToggleButton();
             Config.getPref().putBoolean("markseen.dialog.showToolBar", this.showToolBarToggleButton.getModel().isSelected());
+        } else if (e.getSource() == this.recordMinZoomSlider.getModel()) {
+            if (
+                this.recordMinZoomSlider.getValueIsAdjusting()
+                && this.recordMinZoomSlider.getModel().getValue() != this.recordMinZoomSlider.getModel().getMaximum()
+            ) {
+                this.slippyMap.setScaleHintBounds(
+                    MarkSeenRoot.estimateCurrentBoundsScaledForZoom(this.recordMinZoomSlider.getModel().getValue())
+                );
+            } else {
+                this.slippyMap.setScaleHintBounds(null);
+            }
         } else {
             throw new RuntimeException("Unknown/unexpected ChangeEvent source");
         }

@@ -19,6 +19,8 @@ import static org.openstreetmap.josm.tools.I18n.tr;
 import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
+import org.openstreetmap.josm.data.ProjectionBounds;
+import org.openstreetmap.josm.data.projection.Projection;
 import org.openstreetmap.josm.gui.MainMenu;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapFrame;
@@ -27,6 +29,7 @@ import org.openstreetmap.josm.gui.NavigatableComponent;
 import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.tools.ColorHelper;
 import org.openstreetmap.josm.tools.ImageProvider;
+import org.openstreetmap.josm.tools.Logging;
 import org.openstreetmap.josm.tools.Shortcut;
 
 
@@ -206,6 +209,47 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     protected static double viewportSizeFromBounds(final Bounds bounds) {
         return bounds.getMin().greatCircleDistance(bounds.getMax());
     }
+
+    private static ProjectionBounds scaledProjectionBounds(
+        final ProjectionBounds originalBounds,
+        final double factor
+    ) {
+        return new ProjectionBounds(
+            originalBounds.minEast-((originalBounds.maxEast-originalBounds.minEast)*(factor-1)),
+            originalBounds.minNorth-((originalBounds.maxNorth-originalBounds.minNorth)*(factor-1)),
+            originalBounds.maxEast+((originalBounds.maxEast-originalBounds.minEast)*(factor-1)),
+            originalBounds.maxNorth+((originalBounds.maxNorth-originalBounds.minNorth)*(factor-1))
+        );
+    }
+
+    protected static Bounds estimateCurrentBoundsScaledForZoom(final int msZoom) {
+        if (MainApplication.isDisplayingMapView()) {
+            final int targetViewportSize = 1<<msZoom;
+            final MapView mv = MainApplication.getMap().mapView;
+            final Projection proj = mv.getProjection();
+            final ProjectionBounds currentPB = mv.getProjectionBounds();
+
+            try {
+                double scale = MarkSeenRegulaFalsi.regulaFalsiGeometricSearch(
+                    x -> {
+                        return viewportSizeFromBounds(
+                            proj.getLatLonBoundsBox(scaledProjectionBounds(currentPB, x))
+                        ) - targetViewportSize;
+                    },
+                    1.,
+                    viewportSizeFromBounds(proj.getLatLonBoundsBox(currentPB)) < targetViewportSize ? 2 : 0.5,
+                    0.01,
+                    10
+                );
+
+                return proj.getLatLonBoundsBox(scaledProjectionBounds(currentPB, scale));
+            } catch (MarkSeenRegulaFalsi.RegulaFalsiException exc) {
+                Logging.warn(exc);
+                // fall through
+            }
+        }
+        return null;
+    };
 
     protected void updateRecordActionEnabled(final Bounds currentBounds) {
         if (this.recordMinZoom.getValue() == this.recordMinZoom.getMaximum()) {
