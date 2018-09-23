@@ -11,6 +11,7 @@ import java.awt.image.BufferedImage;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.lang.AssertionError;
 
@@ -81,28 +82,28 @@ public class MarkSeenRootTest {
             image,
             image.getWidth()/2,
             stripAlpha(ImmutableMap.of(0xffffff, "w", top, "t")),
-            "w+t.*",
+            "w*t.*",
             true
         );
         ImagePatternMatching.columnMatch(
             image,
             image.getWidth()/2,
             stripAlpha(ImmutableMap.of(0xffffff, "w", bottom, "b")),
-            ".*bw+",
+            ".*bw*",
             true
         );
         ImagePatternMatching.rowMatch(
             image,
             image.getHeight()/2,
             stripAlpha(ImmutableMap.of(0xffffff, "w", left, "l")),
-            "w+l.*",
+            "w*l.*",
             true
         );
         ImagePatternMatching.rowMatch(
             image,
             image.getHeight()/2,
             stripAlpha(ImmutableMap.of(0xffffff, "w", right, "r")),
-            ".*rw+",
+            ".*rw*",
             true
         );
     }
@@ -125,8 +126,7 @@ public class MarkSeenRootTest {
 
     protected static BufferedImage probeScratchImage;
 
-    public void probeSlippyMapPixels(int top, int right, int bottom, int left) {
-
+    public void renderAndAssert(final Consumer<BufferedImage> assertion) {
         if (probeScratchImage == null || probeScratchImage.getWidth() != this.slippyMap.getSize().width || probeScratchImage.getHeight() != this.slippyMap.getSize().height) {
             probeScratchImage = new BufferedImage(
                 this.slippyMap.getSize().width,
@@ -142,7 +142,7 @@ public class MarkSeenRootTest {
         this.slippyMap.paint(g);
 
         try {
-            probePixels(probeScratchImage, top, right, bottom, left);
+            assertion.accept(probeScratchImage);
         } catch (AssertionError e) {
             e.printStackTrace();
             System.err.println("Writing problematic image to failed.png");
@@ -230,26 +230,26 @@ public class MarkSeenRootTest {
         mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat(), actualBounds.getMinLon()+0.005, actualBounds.getMaxLat(), actualBounds.getMaxLon()+0.005));
 
         this.assertControlStates(12, false, true);
-        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff));
 
         // another unrecorded pure pan
         actualBounds = mainMap.mapView.getState().getViewArea().getLatLonBoundsBox();
         mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat()+0.001, actualBounds.getMinLon(), actualBounds.getMaxLat()+0.001, actualBounds.getMaxLon()));
 
         this.assertControlStates(12, false, true);
-        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff));
 
         // now we activate recording briefly
         this.recordToggleButton.doClick();
 
         this.assertControlStates(12, true, true);
-        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff));
 
         // but we desctivate it without a viewport change
         this.recordToggleButton.doClick();
 
         this.assertControlStates(12, false, true);
-        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0xff80ff);
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff));
 
         // another unrecorded pure pan back down
         actualBounds = mainMap.mapView.getState().getViewArea().getLatLonBoundsBox();
@@ -257,7 +257,7 @@ public class MarkSeenRootTest {
 
         // should have revealed another painted region
         this.assertControlStates(12, false, true);
-        this.probeSlippyMapPixels(0xff80ff, 0x0, 0x0, 0xff80ff);
+        this.renderAndAssert(i -> probePixels(i, 0xff80ff, 0x0, 0x0, 0xff80ff));
     }
 
     @Test
@@ -275,17 +275,17 @@ public class MarkSeenRootTest {
 
         this.assertControlStates(10, true, true);
         assertFalse(this.recordToggleButton.getToolTipText().contains("disabled"));
-        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0x0);
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0x0));
 
         mainMap.mapView.zoomTo(new Bounds(-0.0005, -0.0005, 0.001, 0.001));
         this.assertControlStates(10, true, true);
         // it should be ok that the "initial" position wasn't recorded - the initial mapview position is often not
         // reliable to use
-        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0x0);
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0x0));
 
         mainMap.mapView.zoomTo(new Bounds(-0.0004, -0.0004, 0.001, 0.001));
         this.assertControlStates(10, true, true);
-        this.probeSlippyMapPixels(0x0, 0x0, 0x00ffff, 0x00ffff);
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x00ffff, 0x00ffff));
 
         this.dialog.hideDialog();
 
@@ -294,14 +294,14 @@ public class MarkSeenRootTest {
 
         this.dialog.showDialog();
         // slippy map should take heed of the movement while the dialog was closed
-        this.probeSlippyMapPixels(0x0, 0x00ffff, 0x0, 0x0);
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x00ffff, 0x0, 0x0));
 
         this.clearButton.doClick();
 
         Thread.sleep(50);
 
         this.assertControlStates(10, true, true);
-        this.probeSlippyMapPixels(0x0, 0x0, 0x0, 0x0);
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0x0));
     }
 
     @Test
