@@ -3,7 +3,7 @@
     <property environment="env"/>
 
     <!-- the *lowest* JOSM version this plugin is currently known to be compatible with -->
-    <property name="plugin.main.version" value="13053"/>
+    <property name="plugin.main.version" value="13265"/>
 
     <!--
          See https://josm.openstreetmap.de/wiki/DevelopersGuide/DevelopingPlugins
@@ -15,6 +15,7 @@
     <property name="plugin.icon" value="images/icons/24x24/markseen.png"/>
     <property name="plugin.link" value="https://github.com/risicle/josm-markseen"/>
     <property name="plugin.canloadatruntime" value="true"/>
+    <property name="plugin.13053.plugin.url" value="https://github.com/risicle/josm-markseen/releases/download/v9/markseen.jar"/>
 
     <property name="error_prone_ant.jar"    location="${env.JOSM_SRC_DIR}/tools/error_prone_ant.jar"/>
     <property name="checkstyle.jar"         location="${env.JOSM_SRC_DIR}/tools/checkstyle/checkstyle-all.jar"/>
@@ -37,6 +38,14 @@
     <condition property="inkscape.path" value="${env.INKSCAPE_PATH}" else="inkscape">
         <isset property="env.INKSCAPE_PATH" />
     </condition>
+
+    <target name="additional-manifest">
+        <antcall target="add-manifest-attribute">
+            <param name="manifest.attribute" value="13053_Plugin-Url"/>
+            <param name="property.name" value="plugin.13053.plugin.url"/>
+            <param name="property.value" value="${plugin.13053.plugin.url}"/>
+        </antcall>
+    </target>
 
 
     <!-- ** include targets that all plugins have in common ** -->

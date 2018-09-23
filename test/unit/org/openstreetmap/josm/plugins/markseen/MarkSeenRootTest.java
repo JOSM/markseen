@@ -7,27 +7,19 @@ import javax.swing.JComponent;
 import javax.swing.JButton;
 import javax.swing.JToggleButton;
 import java.awt.Graphics2D;
-import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.awt.Point;
 
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.function.IntFunction;
 import java.lang.AssertionError;
 
-import static java.util.Arrays.asList;
-import static java.lang.String.format;
-
-import org.openstreetmap.gui.jmapviewer.Tile;
-import org.openstreetmap.gui.jmapviewer.interfaces.TileSource;
-import org.openstreetmap.gui.jmapviewer.tilesources.TMSTileSource;
-import org.openstreetmap.gui.jmapviewer.tilesources.TileSourceInfo;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.gui.MainApplication;
 import org.openstreetmap.josm.gui.MapFrame;
-import org.openstreetmap.josm.gui.MapView;
-import org.openstreetmap.josm.gui.MapViewState;
 import org.openstreetmap.josm.gui.bbox.SlippyMapBBoxChooser;
 import org.openstreetmap.josm.gui.util.GuiHelper;
 import org.openstreetmap.josm.spi.preferences.Config;
@@ -35,98 +27,27 @@ import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.gui.layer.LayerManagerTest.TestLayer;
 import org.openstreetmap.josm.testutils.JOSMTestRules;
+import org.openstreetmap.josm.testutils.ImagePatternMatching;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import mockit.Mock;
-import mockit.MockUp;
+
+import org.awaitility.Awaitility;
+
+import com.google.common.collect.ImmutableMap;
 
 
 public class MarkSeenRootTest {
-    public static class MockSlippyMapBBoxChooser extends MockUp<SlippyMapBBoxChooser> {
-        public final TMSTileSource dummyTileSource;
-        public MockSlippyMapBBoxChooser() {
-            this.dummyTileSource = new TMSTileSource(new TileSourceInfo("dummy", "http://dummy/", "dummy"));
-        }
-
-        @Mock
-        private List<TileSource> getAllTileSources() {
-            return asList(this.dummyTileSource);
-        }
-    }
-
-
-    //
-    // MapView and MapViewState need to be mocked to make them appear to certain methods to be "visible" and so have their
-    // dimensions populated
-    //
-    public static class MockMapViewState extends MockUp<MapViewState> {
-        @Mock
-        private static Point findTopLeftInWindow(JComponent position) {
-            return new Point();
-        }
-
-        @Mock
-        private static Point findTopLeftOnScreen(JComponent position) {
-            return new Point();
-        }
-    }
-
-    public static class MockMapView extends MockUp<MapView> {
-        @Mock
-        private boolean isVisibleOnScreen() {
-            return true;
-        }
-    }
-
-
     private static BufferedImage originalErrorImage;
     private static BufferedImage originalLoadingImage;
 
-    @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().projection().timeout(60000);
-
-    @BeforeClass
-    public static void setUpClass() {
-        // Because ERROR_IMAGE and LOADING_IMAGE are both declared as final, we can't swap them out before the test,
-        // so we've got to take copies of their *content* to be able to copy back to them afterwards.
-        originalErrorImage = new BufferedImage(Tile.ERROR_IMAGE.getWidth(), Tile.ERROR_IMAGE.getHeight(), BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = originalErrorImage.createGraphics();
-        g.drawImage(Tile.ERROR_IMAGE, 0, 0, null);
-        Graphics2D g2 = Tile.ERROR_IMAGE.createGraphics();
-        g2.setBackground(Color.WHITE);
-        g2.clearRect(0, 0, Tile.ERROR_IMAGE.getWidth(), Tile.ERROR_IMAGE.getHeight());
-
-        originalLoadingImage = new BufferedImage(Tile.LOADING_IMAGE.getWidth(), Tile.LOADING_IMAGE.getHeight(), BufferedImage.TYPE_INT_RGB);
-        g = originalErrorImage.createGraphics();
-        g.drawImage(Tile.LOADING_IMAGE, 0, 0, null);
-        g2 = Tile.LOADING_IMAGE.createGraphics();
-        g2.setBackground(Color.WHITE);
-        g2.clearRect(0, 0, Tile.LOADING_IMAGE.getWidth(), Tile.LOADING_IMAGE.getHeight());
-
-        MockSlippyMapBBoxChooser mockSlippyMapBBoxChooser = new MockSlippyMapBBoxChooser();
-        MockMapView mockMapView = new MockMapView();
-        MockMapViewState mockMapViewState = new MockMapViewState();
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-        // copy back original contents of ERROR_IMAGE and LOADING_IMAGE
-        Graphics2D g = Tile.ERROR_IMAGE.createGraphics();
-        g.drawImage(originalErrorImage, 0, 0, null);
-
-        g = Tile.LOADING_IMAGE.createGraphics();
-        g.drawImage(originalLoadingImage, 0, 0, null);
-
-        probeScratchImage = null;
-    }
+    @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().projection().fakeImagery().timeout(60000);
 
     @Before
     public void setUp() {
@@ -140,31 +61,12 @@ public class MarkSeenRootTest {
             mainMap.mapView.doLayout();
             mainMap.mapView.setBounds(0, 0, 700, 700);
         });
+
+        this.slippyMapTasksFinished = () -> !this.slippyMap.getTileController().getTileLoader().hasOutstandingTasks();
     }
 
-    public static void assertFirstNonWhitePixelValue(int[] columnOrRow, int value) {
-        for (int i=0; i<columnOrRow.length; i++) {
-            assertTrue("More than halfway into image haven't found a non-white pixel", i <= columnOrRow.length/2);
-
-            // mask out "alpha" byte
-            int rgb = 0xffffff & columnOrRow[i];
-
-            if (rgb == value) {
-                // correct value for first non-white pixel
-                break;
-            } else if (rgb != 0xffffff) {  // else it should be white
-                fail(format("Unexpected non-white pixel %d: 0x%06x", i, rgb));
-            }
-            // or we'll keep looking
-        }
-    }
-
-    public static int[] reversedArray(int[] inArray) {
-        int[] outArray = new int[inArray.length];
-        for (int i=0; i<inArray.length; i++) {
-            outArray[outArray.length-(i+1)] = inArray[i];
-        }
-        return outArray;
+    private static IntFunction<String> stripAlpha(Map<Integer, String> map) {
+        return p -> map.getOrDefault(p & 0xffffff, "#");
     }
 
     /**
@@ -175,14 +77,37 @@ public class MarkSeenRootTest {
      * should still be robust to e.g. SlippyMapBBoxChooser's zoomlevel-choosing heuristics.
      */
     public static void probePixels(BufferedImage image, int top, int right, int bottom, int left) {
-        int[] middleColumn = image.getRGB(image.getWidth()/2, 0, 1, image.getHeight(), null, 0, 1);
-        assertFirstNonWhitePixelValue(middleColumn, top);
-        assertFirstNonWhitePixelValue(reversedArray(middleColumn), bottom);
-
-        int[] middleRow = image.getRGB(0, image.getHeight()/2, image.getWidth(), 1, null, 0, image.getWidth());
-        assertFirstNonWhitePixelValue(middleRow, left);
-        assertFirstNonWhitePixelValue(reversedArray(middleRow), right);
+        ImagePatternMatching.columnMatch(
+            image,
+            image.getWidth()/2,
+            stripAlpha(ImmutableMap.of(0xffffff, "w", top, "t")),
+            "w+t.*",
+            true
+        );
+        ImagePatternMatching.columnMatch(
+            image,
+            image.getWidth()/2,
+            stripAlpha(ImmutableMap.of(0xffffff, "w", bottom, "b")),
+            ".*bw+",
+            true
+        );
+        ImagePatternMatching.rowMatch(
+            image,
+            image.getHeight()/2,
+            stripAlpha(ImmutableMap.of(0xffffff, "w", left, "l")),
+            "w+l.*",
+            true
+        );
+        ImagePatternMatching.rowMatch(
+            image,
+            image.getHeight()/2,
+            stripAlpha(ImmutableMap.of(0xffffff, "w", right, "r")),
+            ".*rw+",
+            true
+        );
     }
+
+    protected Callable<Boolean> slippyMapTasksFinished;
 
     protected MarkSeenRoot markSeenRoot;
 
@@ -201,6 +126,7 @@ public class MarkSeenRootTest {
     protected static BufferedImage probeScratchImage;
 
     public void probeSlippyMapPixels(int top, int right, int bottom, int left) {
+
         if (probeScratchImage == null || probeScratchImage.getWidth() != this.slippyMap.getSize().width || probeScratchImage.getHeight() != this.slippyMap.getSize().height) {
             probeScratchImage = new BufferedImage(
                 this.slippyMap.getSize().width,
@@ -209,7 +135,12 @@ public class MarkSeenRootTest {
             );
         }
         Graphics2D g = probeScratchImage.createGraphics();
+
+        // an initial paint operation to trigger tile fetches etc
         this.slippyMap.paint(g);
+        Awaitility.await().atMost(1000, MILLISECONDS).until(this.slippyMapTasksFinished);
+        this.slippyMap.paint(g);
+
         try {
             probePixels(probeScratchImage, top, right, bottom, left);
         } catch (AssertionError e) {
@@ -258,6 +189,7 @@ public class MarkSeenRootTest {
     @Test
     public void testInitPrefRecordActiveDisabled() throws Exception {
         MapFrame mainMap = MainApplication.getMap();
+        Config.getPref().put("markseen.mapstyle", "White Tiles");
         Config.getPref().putInt("markseen.recordMinZoom", 2);  // deliberately out of range
         Config.getPref().putBoolean("markseen.recordActive", true);
         mainMap.mapView.zoomTo(new Bounds(26.27, -18.23, 26.29, -18.16));
@@ -331,6 +263,7 @@ public class MarkSeenRootTest {
     @Test
     public void testInitPrefRecordActiveEnabled() throws Exception {
         MapFrame mainMap = MainApplication.getMap();
+        Config.getPref().put("markseen.mapstyle", "White Tiles");
         Config.getPref().putInt("markseen.recordMinZoom", 10);
         Config.getPref().putBoolean("markseen.recordActive", true);
         Config.getPref().put("color.markseen.seenarea", "#00ffff");
@@ -374,6 +307,7 @@ public class MarkSeenRootTest {
     @Test
     public void testSetMaxViewportFromCurrent() throws Exception {
         MapFrame mainMap = MainApplication.getMap();
+        Config.getPref().put("markseen.mapstyle", "White Tiles");
         Config.getPref().putInt("markseen.recordMinZoom", 4);
         Config.getPref().putBoolean("markseen.recordActive", false);
         mainMap.mapView.zoomTo(new Bounds(-20.0, 0, -19.998, 0.002));
