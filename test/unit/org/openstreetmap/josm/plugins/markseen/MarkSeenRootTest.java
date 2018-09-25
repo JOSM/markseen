@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
+import java.util.regex.Matcher;
 import java.lang.AssertionError;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -32,6 +33,8 @@ import org.openstreetmap.josm.testutils.ImagePatternMatching;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -328,5 +331,189 @@ public class MarkSeenRootTest {
 
         GuiHelper.runInEDTAndWaitWithException(() -> this.mainMenuSetMaxViewportItem.doClick());
         this.assertControlStates(10, true, true);
+    }
+
+    @Test
+    public void testScaleHintBounds() throws Exception {
+        IntFunction<String> palMapFn = stripAlpha(ImmutableMap.of(
+            0xffffff, "w",
+            0x0, "b",
+            0xf0d1d1, "p"
+        ));
+        MapFrame mainMap = MainApplication.getMap();
+        Config.getPref().put("markseen.mapstyle", "White Tiles");
+        Config.getPref().putInt("markseen.recordMinZoom", 10);
+        Config.getPref().putBoolean("markseen.recordActive", true);
+        mainMap.mapView.zoomTo(new Bounds(-77.9024496, -41.6807301, -77.8268961, -41.3232887));
+
+        this.setUpMarkSeenRoot();
+
+        this.dialog.showDialog();
+
+        this.assertControlStates(10, true, false);
+        assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
+        this.renderAndAssert(i -> {
+            ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+bp+bw+", true);
+            ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+bp+bw+", true);
+        });
+
+        this.recordMinZoom.setValueIsAdjusting(true);
+        this.recordMinZoom.setValue(11);
+
+        this.assertControlStates(11, true, false);
+        assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
+        this.renderAndAssert(i -> {
+            Matcher r_m = ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+b(p+)b(p+)b(p+)bw+", true);
+            Matcher c_m = ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+b(p+)b(p+)b(p+)bw+", true);
+
+            assertTrue(
+                Math.max(Math.max(r_m.group(1).length(), r_m.group(3).length()), Math.max(c_m.group(1).length(), c_m.group(3).length()))
+                - Math.min(Math.min(r_m.group(1).length(), r_m.group(3).length()), Math.min(c_m.group(1).length(), c_m.group(3).length()))
+                < 3
+            );
+            assertTrue(
+                Math.max(r_m.group(2).length(), c_m.group(2).length())
+                - Math.min(r_m.group(2).length(), c_m.group(2).length())
+                < 3
+            );
+        });
+
+        Bounds shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
+        assertTrue(Math.abs(shb.getMinLat() - -77.8712701) < 0.003);
+        assertTrue(Math.abs(shb.getMinLon() - -41.532751) < 0.003);
+        assertTrue(Math.abs(shb.getMaxLat() - -77.8582611) < 0.003);
+        assertTrue(Math.abs(shb.getMaxLon() - -41.4708681) < 0.003);
+
+        this.recordMinZoom.setValue(13);
+
+        this.assertControlStates(13, true, false);
+        assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
+        this.renderAndAssert(i -> {
+            Matcher r_m = ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+b(p+)b(p+)b(p+)bw+", true);
+            Matcher c_m = ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+b(p+)b(p+)b(p+)bw+", true);
+
+            assertTrue(
+                Math.max(Math.max(r_m.group(1).length(), r_m.group(3).length()), Math.max(c_m.group(1).length(), c_m.group(3).length()))
+                - Math.min(Math.min(r_m.group(1).length(), r_m.group(3).length()), Math.min(c_m.group(1).length(), c_m.group(3).length()))
+                < 3
+            );
+            assertTrue(
+                Math.max(r_m.group(2).length(), c_m.group(2).length())
+                - Math.min(r_m.group(2).length(), c_m.group(2).length())
+                < 3
+            );
+        });
+
+        shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
+        assertTrue(Math.abs(shb.getMinLat() - -77.8907578) < 0.003);
+        assertTrue(Math.abs(shb.getMinLon() - -41.6255752) < 0.003);
+        assertTrue(Math.abs(shb.getMaxLat() - -77.8387218) < 0.003);
+        assertTrue(Math.abs(shb.getMaxLon() - -41.3780439) < 0.003);
+
+        this.recordMinZoom.setValue(14);
+
+        this.assertControlStates(14, true, true);
+        assertFalse(this.recordToggleButton.getToolTipText().contains("disabled"));
+        this.renderAndAssert(i -> {
+            Matcher r_m = ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+b(w+)b(p+)b(w+)bw+", true);
+            Matcher c_m = ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+b(w+)b(p+)b(w+)bw+", true);
+
+            assertTrue(
+                Math.max(Math.max(r_m.group(1).length(), r_m.group(3).length()), Math.max(c_m.group(1).length(), c_m.group(3).length()))
+                - Math.min(Math.min(r_m.group(1).length(), r_m.group(3).length()), Math.min(c_m.group(1).length(), c_m.group(3).length()))
+                < 3
+            );
+            assertTrue(
+                Math.max(r_m.group(2).length(), c_m.group(2).length())
+                - Math.min(r_m.group(2).length(), c_m.group(2).length())
+                < 3
+            );
+        });
+
+        shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
+        assertTrue(Math.abs(shb.getMinLat() - -77.9166935) < 0.004);
+        assertTrue(Math.abs(shb.getMinLon() - -41.749341) < 0.004);
+        assertTrue(Math.abs(shb.getMaxLat() - -77.8126213) < 0.004);
+        assertTrue(Math.abs(shb.getMaxLon() - -41.2542782) < 0.004);
+
+        this.recordMinZoom.setValueIsAdjusting(false);
+
+        this.assertControlStates(14, true, true);
+        assertFalse(this.recordToggleButton.getToolTipText().contains("disabled"));
+        this.renderAndAssert(i -> {
+            Matcher r_m = ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+b(p+)bw+", true);
+            Matcher c_m = ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+b(p+)bw+", true);
+
+            assertTrue(
+                Math.max(r_m.group(1).length(), c_m.group(1).length())
+                - Math.min(r_m.group(1).length(), c_m.group(1).length())
+                < 3
+            );
+        });
+
+        assertNull(TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds"));
+
+        this.slippyMap.setZoom(this.slippyMap.getZoom()-3);
+
+        this.recordMinZoom.setValueIsAdjusting(true);
+        this.recordMinZoom.setValue(18);
+
+        this.assertControlStates(18, true, true);
+        assertFalse(this.recordToggleButton.getToolTipText().contains("disabled"));
+        this.renderAndAssert(i -> {
+            Matcher r_m = ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+b(w+)b(p+)b(w+)bw+", true);
+            Matcher c_m = ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+b(w+)b(p+)b(w+)bw+", true);
+
+            // even at high scales this should continue to match the aspec ratio of the viewport but only
+            // because the slippy map's projection matches that of the mapview.
+
+            assertTrue(
+                Math.max(Math.max(r_m.group(1).length(), r_m.group(3).length()), Math.max(c_m.group(1).length(), c_m.group(3).length()))
+                - Math.min(Math.min(r_m.group(1).length(), r_m.group(3).length()), Math.min(c_m.group(1).length(), c_m.group(3).length()))
+                < 3
+            );
+            assertTrue(
+                Math.max(r_m.group(2).length(), c_m.group(2).length())
+                - Math.min(r_m.group(2).length(), c_m.group(2).length())
+                < 3
+            );
+        });
+
+        shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
+
+        assertTrue(Math.abs(shb.getMinLat() - -78.6698339) < 0.005);
+        assertTrue(Math.abs(shb.getMinLon() - -45.4624486) < 0.005);
+        assertTrue(Math.abs(shb.getMaxLat() - -77.0034155) < 0.005);
+        assertTrue(Math.abs(shb.getMaxLon() - -37.5411705) < 0.005);
+
+        this.recordMinZoom.setValue(this.recordMinZoom.getMaximum());
+
+        this.assertControlStates(this.recordMinZoom.getMaximum(), true, true);
+        assertFalse(this.recordToggleButton.getToolTipText().contains("disabled"));
+        assertNull(TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds"));
+
+        this.recordMinZoom.setValue(this.recordMinZoom.getMaximum()-1);
+
+        this.assertControlStates(this.recordMinZoom.getMaximum()-1, true, true);
+        assertFalse(this.recordToggleButton.getToolTipText().contains("disabled"));
+        this.renderAndAssert(i -> {
+            Matcher r_m = ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+b(p+)bw+", true);
+            Matcher c_m = ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+b(p+)bw+", true);
+
+            // scaleHintBounds should all be beyond bounds of slippy map, but not fail or affect rendering
+
+            assertTrue(
+                Math.max(r_m.group(1).length(), c_m.group(1).length())
+                - Math.min(r_m.group(1).length(), c_m.group(1).length())
+                < 3
+            );
+        });
+        // probably a slightly nonsensical value at this latitude
+        assertNotNull(TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds"));
+
+        this.recordMinZoom.setValue(this.recordMinZoom.getMinimum());
+
+        this.assertControlStates(4, true, false);
+        assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
     }
 }
