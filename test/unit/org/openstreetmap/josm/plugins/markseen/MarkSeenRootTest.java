@@ -379,10 +379,10 @@ public class MarkSeenRootTest {
         });
 
         Bounds shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
-        assertTrue(Math.abs(shb.getMinLat() - -77.8712701) < 0.003);
-        assertTrue(Math.abs(shb.getMinLon() - -41.532751) < 0.003);
-        assertTrue(Math.abs(shb.getMaxLat() - -77.8582611) < 0.003);
-        assertTrue(Math.abs(shb.getMaxLon() - -41.4708681) < 0.003);
+        assertTrue(Math.abs(shb.getMinLat() - -77.8712701) < 0.008);
+        assertTrue(Math.abs(shb.getMinLon() - -41.532751) < 0.008);
+        assertTrue(Math.abs(shb.getMaxLat() - -77.8582611) < 0.008);
+        assertTrue(Math.abs(shb.getMaxLon() - -41.4708681) < 0.008);
 
         this.recordMinZoom.setValue(13);
 
@@ -405,10 +405,10 @@ public class MarkSeenRootTest {
         });
 
         shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
-        assertTrue(Math.abs(shb.getMinLat() - -77.8907578) < 0.003);
-        assertTrue(Math.abs(shb.getMinLon() - -41.6255752) < 0.003);
-        assertTrue(Math.abs(shb.getMaxLat() - -77.8387218) < 0.003);
-        assertTrue(Math.abs(shb.getMaxLon() - -41.3780439) < 0.003);
+        assertTrue(Math.abs(shb.getMinLat() - -77.8907578) < 0.008);
+        assertTrue(Math.abs(shb.getMinLon() - -41.6255752) < 0.008);
+        assertTrue(Math.abs(shb.getMaxLat() - -77.8387218) < 0.008);
+        assertTrue(Math.abs(shb.getMaxLon() - -41.3780439) < 0.008);
 
         this.recordMinZoom.setValue(14);
 
@@ -431,10 +431,10 @@ public class MarkSeenRootTest {
         });
 
         shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
-        assertTrue(Math.abs(shb.getMinLat() - -77.9166935) < 0.004);
-        assertTrue(Math.abs(shb.getMinLon() - -41.749341) < 0.004);
-        assertTrue(Math.abs(shb.getMaxLat() - -77.8126213) < 0.004);
-        assertTrue(Math.abs(shb.getMaxLon() - -41.2542782) < 0.004);
+        assertTrue(Math.abs(shb.getMinLat() - -77.9166935) < 0.008);
+        assertTrue(Math.abs(shb.getMinLon() - -41.749341) < 0.008);
+        assertTrue(Math.abs(shb.getMaxLat() - -77.8126213) < 0.008);
+        assertTrue(Math.abs(shb.getMaxLon() - -41.2542782) < 0.008);
 
         this.recordMinZoom.setValueIsAdjusting(false);
 
@@ -481,10 +481,10 @@ public class MarkSeenRootTest {
 
         shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
 
-        assertTrue(Math.abs(shb.getMinLat() - -78.6698339) < 0.005);
-        assertTrue(Math.abs(shb.getMinLon() - -45.4624486) < 0.005);
-        assertTrue(Math.abs(shb.getMaxLat() - -77.0034155) < 0.005);
-        assertTrue(Math.abs(shb.getMaxLon() - -37.5411705) < 0.005);
+        assertTrue(Math.abs(shb.getMinLat() - -78.6698339) < 0.008);
+        assertTrue(Math.abs(shb.getMinLon() - -45.4624486) < 0.008);
+        assertTrue(Math.abs(shb.getMaxLat() - -77.0034155) < 0.008);
+        assertTrue(Math.abs(shb.getMaxLon() - -37.5411705) < 0.008);
 
         this.recordMinZoom.setValue(this.recordMinZoom.getMaximum());
 

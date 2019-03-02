@@ -239,7 +239,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
                     1.,
                     viewportSizeFromBounds(proj.getLatLonBoundsBox(currentPB)) < targetViewportSize ? 2 : 0.5,
                     0.01,
-                    10
+                    16
                 );
 
                 return proj.getLatLonBoundsBox(scaledProjectionBounds(currentPB, scale));
