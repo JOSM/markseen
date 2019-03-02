@@ -16,7 +16,7 @@ let
     fetchsvn = fetchsvnSafe;
     antBuild = pkgs.releaseTools.antBuild;
     stdenv = pkgs.stdenv;
-    version = "14178";
+    version = "14760";
   };
   jmockit = pkgs.fetchMavenArtifact {
     groupId = "org.jmockit";
