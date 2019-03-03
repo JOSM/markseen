@@ -239,12 +239,13 @@ class QuadTreeNode {
     }
 
     /** Get a BufferedImage "mask" for this node.
-
-     * @param write Whether getMask is permitted to perform operations that will modify the quadtree to retrieve this
-     *              mask. If false and getMask finds this necessary, null will be returned.
-     * @param write Whether getMask is permitted to construct a mask from a mask at a different zoomlevel, as opposed
-                    to simply passing back an aliased BufferedImage. Again, null will be returned if getMask can't
-                    return a sensible result without this flag.
+     *
+     * @param write     Whether getMask is permitted to perform operations that will modify the quadtree
+     *                  to retrieve this mask. If false and getMask finds this necessary, null will be 
+     *                  returned.
+     * @param construct Whether getMask is permitted to construct a mask from a mask at a different
+     *                  zoomlevel, as opposed to simply passing back an aliased BufferedImage. Again, null
+     *                  will be returned if getMask can't return a sensible result without this flag.
      */
     public BufferedImage getMask(boolean write, boolean construct) {
         assert (!write) || this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread();
@@ -288,7 +289,8 @@ class QuadTreeNode {
                 if (!construct) {
                     return null;
                 }
-                // TODO make this memory efficient
+                // TODO make this memory efficient - could there be a way to detect all children being
+                // either all-EMPTY_MASK or all-FULL_MASK and avoid allocation?
                 if (mask_ == null || mask_ == this.quadTreeMeta.EMPTY_MASK || mask_ == this.quadTreeMeta.FULL_MASK) {
                     // drawChildrenOntoAncestor needs a writable image pre-allocated for it
                     mask_ = this.newBufferedImage();
