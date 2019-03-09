@@ -353,8 +353,15 @@ public class MarkSeenRootTest {
         this.assertControlStates(10, true, false);
         assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
         this.renderAndAssert(i -> {
-            ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+bp+bw+", true);
-            ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+bp+bw+", true);
+            Matcher r_m = ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+b(p+)b{1,3}(p+)bw+", true);
+            Matcher c_m = ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+b(p+)b{1,3}(p+)bw+", true);
+
+            // assert certrality of bbox "cross"
+            assertTrue(
+                Math.max(Math.max(r_m.group(1).length(), r_m.group(2).length()), Math.max(c_m.group(1).length(), c_m.group(2).length()))
+                - Math.min(Math.min(r_m.group(1).length(), r_m.group(2).length()), Math.min(c_m.group(1).length(), c_m.group(2).length()))
+                < 3
+            );
         });
 
         this.recordMinZoom.setValueIsAdjusting(true);
@@ -363,8 +370,8 @@ public class MarkSeenRootTest {
         this.assertControlStates(11, true, false);
         assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
         this.renderAndAssert(i -> {
-            Matcher r_m = ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+b(p+)b(p+)b(p+)bw+", true);
-            Matcher c_m = ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+b(p+)b(p+)b(p+)bw+", true);
+            Matcher r_m = ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+b(p+)b(p+b{1,3}p+)b(p+)bw+", true);
+            Matcher c_m = ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+b(p+)b(p+b{1,3}p+)b(p+)bw+", true);
 
             assertTrue(
                 Math.max(Math.max(r_m.group(1).length(), r_m.group(3).length()), Math.max(c_m.group(1).length(), c_m.group(3).length()))
@@ -376,6 +383,8 @@ public class MarkSeenRootTest {
                 - Math.min(r_m.group(2).length(), c_m.group(2).length())
                 < 3
             );
+
+            // no point in asserting certrality of bbox "cross" - too small to be reliable
         });
 
         Bounds shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
@@ -389,17 +398,24 @@ public class MarkSeenRootTest {
         this.assertControlStates(13, true, false);
         assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
         this.renderAndAssert(i -> {
-            Matcher r_m = ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+b(p+)b(p+)b(p+)bw+", true);
-            Matcher c_m = ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+b(p+)b(p+)b(p+)bw+", true);
+            Matcher r_m = ImagePatternMatching.rowMatch(i, i.getHeight()/2, palMapFn, "w+b(p+)b((p+)b{1,3}(p+))b(p+)bw+", true);
+            Matcher c_m = ImagePatternMatching.columnMatch(i, i.getWidth()/2, palMapFn, "w+b(p+)b((p+)b{1,3}(p+))b(p+)bw+", true);
 
             assertTrue(
-                Math.max(Math.max(r_m.group(1).length(), r_m.group(3).length()), Math.max(c_m.group(1).length(), c_m.group(3).length()))
-                - Math.min(Math.min(r_m.group(1).length(), r_m.group(3).length()), Math.min(c_m.group(1).length(), c_m.group(3).length()))
+                Math.max(Math.max(r_m.group(1).length(), r_m.group(5).length()), Math.max(c_m.group(1).length(), c_m.group(5).length()))
+                - Math.min(Math.min(r_m.group(1).length(), r_m.group(5).length()), Math.min(c_m.group(1).length(), c_m.group(5).length()))
                 < 3
             );
             assertTrue(
                 Math.max(r_m.group(2).length(), c_m.group(2).length())
                 - Math.min(r_m.group(2).length(), c_m.group(2).length())
+                < 3
+            );
+
+            // assert certrality of bbox "cross"
+            assertTrue(
+                Math.max(Math.max(r_m.group(3).length(), r_m.group(4).length()), Math.max(c_m.group(3).length(), c_m.group(4).length()))
+                - Math.min(Math.min(r_m.group(3).length(), r_m.group(4).length()), Math.min(c_m.group(3).length(), c_m.group(4).length()))
                 < 3
             );
         });

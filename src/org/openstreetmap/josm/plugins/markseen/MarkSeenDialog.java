@@ -87,6 +87,10 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
             this.slippyMap.setSizeButtonVisible(false);
             this.slippyMap.addPropertyChangeListener(BBoxChooser.BBOX_PROP, this);
 
+            this.recordToggleButton.addPropertyChangeListener("enabled", this);
+            // set initial state
+            this.slippyMap.setShowBBoxCrossed(!this.recordToggleButton.isEnabled());
+
             final Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
             labelTable.put(4, new JLabel(tr("16m")));
             labelTable.put(10, new JLabel(tr("1km")));
@@ -148,10 +152,15 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
     }
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (!skipZoomEvents) {
-            skipZoomEvents = true;
-            MainApplication.getMap().mapView.zoomTo(slippyMap.getBoundingBox());
-            skipZoomEvents = false;
+        final Object source = evt.getSource();
+        if (source == this.slippyMap) {
+            if (!skipZoomEvents) {
+                skipZoomEvents = true;
+                MainApplication.getMap().mapView.zoomTo(slippyMap.getBoundingBox());
+                skipZoomEvents = false;
+            }
+        } else if (source == this.recordToggleButton) {
+            this.slippyMap.setShowBBoxCrossed(!this.recordToggleButton.isEnabled());
         }
     }
 
