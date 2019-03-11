@@ -33,6 +33,7 @@ import org.openstreetmap.josm.testutils.ImagePatternMatching;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -80,7 +81,14 @@ public class MarkSeenRootTest {
      * This is a deliberately lenient way of checking that painting is happening in approximately the right places that
      * should still be robust to e.g. SlippyMapBBoxChooser's zoomlevel-choosing heuristics.
      */
-    public static void probePixels(BufferedImage image, int top, int right, int bottom, int left) {
+    public static void probePixels(
+        final BufferedImage image,
+        final int top,
+        final int right,
+        final int bottom,
+        final int left,
+        final boolean centerBlack
+    ) {
         ImagePatternMatching.columnMatch(
             image,
             image.getWidth()/2,
@@ -109,6 +117,12 @@ public class MarkSeenRootTest {
             ".*rw*",
             true
         );
+        int centerPixel = image.getRGB(image.getWidth()/2, image.getHeight()/2) & 0xffffff;
+        if (centerBlack) {
+            assertEquals(0, centerPixel);
+        } else {
+            assertNotEquals(0, centerPixel);
+        }
     }
 
     protected Callable<Boolean> slippyMapTasksFinished;
@@ -233,26 +247,26 @@ public class MarkSeenRootTest {
         mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat(), actualBounds.getMinLon()+0.005, actualBounds.getMaxLat(), actualBounds.getMaxLon()+0.005));
 
         this.assertControlStates(12, false, true);
-        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff));
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff, false));
 
         // another unrecorded pure pan
         actualBounds = mainMap.mapView.getState().getViewArea().getLatLonBoundsBox();
         mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat()+0.001, actualBounds.getMinLon(), actualBounds.getMaxLat()+0.001, actualBounds.getMaxLon()));
 
         this.assertControlStates(12, false, true);
-        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff));
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff, false));
 
         // now we activate recording briefly
         this.recordToggleButton.doClick();
 
         this.assertControlStates(12, true, true);
-        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff));
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff, false));
 
         // but we desctivate it without a viewport change
         this.recordToggleButton.doClick();
 
         this.assertControlStates(12, false, true);
-        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff));
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff, false));
 
         // another unrecorded pure pan back down
         actualBounds = mainMap.mapView.getState().getViewArea().getLatLonBoundsBox();
@@ -260,7 +274,13 @@ public class MarkSeenRootTest {
 
         // should have revealed another painted region
         this.assertControlStates(12, false, true);
-        this.renderAndAssert(i -> probePixels(i, 0xff80ff, 0x0, 0x0, 0xff80ff));
+        this.renderAndAssert(i -> probePixels(i, 0xff80ff, 0x0, 0x0, 0xff80ff, false));
+
+        this.recordMinZoom.setValue(8);
+
+        this.assertControlStates(8, false, false);
+        assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
+        this.renderAndAssert(i -> probePixels(i, 0xff80ff, 0x0, 0x0, 0xff80ff, true));
     }
 
     @Test
@@ -278,17 +298,17 @@ public class MarkSeenRootTest {
 
         this.assertControlStates(10, true, true);
         assertFalse(this.recordToggleButton.getToolTipText().contains("disabled"));
-        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0x0));
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0x0, false));
 
         mainMap.mapView.zoomTo(new Bounds(-0.0005, -0.0005, 0.001, 0.001));
         this.assertControlStates(10, true, true);
         // it should be ok that the "initial" position wasn't recorded - the initial mapview position is often not
         // reliable to use
-        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0x0));
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0x0, false));
 
         mainMap.mapView.zoomTo(new Bounds(-0.0004, -0.0004, 0.001, 0.001));
         this.assertControlStates(10, true, true);
-        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x00ffff, 0x00ffff));
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x00ffff, 0x00ffff, false));
 
         this.dialog.hideDialog();
 
@@ -297,14 +317,20 @@ public class MarkSeenRootTest {
 
         this.dialog.showDialog();
         // slippy map should take heed of the movement while the dialog was closed
-        this.renderAndAssert(i -> probePixels(i, 0x0, 0x00ffff, 0x0, 0x0));
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x00ffff, 0x0, 0x0, false));
 
         this.clearButton.doClick();
 
         Thread.sleep(50);
 
         this.assertControlStates(10, true, true);
-        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0x0));
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0x0, false));
+
+        this.recordMinZoom.setValue(6);
+
+        this.assertControlStates(6, true, false);
+        assertTrue(this.recordToggleButton.getToolTipText().contains("disabled"));
+        this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0x0, true));
     }
 
     @Test
