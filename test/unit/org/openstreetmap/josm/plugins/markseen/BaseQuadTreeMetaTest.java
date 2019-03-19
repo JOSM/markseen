@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 
 import java.awt.image.DataBufferByte;
 
@@ -56,7 +57,18 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
             Bounds bounds = (Bounds)seenRectInfo[0];
             double minTilesAcross = (double)seenRectInfo[1];
 
-            quadTreeMeta.requestSeenBoundsMark(bounds, minTilesAcross, true);
+            boolean success = false;
+            while (!success) {
+                try {
+                    quadTreeMeta.requestSeenBoundsMark(bounds, minTilesAcross, true);
+                    success = true;
+                } catch (RejectedExecutionException e) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e2) {}
+                    // then retry
+                }
+            }
         }
     }
 

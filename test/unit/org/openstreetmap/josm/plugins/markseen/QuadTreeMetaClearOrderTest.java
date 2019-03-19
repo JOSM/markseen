@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 import java.awt.Color;
 
@@ -65,7 +66,18 @@ public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
         QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(quadTreeMeta, this.referenceTiles);
 
         this.markRectsAsync(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
-        quadTreeMeta.requestClear(true);
+        boolean clearSuccess = false;
+        while (!clearSuccess) {
+            try {
+                quadTreeMeta.requestClear(true);
+                clearSuccess = true;
+            } catch (RejectedExecutionException e) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e2) {}
+                // then retry
+            }
+        }
 
         // wait until the edits have properly started
         while (quadTreeMeta.getEditRequestQueueCompletedTaskCount() == 0);
