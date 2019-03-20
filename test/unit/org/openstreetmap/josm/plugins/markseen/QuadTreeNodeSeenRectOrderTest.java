@@ -29,20 +29,20 @@ public class QuadTreeNodeSeenRectOrderTest extends BaseQuadTreeNodeTest {
 
             // we'd rather avoid testing against more permutations than exist for the number of seenRects
             int srFact = 1;
-            for(int m=1; m<=seenRects.length; m++) {
+            for(int m=1; m<=seenRects.length && srFact<=variants; m++) {
                 srFact = srFact*m;
             }
 
             for (int j=0; j<Math.min(srFact, variants); j++) {
-                paramSets.add(new Object[] {i, j, null});
+                paramSets.add(new Object[] {i, j});
             }
         }
         return paramSets;
     }
 
-    public QuadTreeNodeSeenRectOrderTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
+    public QuadTreeNodeSeenRectOrderTest(int scenarioIndex_, Integer seenRectOrderSeed_)
     throws IOException {
-        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
+        super(scenarioIndex_, seenRectOrderSeed_, null);
     }
 
     @Test

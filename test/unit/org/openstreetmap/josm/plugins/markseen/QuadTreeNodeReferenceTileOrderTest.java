@@ -30,13 +30,13 @@ public class QuadTreeNodeReferenceTileOrderTest extends BaseQuadTreeNodeTest {
 
             // we'd rather avoid testing against more permutations than exist for the number of seenRects
             int srFact = 1;
-            for(int m=1; m<=seenRects.length; m++) {
+            for(int m=1; m<=seenRects.length && srFact<=seenRectVariants; m++) {
                 srFact = srFact*m;
             }
 
             // we'd rather avoid testing against more permutations than exist for the number of referenceTiles
             int rtFact = 1;
-            for(int m=1; m<=seenRects.length; m++) {
+            for(int m=1; m<=seenRects.length && rtFact<=referenceTileVariants; m++) {
                 rtFact = rtFact*m;
             }
 
