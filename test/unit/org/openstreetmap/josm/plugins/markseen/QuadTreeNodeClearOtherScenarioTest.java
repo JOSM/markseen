@@ -39,7 +39,7 @@ public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
 
             // we'd rather avoid testing against more permutations than exist for the number of seenRects
             int srFact = 1;
-            for(int m=1; m<=seenRects.length; m++) {
+            for(int m=1; m<=seenRects.length && srFact<=seenRectVariants; m++) {
                 srFact = srFact*m;
             }
             for (int j=0; j<scenarios.length; j++) {
@@ -47,14 +47,14 @@ public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
 
                 // we'd rather avoid testing against more permutations than exist for the number of preSeenRects
                 int psrFact = 1;
-                for(int m=1; m<=preSeenRects.length; m++) {
+                for(int m=1; m<=preSeenRects.length && psrFact<=preSeenRectVariants; m++) {
                     psrFact = psrFact*m;
                 }
 
                 for (int k=0; k<Math.min(srFact, seenRectVariants); k++) {
                     for (int l=0; l<Math.min(psrFact, preSeenRectVariants); l++) {
                         for (int a=0; a<referenceTileVariants; a++) {
-                            paramSets.add(new Object[] {j, i, l, k, a});
+                            paramSets.add(new Object[] {j, i, l, k, a == 0 ? null : a});
                         }
                     }
                 }
@@ -84,13 +84,17 @@ public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
         QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
-        this.markRects(quadTreeMeta, this.preSeenRects, this.preSeenRectOrderSeed);
+        // marking rects with ExtremeAspectRatioException tolerated as the "other" scenario is meant for
+        // a different tileSize
+        this.markRects(quadTreeMeta, this.preSeenRects, this.preSeenRectOrderSeed, true);
+        // not asserting contents - we just want to cause reads of the tiles
         this.inspectReferenceTiles(quadTreeMeta, this.preReferenceTiles, null, false);
         quadTreeMeta.quadTreeRoot.clear();
         quadTreeMeta.quadTreeRoot.checkIntegrity();
         this.markRects(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
         quadTreeMeta.quadTreeRoot.checkIntegrity();
-        this.inspectReferenceTiles(quadTreeMeta, this.referenceTiles, this.referenceTileOrderSeed);
+        // only assert contents if referenceTileOrderSeed is null as the reference tiles can be order-sensitive
+        this.inspectReferenceTiles(quadTreeMeta, this.referenceTiles, this.referenceTileOrderSeed, this.referenceTileOrderSeed == null);
 
         quadTreeMeta.quadTreeRWLock.writeLock().unlock();
     }
@@ -100,12 +104,15 @@ public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
         QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
-        this.markRects(quadTreeMeta, this.preSeenRects, this.preSeenRectOrderSeed);
+        // marking rects with ExtremeAspectRatioException tolerated as the "other" scenario is meant for
+        // a different tileSize
+        this.markRects(quadTreeMeta, this.preSeenRects, this.preSeenRectOrderSeed, true);
         quadTreeMeta.quadTreeRoot.clear();
         quadTreeMeta.quadTreeRoot.checkIntegrity();
         this.markRects(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
         quadTreeMeta.quadTreeRoot.checkIntegrity();
-        this.inspectReferenceTiles(quadTreeMeta, this.referenceTiles, this.referenceTileOrderSeed);
+        // only assert contents if referenceTileOrderSeed is null as the reference tiles can be order-sensitive
+        this.inspectReferenceTiles(quadTreeMeta, this.referenceTiles, this.referenceTileOrderSeed, this.referenceTileOrderSeed == null);
 
         quadTreeMeta.quadTreeRWLock.writeLock().unlock();
     }

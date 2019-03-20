@@ -22,7 +22,20 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
         super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
     }
 
-    protected void markRects(QuadTreeMeta quadTreeMeta, Object[][] seenRects_, Integer orderSeed) {
+    protected void markRects(
+        QuadTreeMeta quadTreeMeta,
+        Object[][] seenRects_,
+        Integer orderSeed
+    ) {
+        this.markRects(quadTreeMeta, seenRects_, orderSeed, false);
+    }
+
+    protected void markRects(
+        QuadTreeMeta quadTreeMeta,
+        Object[][] seenRects_,
+        Integer orderSeed,
+        boolean tolerateExtremeAspectRatioException
+    ) {
         List<Integer> remapping = getRemapping(seenRects_.length, orderSeed);
 
         for (int i = 0; i<seenRects_.length; i++) {
@@ -32,7 +45,13 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
             Bounds bounds = (Bounds)seenRectInfo[0];
             double minTilesAcross = (double)seenRectInfo[1];
 
-            quadTreeMeta.quadTreeRoot.markBoundsSeen(bounds, minTilesAcross);
+            try {
+                quadTreeMeta.quadTreeRoot.markBoundsSeen(bounds, minTilesAcross);
+            } catch (QuadTreeNode.ExtremeAspectRatioException e) {
+                if (!tolerateExtremeAspectRatioException) {
+                    throw e;
+                }
+            }
             quadTreeMeta.quadTreeRoot.checkIntegrity();
         }
     }
