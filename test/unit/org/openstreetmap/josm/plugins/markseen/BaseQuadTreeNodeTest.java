@@ -11,6 +11,7 @@ import java.awt.image.DataBufferByte;
 import org.openstreetmap.josm.data.Bounds;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Ignore;
 
@@ -87,6 +88,7 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
         Object constReferenceMask,
         boolean write
     ) {
+        assertTrue("assertContents will not work reliably in non-default order", orderSeed == null || constReferenceMask != null || !assertContents);
         List<Integer> remapping = getRemapping(referenceTiles_.length, orderSeed);
 
         for (int i = 0; i<referenceTiles_.length; i++) {
@@ -96,9 +98,10 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
             int zoom = (int)referenceTileInfo[0];
             int tilex = (int)referenceTileInfo[1];
             int tiley = (int)referenceTileInfo[2];
-            byte[] maskBytes = getRefMaskBytes(quadTreeMeta, constReferenceMask != null ? constReferenceMask : referenceTileInfo[3]);
+            Object refMask = constReferenceMask != null ? constReferenceMask : referenceTileInfo[3];
+            byte[] refMaskBytes = getRefMaskBytes(quadTreeMeta, refMask);
 
-            BufferedImage result = quadTreeMeta.quadTreeRoot.getNodeForTile(
+            BufferedImage resultMask = quadTreeMeta.quadTreeRoot.getNodeForTile(
                 tilex,
                 tiley,
                 zoom,
@@ -106,17 +109,20 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
             ).getMask(write, write);
             quadTreeMeta.quadTreeRoot.checkIntegrity();
 
-            byte[] resultMaskBytes = ((DataBufferByte) result.getData().getDataBuffer()).getData();
+            byte[] resultMaskBytes = ((DataBufferByte) resultMask.getData().getDataBuffer()).getData();
 
             if (assertContents) {
                 try {
                     assertArrayEquals(
                         resultMaskBytes,
-                        maskBytes
+                        refMaskBytes
                     );
                 } catch (final AssertionError e) {
                     System.out.format("assertArrayEquals failed on reference tile %d\n", j);
-                    System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes));
+                    System.out.println(
+                        "ref = " + javax.xml.bind.DatatypeConverter.printHexBinary(refMaskBytes) +
+                        ", result = " + javax.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes)
+                    );
                     throw e;
                 }
             }
