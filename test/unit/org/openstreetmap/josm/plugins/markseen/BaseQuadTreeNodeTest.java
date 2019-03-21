@@ -11,6 +11,7 @@ import java.awt.image.DataBufferByte;
 import org.openstreetmap.josm.data.Bounds;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Ignore;
@@ -21,6 +22,11 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
     public BaseQuadTreeNodeTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
     throws IOException {
         super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
+    }
+
+    @FunctionalInterface
+    interface AfterRectMarkAction {
+        void act(int i, int j, Bounds bounds, double minTilesAcross);
     }
 
     protected void markRects(
@@ -36,6 +42,16 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
         Object[][] seenRects_,
         Integer orderSeed,
         boolean tolerateExtremeAspectRatioException
+    ) {
+        this.markRects(quadTreeMeta, seenRects_, orderSeed, tolerateExtremeAspectRatioException, null);
+    }
+
+    protected void markRects(
+        QuadTreeMeta quadTreeMeta,
+        Object[][] seenRects_,
+        Integer orderSeed,
+        boolean tolerateExtremeAspectRatioException,
+        AfterRectMarkAction afterRectMarkAction
     ) {
         List<Integer> remapping = getRemapping(seenRects_.length, orderSeed);
 
@@ -54,6 +70,11 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
                 }
             }
             quadTreeMeta.quadTreeRoot.checkIntegrity();
+
+            if (afterRectMarkAction != null) {
+                afterRectMarkAction.act(i, j, bounds, minTilesAcross);
+                quadTreeMeta.quadTreeRoot.checkIntegrity();
+            }
         }
     }
 
@@ -88,8 +109,34 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
         Object constReferenceMask,
         boolean write
     ) {
+        this.inspectReferenceTiles(quadTreeMeta, referenceTiles_, orderSeed, assertContents, constReferenceMask, write, null);
+    }
+
+    @FunctionalInterface
+    interface InspectExtraAssertion {
+        void assert_(
+            QuadTreeNode node,
+            int i,
+            int j,
+            BufferedImage resultMask,
+            Object refMask,
+            byte[] resultMaskBytes,
+            byte[] refMaskBytes,
+            boolean refMaskOptAliasable
+        );
+    }
+
+    protected void inspectReferenceTiles(
+        QuadTreeMeta quadTreeMeta,
+        Object [][] referenceTiles_,
+        Integer orderSeed,
+        boolean assertContents,
+        Object constReferenceMask,
+        boolean write,
+        InspectExtraAssertion extraAssertion
+    ) {
         assertTrue("assertContents will not work reliably in non-default order", orderSeed == null || constReferenceMask != null || !assertContents);
-        List<Integer> remapping = getRemapping(referenceTiles_.length, orderSeed);
+        final List<Integer> remapping = getRemapping(referenceTiles_.length, orderSeed);
 
         for (int i = 0; i<referenceTiles_.length; i++) {
             int j = remapping.get(i);
@@ -100,13 +147,20 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
             int tiley = (int)referenceTileInfo[2];
             Object refMask = constReferenceMask != null ? constReferenceMask : referenceTileInfo[3];
             byte[] refMaskBytes = getRefMaskBytes(quadTreeMeta, refMask);
+            boolean refMaskOptAliasable = referenceTileInfo.length >= 5 ? (boolean)referenceTileInfo[4] : false;
 
-            BufferedImage resultMask = quadTreeMeta.quadTreeRoot.getNodeForTile(
+            assertFalse(
+                "refMask must be boolean if refMaskOptAliasable is true",
+                refMaskOptAliasable && !Boolean.class.isInstance(refMask)
+            );
+
+            QuadTreeNode node = quadTreeMeta.quadTreeRoot.getNodeForTile(
                 tilex,
                 tiley,
                 zoom,
                 write
-            ).getMask(write, write);
+            );
+            BufferedImage resultMask = node.getMask(write, write);
             quadTreeMeta.quadTreeRoot.checkIntegrity();
 
             byte[] resultMaskBytes = ((DataBufferByte) resultMask.getData().getDataBuffer()).getData();
@@ -125,6 +179,18 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
                     );
                     throw e;
                 }
+            }
+            if (extraAssertion != null) {
+                extraAssertion.assert_(
+                    node,
+                    i,
+                    j,
+                    resultMask,
+                    refMask,
+                    resultMaskBytes,
+                    refMaskBytes,
+                    refMaskOptAliasable
+                );
             }
         }
     }

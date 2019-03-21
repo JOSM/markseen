@@ -38,13 +38,13 @@ public class BaseRectTest extends BaseTest {
                         { new Bounds(51.36, -0.35, 51.61, 0.10), 4. }
                     },
                     new Object[][] {
-                        // zoom, xtile, ytile, expectedMask
+                        // zoom, xtile, ytile, expectedMask, optimizedAliasable
                         // the expectedMask can either be a byte[] OR a boolean, true denoting FULL_MASK and false
                         // EMPTY_MASK (we can't reference these directly because they haven't been allocated at this point)
-                        { 10, 50, 50, false },
-                        { 15, 16365, 10867, false },
-                        { 14, 8184, 5448, true },
-                        { 11, 1023, 681, true },
+                        { 10, 50, 50, false, true },
+                        { 15, 16365, 10867, false, true },
+                        { 14, 8184, 5448, true, true },
+                        { 11, 1023, 681, true, true },
                         { 16, 32730, 21762, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/0/16-32730-21762.bin") },
                         { 11, 1024, 680, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/0/11-1024-680.bin") },
                         { 7, 63, 42, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/0/7-63-42.bin") }
@@ -58,17 +58,17 @@ public class BaseRectTest extends BaseTest {
                         { new Bounds(-20.365, -51.152, -20.014, -50.581), 3. }
                     },
                     new Object[][] {
-                        { 10, 50, 50, false },
-                        { 3, 1, 4, false },
-                        { 10, 375, 559, true },
-                        { 15, 12018, 17916, true },
+                        { 10, 50, 50, false, true },
+                        { 3, 1, 4, false, true },
+                        { 10, 375, 559, true, false },
+                        { 15, 12018, 17916, true, false },
                         { 4, 5, 8, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/4-5-8.bin") },
-                        { 11, 749, 1119, true },
+                        { 11, 749, 1119, true, false },
                         { 12, 1490, 2272, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/12-1490-2272.bin") },
                         { 14, 5960, 9091, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/14-5960-9091.bin") },
-                        { 14, 5960, 9092, false },
+                        { 14, 5960, 9092, false, false },
                         { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/1/0-0-0.bin") },
-                        { 16, 23520, 36514, true }
+                        { 16, 23520, 36514, true, true }
                     }
                 },
                 {
@@ -80,15 +80,15 @@ public class BaseRectTest extends BaseTest {
                         { new Bounds(-9., 81., 0., 90.), 9. }
                     },
                     new Object[][] {
-                        { 10, 50, 50, false },
-                        { 10, 512, 512, false },
-                        { 10, 511, 511, false },
-                        { 10, 512, 511, true },
-                        { 10, 511, 512, true },
-                        { 7, 96, 64, false },
-                        { 7, 95, 63, false },
-                        { 7, 96, 63, true },
-                        { 7, 95, 64, true },
+                        { 10, 50, 50, false, true },
+                        { 10, 512, 512, false, true },
+                        { 10, 511, 511, false, true },
+                        { 10, 512, 511, true, true },
+                        { 10, 511, 512, true, true },
+                        { 7, 96, 64, false, true },
+                        { 7, 95, 63, false, true },
+                        { 7, 96, 63, true, true },
+                        { 7, 95, 64, true, true },
                         { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/2/0-0-0.bin") }
                     }
                 },
@@ -101,10 +101,10 @@ public class BaseRectTest extends BaseTest {
                         { new Bounds(-86.9, 10.6, -70., 21.6), 8. }
                     },
                     new Object[][] {
-                        { 10, 50, 50, false },
-                        { 10, 0, 0, false },
-                        { 18, 140500, 0, true },
-                        { 12, 1286, 10, true },
+                        { 10, 50, 50, false, true },
+                        { 10, 0, 0, false, true },
+                        { 18, 140500, 0, true, false },
+                        { 12, 1286, 10, true, false },
                         { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/3/0-0-0.bin") }
                     }
                 },
@@ -133,17 +133,17 @@ public class BaseRectTest extends BaseTest {
                         { new Bounds(-46.08, -81.72, -44.403, -38.19), 3. }
                     },
                     new Object[][] {
-                        { 10, 50, 50, false },
+                        { 10, 50, 50, false, true },
                         { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/0-0-0.bin") },
-                        { 12, 784, 1535, true },
-                        { 12, 786, 1535, false },
+                        { 12, 784, 1535, true, false },
+                        { 12, 786, 1535, false, false },
                         { 11, 392, 767, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/11-392-767.bin") },
-                        { 19, 342025, 366377, true },
+                        { 19, 342025, 366377, true, false },
                         { 11, 1336, 1431, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/11-1336-1431.bin") },
-                        { 6, 40, 44, false },
+                        { 6, 40, 44, false, true },
                         { 10, 837, 279, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/10-837-279.bin") },
-                        { 6, 7, 16, false },
-                        { 3, 0, 1, false },
+                        { 6, 7, 16, false, true },
+                        { 3, 0, 1, false, false },
                         { 2, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/2-0-0.bin") },
                         { 1, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/1-0-0.bin") },
                         { 6, 7, 15, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/4/6-7-15.bin") }
@@ -183,24 +183,24 @@ public class BaseRectTest extends BaseTest {
                         { new Bounds(48.42, -19.22, 50.56, -19.02), 5. }
                     },
                     new Object[][] {
-                        { 10, 50, 50, false },
-                        { 1, 0, 1, false },
+                        { 10, 50, 50, false, true },
+                        { 1, 0, 1, false, true },
                         { 0, 0, 0, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/5/0-0-0.bin") },
-                        { 10, 537, 450, true },
-                        { 9, 270, 224, false },
-                        { 7, 67, 54, true },
-                        { 7, 67, 64, false },
-                        { 8, 134, 106, true },
-                        { 15, 17312, 13455, false },
-                        { 15, 17313, 13419, true },
-                        { 10, 500, 362, true },
-                        { 10, 498, 362, false },
-                        { 14, 8768, 5355, true },
-                        { 7, 67, 42, false },
-                        { 8, 132, 72, true },
-                        { 19, 271123, 151470, false },
-                        { 10, 504, 332, true },
-                        { 14, 8079, 5357, true },
+                        { 10, 537, 450, true, true },
+                        { 9, 270, 224, false, false },
+                        { 7, 67, 54, true, false },
+                        { 7, 67, 64, false, true },
+                        { 8, 134, 106, true, false },
+                        { 15, 17312, 13455, false, false },
+                        { 15, 17313, 13419, true, false },
+                        { 10, 500, 362, true, true },
+                        { 10, 498, 362, false, false },
+                        { 14, 8768, 5355, true, false },
+                        { 7, 67, 42, false, false },
+                        { 8, 132, 72, true, false },
+                        { 19, 271123, 151470, false, false },
+                        { 10, 504, 332, true, false },
+                        { 14, 8079, 5357, true, false },
                         // the following tile covers an interesting potential discontinuity due to varying canonical depths
                         { 7, 66, 56, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/5/7-66-56.bin") },
                         { 4, 9, 4, byteArrayFromResource("QuadTreeNodeTest/testSingleRect/5/4-9-4.bin") }

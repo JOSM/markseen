@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
 
 import java.lang.ref.SoftReference;
@@ -532,6 +533,71 @@ class QuadTreeNode {
         // something we're notably *not* doing here is destroying all the child nodes because it is assumed the user
         // will be working in a similar area and there will be opportunities to re-use these nodes. the majority of the
         // node's memory can be reclaimed through mask SoftReferences anyway.
+    }
+
+    protected static boolean masksEqual(
+        final BufferedImage maskA,
+        final BufferedImage maskB
+    ) {
+        return Arrays.equals(
+            ((DataBufferByte) maskA.getData().getDataBuffer()).getData(),
+            ((DataBufferByte) maskB.getData().getDataBuffer()).getData()
+        );
+    }
+
+    public BufferedImage optimize() {
+        assert this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread();
+        assert !this.belowCanonical;
+
+        if (this.canonicalMask != null) {
+            // this is the canonical level. if we can determine that the canonicalMask could be switched
+            // for an aliasable one, do so and return that BufferedImage
+            if (this.canonicalMask == this.quadTreeMeta.FULL_MASK || this.canonicalMask == this.quadTreeMeta.EMPTY_MASK) {
+                return this.canonicalMask;
+            }
+            if (masksEqual(this.canonicalMask, this.quadTreeMeta.FULL_MASK)) {
+                Logging.debug("optimize() setting canonical node as FULL_MASK");
+                this.canonicalMask = this.quadTreeMeta.FULL_MASK;
+                this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
+                return this.canonicalMask;
+            }
+            if (masksEqual(this.canonicalMask, this.quadTreeMeta.EMPTY_MASK)) {
+                Logging.debug("optimize() setting canonical node as EMPTY_MASK");
+                this.canonicalMask = this.quadTreeMeta.EMPTY_MASK;
+                this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
+                return this.canonicalMask;
+            }
+
+            // contents not aliasable
+            return null;
+        } else {
+            // continue to descend to canonical level, keeping note whether all children return the
+            // same aliasable BufferedImage
+            BufferedImage commonAliasable = null;
+            for (int i=0; i<this.children.length; i++) {
+                BufferedImage childResult = this.children[i].optimize();
+
+                if (i == 0) {
+                    // commonAliasable will be its initial null value anyway, overwrite.
+                    commonAliasable = childResult;
+                } else if (childResult != commonAliasable) {
+                    // we don't have a common aliasable
+                    commonAliasable = null;
+                }
+            }
+
+            // unwind
+            if (commonAliasable != null) {
+                // raise the canonical level to ourselves
+                Logging.debug("optimize() raising canonical level");
+                this.canonicalMask = commonAliasable;
+                this.mask = new SoftReference<BufferedImage>(this.canonicalMask);
+                this.setDescendantsBelowCanonical(false);
+                return this.canonicalMask;
+            } else {
+                return null;
+            }
+        }
     }
 
     private void checkIntegrityInner(boolean recBelowCanonical, QuadTreeNode recParent) {
