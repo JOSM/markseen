@@ -1,6 +1,7 @@
 package org.openstreetmap.josm.plugins.markseen;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import java.io.IOException;
 import java.lang.AssertionError;
 import java.util.ArrayList;
@@ -20,6 +21,8 @@ import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.data.Bounds;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Ignore;
@@ -96,11 +99,35 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         }
     }
 
-    protected void inspectReferenceTiles(QuadTreeMeta quadTreeMeta, QuadTreeNodeDynamicReference[] dynamicReferences, Object [][] referenceTiles_, Integer orderSeed) {
+    @FunctionalInterface
+    interface InspectExtraAssertion {
+        void assert_(
+            int i,
+            int j,
+            QuadTreeNodeDynamicReference dynamicReference,
+            Object refMask,
+            byte[] resultMaskBytes,
+            byte[] refMaskBytes,
+            boolean refMaskOptAliasable
+        );
+    }
+
+    protected void inspectReferenceTiles(
+        QuadTreeMeta quadTreeMeta,
+        QuadTreeNodeDynamicReference[] dynamicReferences,
+        Object [][] referenceTiles_,
+        Integer orderSeed
+    ) {
         this.inspectReferenceTiles(quadTreeMeta, dynamicReferences, referenceTiles_, orderSeed, true);
     }
 
-    protected void inspectReferenceTiles(QuadTreeMeta quadTreeMeta, QuadTreeNodeDynamicReference[] dynamicReferences, Object [][] referenceTiles_, Integer orderSeed, boolean assertContents) {
+    protected void inspectReferenceTiles(
+        QuadTreeMeta quadTreeMeta,
+        QuadTreeNodeDynamicReference[] dynamicReferences,
+        Object [][] referenceTiles_,
+        Integer orderSeed,
+        boolean assertContents
+    ) {
         this.inspectReferenceTiles(quadTreeMeta, dynamicReferences, referenceTiles_, orderSeed, assertContents, null);
     }
 
@@ -112,7 +139,20 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         boolean assertContents,
         Object constReferenceMask
     ) {
-        assert dynamicReferences.length == referenceTiles_.length;
+        this.inspectReferenceTiles(quadTreeMeta, dynamicReferences, referenceTiles_, orderSeed, assertContents, null, null);
+    }
+
+    protected void inspectReferenceTiles(
+        QuadTreeMeta quadTreeMeta,
+        QuadTreeNodeDynamicReference[] dynamicReferences,
+        Object [][] referenceTiles_,
+        Integer orderSeed,
+        boolean assertContents,
+        Object constReferenceMask,
+        InspectExtraAssertion extraAssertion
+    ) {
+        assertTrue("assertContents will not work reliably in non-default order", orderSeed == null || constReferenceMask != null || !assertContents);
+        assertEquals(dynamicReferences.length, referenceTiles_.length);
 
         List<Integer> remapping = getRemapping(referenceTiles_.length, orderSeed);
 
@@ -120,7 +160,9 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
             final int j = remapping.get(i);
             Object[] referenceTileInfo = referenceTiles_[j];
             System.out.format("(%d of %d) Checking reference tile %d\n", i, referenceTiles_.length, j);
-            byte[] refMaskBytes = getRefMaskBytes(quadTreeMeta, constReferenceMask != null ? constReferenceMask : referenceTileInfo[3]);
+            Object refMask = constReferenceMask != null ? constReferenceMask : referenceTileInfo[3];
+            byte[] refMaskBytes = getRefMaskBytes(quadTreeMeta, refMask);
+            boolean refMaskOptAliasable = referenceTileInfo.length >= 5 ? (boolean)referenceTileInfo[4] : false;
 
             byte[] resultMaskBytes = dynamicReferences[j].maskReadOperation(
                 mask -> ((DataBufferByte) mask.getData().getDataBuffer()).getData()
@@ -134,9 +176,23 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
                     );
                 } catch (final AssertionError e) {
                     System.out.format("assertArrayEquals failed on reference tile %d\n", j);
-                    System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes));
+                    System.out.println(
+                        "ref = " + javax.xml.bind.DatatypeConverter.printHexBinary(refMaskBytes) +
+                        ", result = " + javax.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes)
+                    );
                     throw e;
                 }
+            }
+            if (extraAssertion != null) {
+                extraAssertion.assert_(
+                    i,
+                    j,
+                    dynamicReferences[j],
+                    refMask,
+                    resultMaskBytes,
+                    refMaskBytes,
+                    refMaskOptAliasable
+                );
             }
         }
     }
