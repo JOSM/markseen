@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -19,6 +20,7 @@ import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 
 import org.openstreetmap.josm.data.Bounds;
+import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.tools.Logging;
 
 public class QuadTreeMeta {
@@ -148,6 +150,46 @@ public class QuadTreeMeta {
         void quadTreeModified();
     }
 
+    // while it would be perfectly possible to perform optimize calls in the QuadTreeEditExecutor thread -
+    // the two operations can't run concurrently, doing so would introduce some weirdness arising from it
+    // being used to handle both "real" edits and "edits" that have no visible effect.
+    private class QuadTreeOptimizeExecutor extends ThreadPoolExecutor implements QuadTreeModifiedListener {
+        public QuadTreeOptimizeExecutor() {
+            super(1, 1, 3, java.util.concurrent.TimeUnit.MINUTES, new SynchronousQueue<Runnable>());
+            this.allowCoreThreadTimeOut(true);
+            this.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
+        }
+
+        @Override
+        public void beforeExecute(Thread thread, Runnable runnable) {
+            try {
+                // this sleep should block the submission of additional optimize operations until it has
+                // completed - those submissions should just "fail" silently without issue. we shouldn't
+                // have to worry about further operations being submitted while the actual task is running
+                // because it occupies the lock that the generator of these events would need itself.
+                Thread.sleep(Config.getPref().getInt("markseen.autoOptimizeDelayMS", 30000));
+                QuadTreeMeta.this.quadTreeRWLock.writeLock().lockInterruptibly();
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+
+        @Override
+        public void afterExecute(Runnable runnable, Throwable throwable) {
+            QuadTreeMeta.this.quadTreeRWLock.writeLock().unlock();
+        }
+
+        public void quadTreeModified() {
+            this.execute(() -> {
+                QuadTreeMeta.this.quadTreeRoot.optimize();
+                Logging.debug("QuadTreeMeta completed optimize() run");
+            });
+        }
+
+        // unlike QuadTreeEditExecutor it's not the end of the world if we somehow get >1 threads in the
+        // pool, it just won't be useful
+    }
+
     // we don't worry about using the specific configured color ("maskColor") for marking regions, instead just expect
     // the palette to match opaque white to that color and transparent black to the "background" color
     protected final static Color UNMARK_COLOR = new Color(0, 0, 0, 0);
@@ -165,12 +207,13 @@ public class QuadTreeMeta {
     protected final BufferedImage FULL_MASK;
 
     private final ThreadPoolExecutor quadTreeEditExecutor;
+    private final QuadTreeOptimizeExecutor quadTreeOptimizeExecutor;
 
     private final Set<QuadTreeModifiedListener> modifiedListeners;
 
-    public QuadTreeNode quadTreeRoot;
+    public final QuadTreeNode quadTreeRoot;
 
-    public QuadTreeMeta(int tileSize_, Color maskColor_, double maskOpacity_) {
+    public QuadTreeMeta(int tileSize_, Color maskColor_, double maskOpacity_, boolean autoOptimize) {
         this.tileSize = tileSize_;
         this.maskColor = maskColor_;
         this.maskOpacity = maskOpacity_;
@@ -200,7 +243,12 @@ public class QuadTreeMeta {
 
         this.quadTreeRoot = new QuadTreeNode(this);
         this.quadTreeEditExecutor = new QuadTreeEditExecutor();
+        this.quadTreeOptimizeExecutor = new QuadTreeOptimizeExecutor();
         this.modifiedListeners = Collections.synchronizedSet(new HashSet<QuadTreeModifiedListener>());
+
+        if (autoOptimize) {
+            this.modifiedListeners.add(this.quadTreeOptimizeExecutor);
+        }
     }
 
     public void requestSeenBoundsMark(Bounds bounds, double minTilesAcross) {

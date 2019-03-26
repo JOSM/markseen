@@ -57,7 +57,7 @@ public class QuadTreeNodeClearOrderTest extends BaseQuadTreeNodeTest {
 
     @Test
     public void testClearPreSeen() {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
+        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
         this.markRects(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
@@ -71,7 +71,7 @@ public class QuadTreeNodeClearOrderTest extends BaseQuadTreeNodeTest {
 
     @Test
     public void testClearUnseen() {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
+        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
         this.markRects(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);

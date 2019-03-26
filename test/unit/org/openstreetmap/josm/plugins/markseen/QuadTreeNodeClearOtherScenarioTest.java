@@ -81,7 +81,7 @@ public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
 
     @Test
     public void testClearPreRead() {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
+        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
         // marking rects with ExtremeAspectRatioException tolerated as the "other" scenario is meant for
@@ -101,7 +101,7 @@ public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
 
     @Test
     public void testClearUnread() {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
+        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
         // marking rects with ExtremeAspectRatioException tolerated as the "other" scenario is meant for

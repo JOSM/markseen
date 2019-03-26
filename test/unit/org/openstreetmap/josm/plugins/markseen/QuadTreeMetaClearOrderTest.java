@@ -62,7 +62,7 @@ public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
     @Test(timeout=10000)
     public void testClearUnseen()
     throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
+        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
         QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(quadTreeMeta, this.referenceTiles);
 
         this.markRectsAsync(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);

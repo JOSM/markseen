@@ -41,7 +41,7 @@ public class QuadTreeNodeExtremeAspectRatioTest extends BaseTest {
 
     @Test(expected=QuadTreeNode.ExtremeAspectRatioException.class)
     public void test() {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
+        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
         try {

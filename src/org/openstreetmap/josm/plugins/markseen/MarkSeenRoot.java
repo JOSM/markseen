@@ -148,7 +148,8 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         this.quadTreeMeta = new QuadTreeMeta(
             Config.getPref().getInt("markseen.quadTreeTileSize", 256),
             ColorHelper.html2color(Config.getPref().get("color.markseen.seenarea", "#ff00ff")),
-            Config.getPref().getDouble("markseen.maskOpacity", 0.5)
+            Config.getPref().getDouble("markseen.maskOpacity", 0.5),
+            true
         );
         this.clearAction = new MarkSeenClearAction();
         this.recordAction = new MarkSeenToggleRecordAction();

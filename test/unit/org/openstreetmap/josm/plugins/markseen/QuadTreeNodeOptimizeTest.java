@@ -66,7 +66,7 @@ public class QuadTreeNodeOptimizeTest extends BaseQuadTreeNodeTest {
 
     @Test
     public void test() {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5);
+        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
         this.markRects(quadTreeMeta, this.seenRects, this.seenRectOrderSeed, false, (i, j, bounds, minTilesAcross) -> {
