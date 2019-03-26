@@ -44,14 +44,13 @@ public class QuadTreeMetaSeenRectOrderTest extends BaseQuadTreeMetaTest {
 
     @Test(timeout=10000)
     public void test() {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
-        QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(quadTreeMeta, this.referenceTiles);
+        QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);
 
-        this.markRectsAsync(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
+        this.markRectsAsync(this.quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
 
         // wait until the edits have properly started
-        while (quadTreeMeta.getEditRequestQueueCompletedTaskCount() == 0);
+        while (this.quadTreeMeta.getEditRequestQueueCompletedTaskCount() == 0);
 
-        this.inspectReferenceTiles(quadTreeMeta, dynamicReferences, this.referenceTiles, this.referenceTileOrderSeed);
+        this.inspectReferenceTiles(this.quadTreeMeta, dynamicReferences, this.referenceTiles, this.referenceTileOrderSeed);
     }
 }

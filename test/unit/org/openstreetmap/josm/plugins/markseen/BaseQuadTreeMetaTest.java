@@ -1,5 +1,6 @@
 package org.openstreetmap.josm.plugins.markseen;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.io.IOException;
 import java.lang.AssertionError;
 import java.util.ArrayList;
@@ -7,15 +8,20 @@ import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
 import org.openstreetmap.gui.jmapviewer.Tile;
 import org.openstreetmap.gui.jmapviewer.interfaces.TileSource;
+import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.data.Bounds;
 
 import static org.junit.Assert.assertArrayEquals;
 
+import org.junit.After;
 import org.junit.Ignore;
 import mockit.Mock;
 import mockit.MockUp;
@@ -42,9 +48,27 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         return refs;
     }
 
+    protected QuadTreeMeta quadTreeMeta;
+
     public BaseQuadTreeMetaTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
     throws IOException {
         super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
+        this.initQuadTreeMeta();
+    }
+
+    protected void initQuadTreeMeta() {
+        this.quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
+    }
+
+    @After
+    public void destroyQuadTreeMeta() throws Exception {
+        final ThreadPoolExecutor quadTreeEditExecutor = ((ThreadPoolExecutor) TestUtils.getPrivateField(quadTreeMeta, "quadTreeEditExecutor"));
+        final ThreadPoolExecutor quadTreeOptimizeExecutor = ((ThreadPoolExecutor) TestUtils.getPrivateField(quadTreeMeta, "quadTreeOptimizeExecutor"));
+
+        quadTreeEditExecutor.shutdownNow();
+        quadTreeOptimizeExecutor.shutdownNow();
+        quadTreeEditExecutor.awaitTermination(20000, MILLISECONDS);
+        quadTreeOptimizeExecutor.awaitTermination(20000, MILLISECONDS);
     }
 
     protected void markRectsAsync(QuadTreeMeta quadTreeMeta, Object[][] seenRects_, Integer orderSeed) {

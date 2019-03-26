@@ -62,14 +62,13 @@ public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
     @Test(timeout=10000)
     public void testClearUnseen()
     throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
-        QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(quadTreeMeta, this.referenceTiles);
+        QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);
 
-        this.markRectsAsync(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
+        this.markRectsAsync(this.quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
         boolean clearSuccess = false;
         while (!clearSuccess) {
             try {
-                quadTreeMeta.requestClear(true);
+                this.quadTreeMeta.requestClear(true);
                 clearSuccess = true;
             } catch (RejectedExecutionException e) {
                 try {
@@ -80,20 +79,20 @@ public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
         }
 
         // wait until the edits have properly started
-        while (quadTreeMeta.getEditRequestQueueCompletedTaskCount() == 0);
+        while (this.quadTreeMeta.getEditRequestQueueCompletedTaskCount() == 0);
 
         final ExecutorService executor = Executors.newFixedThreadPool(4);
         final List<Future<Object>> maskFutures = this.fetchTileMasksAsync(
-            quadTreeMeta,
+            this.quadTreeMeta,
             dynamicReferences,
             executor,
             this.referenceTileOrderSeed
         );
 
-        byte[] blankMaskBytes = getRefMaskBytes(quadTreeMeta, false);
+        byte[] blankMaskBytes = getRefMaskBytes(this.quadTreeMeta, false);
         for (int i = 0; i < maskFutures.size(); i++) {
             System.out.format("(%d of %d) Checking reference tile %d\n", i, this.referenceTiles.length, i);
-            byte[] resultMaskBytes = getRefMaskBytes(quadTreeMeta, maskFutures.get(i).get());
+            byte[] resultMaskBytes = getRefMaskBytes(this.quadTreeMeta, maskFutures.get(i).get());
             try {
                 assertArrayEquals(
                     resultMaskBytes,

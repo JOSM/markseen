@@ -61,17 +61,16 @@ public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
     @Test(timeout=10000)
     public void test()
     throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
-        QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(quadTreeMeta, this.referenceTiles);
+        QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);
 
-        this.markRectsAsync(quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
+        this.markRectsAsync(this.quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
 
         // wait until the edits have properly started
-        while (quadTreeMeta.getEditRequestQueueCompletedTaskCount() == 0);
+        while (this.quadTreeMeta.getEditRequestQueueCompletedTaskCount() == 0);
 
         final ExecutorService executor = Executors.newFixedThreadPool(4);
         final List<Future<Object>> maskFutures = this.fetchTileMasksAsync(
-            quadTreeMeta,
+            this.quadTreeMeta,
             dynamicReferences,
             executor,
             this.referenceTileOrderSeed
@@ -84,40 +83,37 @@ public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
         // still we're taking note of the mask results so we can compare them to a second execution
         byte[][] originalMasks = new byte[maskFutures.size()][0];
         for (int i = 0; i < maskFutures.size(); i++) {
-            originalMasks[i] = getRefMaskBytes(quadTreeMeta, maskFutures.get(i).get());
+            originalMasks[i] = getRefMaskBytes(this.quadTreeMeta, maskFutures.get(i).get());
         }
 
         // now we *should* be able to re-fetch the same tiles with the read-lock held by this process (thus ensuring
         // that pure reads of masks can be achieved in parallel). provided, of course, java hasn't decided to reclaim
         // any of the SoftReferences, but that's a pretty slim possibility.
-        quadTreeMeta.quadTreeRWLock.readLock().lock();
-        try {
-            final List<Future<Object>> maskFutures2 = this.fetchTileMasksAsync(
-                quadTreeMeta,
-                dynamicReferences,
-                executor,
-                this.referenceTileOrderSeed
-            );
+        this.quadTreeMeta.quadTreeRWLock.readLock().lock();
+        final List<Future<Object>> maskFutures2 = this.fetchTileMasksAsync(
+            this.quadTreeMeta,
+            dynamicReferences,
+            executor,
+            this.referenceTileOrderSeed
+        );
 
-            for (int i = 0; i < maskFutures2.size(); i++) {
-                System.out.format("(%d of %d) Cross-checking reference tile %d\n", i, this.referenceTiles.length, i);
-                byte[] secondMask = getRefMaskBytes(quadTreeMeta, maskFutures2.get(i).get());
-                try {
-                    assertArrayEquals(
-                        originalMasks[i],
-                        secondMask
-                    );
-                } catch (final AssertionError e) {
-                    System.out.format("assertArrayEquals failed on reference tile %d\n", i);
-                    System.out.println("First read:");
-                    System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(originalMasks[i]));
-                    System.out.println("Second read:");
-                    System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(secondMask));
-                    throw e;
-                }
+        for (int i = 0; i < maskFutures2.size(); i++) {
+            System.out.format("(%d of %d) Cross-checking reference tile %d\n", i, this.referenceTiles.length, i);
+            byte[] secondMask = getRefMaskBytes(this.quadTreeMeta, maskFutures2.get(i).get());
+            try {
+                assertArrayEquals(
+                    originalMasks[i],
+                    secondMask
+                );
+            } catch (final AssertionError e) {
+                System.out.format("assertArrayEquals failed on reference tile %d\n", i);
+                System.out.println("First read:");
+                System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(originalMasks[i]));
+                System.out.println("Second read:");
+                System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(secondMask));
+                throw e;
             }
-        } finally {
-            quadTreeMeta.quadTreeRWLock.readLock().unlock();
         }
+        this.quadTreeMeta.quadTreeRWLock.readLock().unlock();
     }
 }
