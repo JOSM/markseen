@@ -546,8 +546,25 @@ class QuadTreeNode {
     }
 
     public BufferedImage optimize() {
+        try {
+            return this.optimize(false);
+        } catch (InterruptedException e) {
+            // shouldn't be possible
+            return null;
+        }
+    }
+
+    public BufferedImage optimize(boolean interruptable) throws InterruptedException {
         assert this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread();
         assert !this.belowCanonical;
+
+        if (interruptable) {
+            // this is a safe place to abort the operation if it's better to defer to a more
+            // interactivity-critical use of the lock.
+            if (Thread.currentThread().isInterrupted() || this.quadTreeMeta.quadTreeRWLock.hasQueuedThreads()) {
+                throw new InterruptedException();
+            }
+        }
 
         if (this.canonicalMask != null) {
             // this is the canonical level. if we can determine that the canonicalMask could be switched
@@ -575,7 +592,7 @@ class QuadTreeNode {
             // same aliasable BufferedImage
             BufferedImage commonAliasable = null;
             for (int i=0; i<this.children.length; i++) {
-                BufferedImage childResult = this.children[i].optimize();
+                BufferedImage childResult = this.children[i].optimize(interruptable);
 
                 if (i == 0) {
                     // commonAliasable will be its initial null value anyway, overwrite.

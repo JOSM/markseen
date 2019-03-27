@@ -181,8 +181,12 @@ public class QuadTreeMeta {
 
         public void quadTreeModified() {
             this.execute(() -> {
-                QuadTreeMeta.this.quadTreeRoot.optimize();
-                Logging.debug("QuadTreeMeta completed optimize() run");
+                try {
+                    QuadTreeMeta.this.quadTreeRoot.optimize(true);
+                    Logging.debug("QuadTreeMeta completed optimize() run");
+                } catch (InterruptedException e) {
+                    Logging.debug("QuadTreeMeta optimize() interrupted");
+                }
             });
         }
 
