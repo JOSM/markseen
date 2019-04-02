@@ -155,28 +155,36 @@ public class QuadTreeMeta {
     // being used to handle both "real" edits and "edits" that have no visible effect.
     private class QuadTreeOptimizeExecutor extends ThreadPoolExecutor implements QuadTreeModifiedListener {
         public QuadTreeOptimizeExecutor() {
-            super(1, 1, 3, java.util.concurrent.TimeUnit.MINUTES, new SynchronousQueue<Runnable>());
+            super(1, 1, 2, java.util.concurrent.TimeUnit.MINUTES, new SynchronousQueue<Runnable>());
             this.allowCoreThreadTimeOut(true);
             this.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
         }
 
         @Override
         public void beforeExecute(Thread thread, Runnable runnable) {
-            try {
-                // this sleep should block the submission of additional optimize operations until it has
-                // completed - those submissions should just "fail" silently without issue. we shouldn't
-                // have to worry about further operations being submitted while the actual task is running
-                // because it occupies the lock that the generator of these events would need itself.
-                Thread.sleep(Config.getPref().getInt("markseen.autoOptimizeDelayMS", 30000));
-                QuadTreeMeta.this.quadTreeRWLock.writeLock().lockInterruptibly();
-            } catch (InterruptedException e) {
-                return;
+            // we really shouldn't already have the lock but let's not risk double-locking
+            while (!QuadTreeMeta.this.quadTreeRWLock.isWriteLockedByCurrentThread()) {
+                try {
+                    // this sleep should block the submission of additional optimize operations until it
+                    // has completed - those submissions should just "fail" silently without issue. we
+                    // shouldn't have to worry about further operations being submitted while the actual
+                    // task is running because it occupies the lock that the generator of these events
+                    // would need itself.
+                    Thread.sleep(Config.getPref().getInt("markseen.autoOptimizeDelayMS", 30000));
+                    QuadTreeMeta.this.quadTreeRWLock.writeLock().lockInterruptibly();
+                } catch (InterruptedException e) {
+                    // we'll just loop around and start a wait again - we can't cancel the execution of
+                    // this task from here and it's not safe to continue without the lock
+                }
             }
         }
 
         @Override
         public void afterExecute(Runnable runnable, Throwable throwable) {
-            QuadTreeMeta.this.quadTreeRWLock.writeLock().unlock();
+            // we should only have acquired the lock once but let's not risk not being completely unlocked
+            while (QuadTreeMeta.this.quadTreeRWLock.isWriteLockedByCurrentThread()) {
+                QuadTreeMeta.this.quadTreeRWLock.writeLock().unlock();
+            }
         }
 
         public void quadTreeModified() {
