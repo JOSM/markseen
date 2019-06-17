@@ -14,6 +14,7 @@ antBuild rec {
       "13576" = "0xihpx2nrbcf32yyvscs8rzn1wwhg248p4vcsaw3lnsybjnx9mz6";  # 2018-03-26 release
       "14178" = "16y7s064ksncvp0xk1bgiqs7cbzpd3bbvpyn66pm65rw3sqsrm35";  # 2018-08-22 release
       "14760" = "1dxhqg5ariyrb5dk2fp44hzsw1xwa9jda39nmma5h63g8992rk05";  # 2019-02-05 release
+      "15155" = "1k933j9an7awa8vafjymylq006rkjn477f3hahhgb4lpb7mwx5p8";  # 2019-06-03 release
     };
     rev=version;
   };
