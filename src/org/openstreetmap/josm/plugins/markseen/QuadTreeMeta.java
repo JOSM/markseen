@@ -59,7 +59,7 @@ public class QuadTreeMeta {
 
     private class QuadTreeEditExecutor extends ThreadPoolExecutor {
         public QuadTreeEditExecutor() {
-            super(1, 1, 5, java.util.concurrent.TimeUnit.MINUTES, new ArrayBlockingQueue<Runnable>(8));
+            super(1, 1, 5, java.util.concurrent.TimeUnit.MINUTES, new ArrayBlockingQueue<Runnable>(16));
         }
 
         @Override
