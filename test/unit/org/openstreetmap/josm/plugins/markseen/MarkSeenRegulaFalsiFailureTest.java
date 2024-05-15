@@ -1,51 +1,53 @@
 package org.openstreetmap.josm.plugins.markseen;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
 
 
-public class MarkSeenRegulaFalsiFailureTest {
-    @Test(expected=MarkSeenRegulaFalsi.ExceededIterationsException.class)
-    public void testExceededIterations() throws Exception {
-        MarkSeenRegulaFalsi.regulaFalsi(
+final class MarkSeenRegulaFalsiFailureTest {
+    @Test
+    void testExceededIterations() {
+        assertThrows(MarkSeenRegulaFalsi.ExceededIterationsException.class, () -> MarkSeenRegulaFalsi.regulaFalsi(
             x -> Math.cos(x) + (0.1*x*x) - 2.,
             0,
             10,
             0.0001,
             4
-        );
+        ));
     }
 
-    @Test(expected=UnsupportedOperationException.class)
-    public void testDoublePositive() throws Exception {
-        MarkSeenRegulaFalsi.regulaFalsi(
-            x -> Math.sin(x),
+    @Test
+    void testDoublePositive() {
+        assertThrows(UnsupportedOperationException.class, () -> MarkSeenRegulaFalsi.regulaFalsi(
+             Math::sin,
             3.2,
             3.3,
             0.001,
             8
-        );
+        ));
     }
 
-    @Test(expected=UnsupportedOperationException.class)
-    public void testDoubleNegative() throws Exception {
-        MarkSeenRegulaFalsi.regulaFalsi(
-            x -> Math.sin(x),
+    @Test
+    void testDoubleNegative() {
+        assertThrows(UnsupportedOperationException.class, () -> MarkSeenRegulaFalsi.regulaFalsi(
+             Math::sin,
             2.9,
             3.0,
             0.001,
             8
-        );
+        ));
     }
 
-    @Test(expected=MarkSeenRegulaFalsi.ExceededRangeDetermination.class)
-    public void testGeometricSearchExceedRange() throws Exception {
+    @Test
+    void testGeometricSearchExceedRange() {
         // searching upwards, this will never change sign
-        MarkSeenRegulaFalsi.regulaFalsiGeometricSearch(
+        assertThrows(MarkSeenRegulaFalsi.ExceededRangeDetermination.class, () -> MarkSeenRegulaFalsi.regulaFalsiGeometricSearch(
             x -> x*x,
             9.9,
             2.,
             0.001,
             8
-        );
+        ));
     }
 }

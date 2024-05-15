@@ -6,33 +6,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.IndexColorModel;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 
-@RunWith(Parameterized.class)
-public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
+final class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
     private static final int preSeenRectVariants = 2;
     private static final int seenRectVariants = 2;
     private static final int referenceTileVariants = 2;
 
-    // additional test parameter
-    protected final int preScenarioIndex;
-    protected final Integer preSeenRectOrderSeed;
+    private Integer preSeenRectOrderSeed;
 
     // additional derived test parameter
-    protected final Object[][] preSeenRects;
-    protected final Object[][] preReferenceTiles;
+    private Object[][] preSeenRects;
+    private Object[][] preReferenceTiles;
 
-    @Parameters(name="{index}-scenarios-{0}-{1}-seeds-{2}-{3}-{4}")
-    public static Collection<Object[]> getParameters() throws IOException {
-        ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
+    static Collection<Object[]> getParameters() throws IOException {
+        ArrayList<Object[]> paramSets = new ArrayList<>();
         Object[][] scenarios = getTestScenarios();
         for (int i=0; i<scenarios.length; i++) {
             Object[] seenRects = (Object[])scenarios[i][1];
@@ -63,24 +54,32 @@ public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
         return paramSets;
     }
 
-    public QuadTreeNodeClearOtherScenarioTest(
-        int preScenarioIndex_,
-        int scenarioIndex_,
-        Integer preSeenRectOrderSeed_,
-        Integer seenRectOrderSeed_,
-        Integer referenceTileOrderSeed_
+    void setup(
+            int preScenarioIndex,
+            int scenarioIndex,
+            Integer preSeenRectOrderSeed,
+            Integer seenRectOrderSeed,
+            Integer referenceTileOrderSeed
     ) throws IOException {
-        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
-        this.preScenarioIndex = preScenarioIndex_;
-        this.preSeenRectOrderSeed = preSeenRectOrderSeed_;
+        super.setup(scenarioIndex, seenRectOrderSeed, referenceTileOrderSeed);
+        // additional test parameter
+        this.preSeenRectOrderSeed = preSeenRectOrderSeed;
 
-        Object[] preScenario = getTestScenarios()[this.preScenarioIndex];
+        Object[] preScenario = getTestScenarios()[preScenarioIndex];
         this.preSeenRects = (Object[][])preScenario[1];
         this.preReferenceTiles = (Object[][])preScenario[2];
     }
 
-    @Test
-    public void testClearPreRead() {
+    @ParameterizedTest(name="{index}-scenarios-{0}-{1}-seeds-{2}-{3}-{4}")
+    @MethodSource("getParameters")
+    void testClearPreRead(
+            int preScenarioIndex,
+            int scenarioIndex,
+            Integer preSeenRectOrderSeed,
+            Integer seenRectOrderSeed,
+            Integer referenceTileOrderSeed
+    ) throws IOException {
+        this.setup(preScenarioIndex, scenarioIndex, preSeenRectOrderSeed, seenRectOrderSeed, referenceTileOrderSeed);
         QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
@@ -99,8 +98,16 @@ public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
         quadTreeMeta.quadTreeRWLock.writeLock().unlock();
     }
 
-    @Test
-    public void testClearUnread() {
+    @ParameterizedTest(name="{index}-scenarios-{0}-{1}-seeds-{2}-{3}-{4}")
+    @MethodSource("getParameters")
+    void testClearUnread(
+            int preScenarioIndex,
+            int scenarioIndex,
+            Integer preSeenRectOrderSeed,
+            Integer seenRectOrderSeed,
+            Integer referenceTileOrderSeed
+    ) throws IOException {
+        this.setup(preScenarioIndex, scenarioIndex, preSeenRectOrderSeed, seenRectOrderSeed, referenceTileOrderSeed);
         QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 

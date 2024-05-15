@@ -12,7 +12,7 @@
     <property name="plugin.version" value="14"/>
     <property name="plugin.class" value="org.openstreetmap.josm.plugins.markseen.MarkSeenPlugin"/>
     <property name="plugin.description" value="Marks 'seen' areas of the map"/>
-    <property name="plugin.icon" value="images/icons/24x24/markseen.png"/>
+    <property name="plugin.icon" value="images/icons/24x24/markseen.svg"/>
     <property name="plugin.link" value="https://github.com/risicle/josm-markseen"/>
     <property name="plugin.canloadatruntime" value="true"/>
     <property name="plugin.13053.plugin.url" value="9;https://github.com/risicle/josm-markseen/releases/download/v9/markseen.jar"/>
@@ -99,27 +99,7 @@
         </tstamp>
         <echo file="REVISION.XML"><![CDATA[<info><entry><commit revision="${plugin.version}"><date>${current.time}</date></commit></entry></info>]]></echo>
     </target>
-    <target name="rendericons">
-        <sequential>
-            <apply executable="mkdir" dest="images" parallel="false" failonerror="true" addsourcefile="false">
-                <arg value="-p"/>
-                <targetfile/>
-                <fileset dir="images_src" includes="**/*.svg" erroronmissingdir="true"/>
-                <mapper type="regexp" from="(.*\/)[^\/]*$" to="\1"/>
-            </apply>
-            <apply executable="${inkscape.path}" dest="images" parallel="false" failonerror="true">
-                <arg value="-z"/>
-                <arg value="-C"/>
-                <arg value="-f"/>
-                <srcfile/>
-                <arg value="-e"/>
-                <targetfile/>
-                <fileset dir="images_src" includes="**/*.svg" erroronmissingdir="true"/>
-                <mapper type="glob" from="*.svg" to="*.png"/>
-            </apply>
-        </sequential>
-    </target>
-    <target name="setup-dist" depends="rendericons">
+    <target name="setup-dist">
         <antcall target="setup-dist-default" />
     </target>
     <target name="test" depends="dist, test-clean, test-compile" if="test.present"

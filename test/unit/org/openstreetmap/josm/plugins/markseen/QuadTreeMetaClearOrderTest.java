@@ -1,32 +1,27 @@
 package org.openstreetmap.josm.plugins.markseen;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
 import java.io.IOException;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 
-import java.awt.Color;
-
-import static org.junit.Assert.assertArrayEquals;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 
-@RunWith(Parameterized.class)
-public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
+final class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
     private static final int seenRectVariants = 8;
     private static final int referenceTileVariants = 2;
 
-    @Parameters(name="{index}-scenario-{0}-seeds-{1}-{2}")
-    public static Collection<Object[]> getParameters() throws IOException {
+    static Collection<Object[]> getParameters() throws IOException {
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         Object[][] scenarios = getTestScenarios();
         for (int i=0; i<scenarios.length; i++) {
@@ -54,14 +49,11 @@ public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
         return paramSets;
     }
 
-    public QuadTreeMetaClearOrderTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
-    throws IOException {
-        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
-    }
-
-    @Test(timeout=10000)
-    public void testClearUnseen()
-    throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
+    @ParameterizedTest(name="{index}-scenario-{0}-seeds-{1}-{2}")
+    @MethodSource("getParameters")
+    void testClearUnseen(int scenarioIndex, Integer seenRectOrderSeed, Integer referenceTileOrderSeed)
+            throws InterruptedException, ExecutionException, IOException {
+        setup(scenarioIndex, seenRectOrderSeed, referenceTileOrderSeed);
         QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);
 
         this.markRectsAsync(this.quadTreeMeta, this.seenRects, this.seenRectOrderSeed);
@@ -93,16 +85,11 @@ public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
         for (int i = 0; i < maskFutures.size(); i++) {
             System.out.format("(%d of %d) Checking reference tile %d\n", i, this.referenceTiles.length, i);
             byte[] resultMaskBytes = getRefMaskBytes(this.quadTreeMeta, maskFutures.get(i).get());
-            try {
-                assertArrayEquals(
-                    resultMaskBytes,
-                    blankMaskBytes
-                );
-            } catch (final AssertionError e) {
-                System.out.format("assertArrayEquals failed on reference tile %d\n", i);
-                System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes));
-                throw e;
-            }
+            assertArrayEquals(
+                resultMaskBytes,
+                blankMaskBytes,
+                "assertArrayEquals failed on reference tile " + i
+            );
         }
     }
 }

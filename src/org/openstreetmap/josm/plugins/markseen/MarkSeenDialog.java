@@ -60,7 +60,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         ToggleAction recordAction_,
         BoundedRangeModel recordMinZoom_
     ) {
-        super(tr("MarkSeen Viewer"), "markseen.png", tr("Shows viewed map areas on a familiar small map"), null, 150);
+        super(tr("MarkSeen Viewer"), "markseen", tr("Shows viewed map areas on a familiar small map"), null, 150);
         this.quadTreeMeta = quadTreeMeta_;
         this.recordMinZoomSlider = new JSlider(recordMinZoom_);
         this.recordMinZoomSliderLabel = new JLabel(tr("Max viewport size"));

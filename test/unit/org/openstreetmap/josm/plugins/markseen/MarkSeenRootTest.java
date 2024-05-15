@@ -3,21 +3,32 @@ package org.openstreetmap.josm.plugins.markseen;
 import javax.swing.BoundedRangeModel;
 import javax.swing.JMenuItem;
 import javax.swing.JSlider;
-import javax.swing.JComponent;
 import javax.swing.JButton;
 import javax.swing.JToggleButton;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.regex.Matcher;
 import java.lang.AssertionError;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Timeout;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.gui.MainApplication;
@@ -28,34 +39,47 @@ import org.openstreetmap.josm.spi.preferences.Config;
 
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.gui.layer.LayerManagerTest.TestLayer;
-import org.openstreetmap.josm.testutils.JOSMTestRules;
 import org.openstreetmap.josm.testutils.ImagePatternMatching;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import org.awaitility.Awaitility;
 
-import com.google.common.collect.ImmutableMap;
+import org.openstreetmap.josm.testutils.annotations.BasicPreferences;
+import org.openstreetmap.josm.testutils.annotations.FakeImagery;
+import org.openstreetmap.josm.testutils.annotations.Main;
+import org.openstreetmap.josm.testutils.annotations.Projection;
 
 
-public class MarkSeenRootTest {
+@BasicPreferences
+@FakeImagery
+@Main
+@Projection
+@Timeout(value = 1, unit = TimeUnit.MINUTES)
+final class MarkSeenRootTest {
     private static BufferedImage originalErrorImage;
     private static BufferedImage originalLoadingImage;
 
-    @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().projection().fakeImagery().timeout(60000);
+    private static <K, V> Map<K, V> mapOf(K key, V value, K k2, V v2) {
+        return mapOf(Arrays.asList(key, k2), Arrays.asList(value, v2));
+    }
 
-    @Before
-    public void setUp() {
+    private static <K, V> Map<K, V> mapOf(K k, V v, K k2, V v2, K k3, V v3) {
+        return mapOf(Arrays.asList(k, k2, k3), Arrays.asList(v, v2, v3));
+    }
+
+    private static <K, V> Map<K, V> mapOf(List<K> k, List<V> v) {
+        // This can be replaced with Map.of in Java 9 in most instances
+        assertEquals(k.size(), v.size());
+        final Map<K, V> map = new HashMap<>(k.size());
+        for (int i = 0; i < k.size(); i++) {
+            map.put(k.get(i), v.get(i));
+        }
+        return map;
+    }
+
+    @BeforeEach
+    void setUp() {
         // Add a test layer to the layer manager to get the MapFrame & MapView
         MainApplication.getLayerManager().addLayer(new TestLayer());
 
@@ -77,11 +101,11 @@ public class MarkSeenRootTest {
     /**
      * For each edge of the image, works its way inwards along the central column/row until it finds the first non-white
      * pixel and ensures its value matches that of the supplied RGB byte-packed int.
-     *
+     * <p>
      * This is a deliberately lenient way of checking that painting is happening in approximately the right places that
      * should still be robust to e.g. SlippyMapBBoxChooser's zoomlevel-choosing heuristics.
      */
-    public static void probePixels(
+    static void probePixels(
         final BufferedImage image,
         final int top,
         final int right,
@@ -92,28 +116,28 @@ public class MarkSeenRootTest {
         ImagePatternMatching.columnMatch(
             image,
             image.getWidth()/2,
-            stripAlpha(ImmutableMap.of(0xffffff, "w", top, "t")),
+            stripAlpha(mapOf(0xffffff, "w", top, "t")),
             "w*t.*",
             true
         );
         ImagePatternMatching.columnMatch(
             image,
             image.getWidth()/2,
-            stripAlpha(ImmutableMap.of(0xffffff, "w", bottom, "b")),
+            stripAlpha(mapOf(0xffffff, "w", bottom, "b")),
             ".*bw*",
             true
         );
         ImagePatternMatching.rowMatch(
             image,
             image.getHeight()/2,
-            stripAlpha(ImmutableMap.of(0xffffff, "w", left, "l")),
+            stripAlpha(mapOf(0xffffff, "w", left, "l")),
             "w*l.*",
             true
         );
         ImagePatternMatching.rowMatch(
             image,
             image.getHeight()/2,
-            stripAlpha(ImmutableMap.of(0xffffff, "w", right, "r")),
+            stripAlpha(mapOf(0xffffff, "w", right, "r")),
             ".*rw*",
             true
         );
@@ -125,25 +149,23 @@ public class MarkSeenRootTest {
         }
     }
 
-    protected Callable<Boolean> slippyMapTasksFinished;
+    private Callable<Boolean> slippyMapTasksFinished;
 
-    protected MarkSeenRoot markSeenRoot;
+    private ToggleAction recordAction;
+    private JMenuItem mainMenuRecordItem;
+    private BoundedRangeModel recordMinZoom;
+    private MarkSeenDialog dialog;
 
-    protected ToggleAction recordAction;
-    protected JMenuItem mainMenuRecordItem;
-    protected BoundedRangeModel recordMinZoom;
-    protected MarkSeenDialog dialog;
+    private JSlider recordMinZoomSlider;
+    private JToggleButton recordToggleButton;
+    private JButton clearButton;
+    private SlippyMapBBoxChooser slippyMap;
 
-    protected JSlider recordMinZoomSlider;
-    protected JToggleButton recordToggleButton;
-    protected JButton clearButton;
-    protected SlippyMapBBoxChooser slippyMap;
+    private JMenuItem mainMenuSetMaxViewportItem;
 
-    protected JMenuItem mainMenuSetMaxViewportItem;
+    private static BufferedImage probeScratchImage;
 
-    protected static BufferedImage probeScratchImage;
-
-    public void renderAndAssert(final Consumer<BufferedImage> assertion) {
+    void renderAndAssert(final Consumer<BufferedImage> assertion) {
         if (probeScratchImage == null || probeScratchImage.getWidth() != this.slippyMap.getSize().width || probeScratchImage.getHeight() != this.slippyMap.getSize().height) {
             probeScratchImage = new BufferedImage(
                 this.slippyMap.getSize().width,
@@ -172,25 +194,25 @@ public class MarkSeenRootTest {
         }
     }
 
-    public void setUpMarkSeenRoot() throws ReflectiveOperationException {
+    void setUpMarkSeenRoot() throws ReflectiveOperationException {
         MapFrame mainMap = MainApplication.getMap();
-        this.markSeenRoot = new MarkSeenRoot();
-        this.markSeenRoot.mapFrameInitialized(null, mainMap);
+        MarkSeenRoot markSeenRoot = new MarkSeenRoot();
+        markSeenRoot.mapFrameInitialized(null, mainMap);
 
-        this.recordAction = (ToggleAction)TestUtils.getPrivateField(this.markSeenRoot, "recordAction");
-        this.mainMenuRecordItem = (JMenuItem)TestUtils.getPrivateField(this.markSeenRoot, "mainMenuRecordItem");
-        this.recordMinZoom = (BoundedRangeModel)TestUtils.getPrivateField(this.markSeenRoot, "recordMinZoom");
-        this.dialog = (MarkSeenDialog)TestUtils.getPrivateField(this.markSeenRoot, "dialog");
+        this.recordAction = (ToggleAction)TestUtils.getPrivateField(markSeenRoot, "recordAction");
+        this.mainMenuRecordItem = (JMenuItem)TestUtils.getPrivateField(markSeenRoot, "mainMenuRecordItem");
+        this.recordMinZoom = (BoundedRangeModel)TestUtils.getPrivateField(markSeenRoot, "recordMinZoom");
+        this.dialog = (MarkSeenDialog)TestUtils.getPrivateField(markSeenRoot, "dialog");
 
         this.recordMinZoomSlider = (JSlider)TestUtils.getPrivateField(this.dialog, "recordMinZoomSlider");
         this.recordToggleButton = (JToggleButton)TestUtils.getPrivateField(this.dialog, "recordToggleButton");
         this.clearButton = (JButton)TestUtils.getPrivateField(this.dialog, "clearButton");
         this.slippyMap = (SlippyMapBBoxChooser)TestUtils.getPrivateField(this.dialog, "slippyMap");
 
-        this.mainMenuSetMaxViewportItem = (JMenuItem)TestUtils.getPrivateField(this.markSeenRoot, "mainMenuSetMaxViewportItem");
+        this.mainMenuSetMaxViewportItem = (JMenuItem)TestUtils.getPrivateField(markSeenRoot, "mainMenuSetMaxViewportItem");
     }
 
-    public void assertControlStates(int recordMinZoomValue, boolean recordActionSelected, boolean recordActionEnabled) {
+    void assertControlStates(int recordMinZoomValue, boolean recordActionSelected, boolean recordActionEnabled) {
         assertEquals(recordMinZoomValue, this.recordMinZoom.getValue());
         assertEquals(recordMinZoomValue, this.recordMinZoomSlider.getValue());
 
@@ -204,7 +226,7 @@ public class MarkSeenRootTest {
     }
 
     @Test
-    public void testInitPrefRecordActiveDisabled() throws Exception {
+    void testInitPrefRecordActiveDisabled() throws Exception {
         MapFrame mainMap = MainApplication.getMap();
         Config.getPref().put("markseen.mapstyle", "White Tiles");
         Config.getPref().putInt("markseen.recordMinZoom", 2);  // deliberately out of range
@@ -284,7 +306,7 @@ public class MarkSeenRootTest {
     }
 
     @Test
-    public void testInitPrefRecordActiveEnabled() throws Exception {
+    void testInitPrefRecordActiveEnabled() throws Exception {
         MapFrame mainMap = MainApplication.getMap();
         Config.getPref().put("markseen.mapstyle", "White Tiles");
         Config.getPref().putInt("markseen.recordMinZoom", 10);
@@ -334,7 +356,7 @@ public class MarkSeenRootTest {
     }
 
     @Test
-    public void testSetMaxViewportFromCurrent() throws Exception {
+    void testSetMaxViewportFromCurrent() throws Exception {
         MapFrame mainMap = MainApplication.getMap();
         Config.getPref().put("markseen.mapstyle", "White Tiles");
         Config.getPref().putInt("markseen.recordMinZoom", 4);
@@ -360,8 +382,8 @@ public class MarkSeenRootTest {
     }
 
     @Test
-    public void testScaleHintBounds() throws Exception {
-        IntFunction<String> palMapFn = stripAlpha(ImmutableMap.of(
+    void testScaleHintBounds() throws Exception {
+        IntFunction<String> palMapFn = stripAlpha(mapOf(
             0xffffff, "w",
             0x0, "b",
             0xf0d1d1, "p"

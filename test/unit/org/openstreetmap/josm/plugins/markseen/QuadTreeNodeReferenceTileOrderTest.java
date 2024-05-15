@@ -6,24 +6,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.IndexColorModel;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 
-@RunWith(Parameterized.class)
-public class QuadTreeNodeReferenceTileOrderTest extends BaseQuadTreeNodeTest {
+final class QuadTreeNodeReferenceTileOrderTest extends BaseQuadTreeNodeTest {
     private static final int seenRectVariants = 4;
     private static final int referenceTileVariants = 4;
 
-    @Parameters(name="{index}-scenario-{0}-seeds-{1}-{2}")
-    public static Collection<Object[]> getParameters() throws IOException {
-        ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
+    static Collection<Object[]> getParameters() throws IOException {
+        ArrayList<Object[]> paramSets = new ArrayList<>();
         Object[][] scenarios = getTestScenarios();
         for (int i=0; i<scenarios.length; i++) {
             Object[] seenRects = (Object[])scenarios[i][1];
@@ -49,13 +42,10 @@ public class QuadTreeNodeReferenceTileOrderTest extends BaseQuadTreeNodeTest {
         return paramSets;
     }
 
-    public QuadTreeNodeReferenceTileOrderTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
-    throws IOException {
-        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
-    }
-
-    @Test
-    public void test() {
+    @ParameterizedTest(name="{index}-scenario-{0}-seeds-{1}-{2}")
+    @MethodSource("getParameters")
+    void test(int scenarioIndex, Integer seenRectOrderSeed, Integer referenceTileOrderSeed) throws IOException {
+        super.setup(scenarioIndex, seenRectOrderSeed, referenceTileOrderSeed);
         QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 

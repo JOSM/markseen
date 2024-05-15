@@ -1,6 +1,7 @@
 package org.openstreetmap.josm.plugins.markseen;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.lang.Math;
@@ -11,31 +12,25 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import java.awt.Color;
 
-import static org.junit.Assert.assertTrue;
-
 import org.awaitility.Awaitility;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.spi.preferences.Config;
-import org.openstreetmap.josm.testutils.JOSMTestRules;
+import org.openstreetmap.josm.testutils.annotations.BasicPreferences;
+import org.openstreetmap.josm.testutils.annotations.Main;
 
 
-@RunWith(Parameterized.class)
-public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
+@Main
+@BasicPreferences
+@Timeout(20)
+final class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
     private static final int variants = 2;
 
-    // additional test parameters
-    protected final int batchSize;
-    protected final int pauseMS;
-
-    @Parameters(name="{index}-scenario-{0}-batchSize-{1}-pause-{2}ms")
-    public static Collection<Object[]> getParameters() throws IOException {
-        ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
+    static Collection<Object[]> getParameters() throws IOException {
+        ArrayList<Object[]> paramSets = new ArrayList<>();
         Object[][] scenarios = getTestScenarios();
         for (int i=0; i<scenarios.length; i++) {
             Object[] seenRects = (Object[])scenarios[i][1];
@@ -53,30 +48,24 @@ public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
         return paramSets;
     }
 
-    @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().timeout(20000);
-
+    @Override
     protected void initQuadTreeMeta() {
         this.quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, true);
     }
 
-    public QuadTreeMetaAutoOptimizeTest(int scenarioIndex_, int batchSize_, int pauseMS_)
-    throws IOException {
-        super(scenarioIndex_, null, null);
-        this.batchSize = batchSize_;
-        this.pauseMS = pauseMS_;
-    }
-
-    @Test
-    public void test() throws Exception {
+    @ParameterizedTest(name = "{index}-scenario-{0}-batchSize-{1}-pause-{2}ms")
+    @MethodSource("getParameters")
+    void test(int scenarioIndex, int batchSize, int pauseMS) throws Exception {
+        super.setup(scenarioIndex, null, null);
         Config.getPref().putInt("markseen.autoOptimizeDelayMS", 1000);
         QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);
 
-        for (int i=0; i<this.seenRects.length; i+=this.batchSize) {
+        for (int i=0; i<this.seenRects.length; i+=batchSize) {
             this.markRectsAsync(
                 this.quadTreeMeta,
-                Arrays.copyOfRange(this.seenRects, i, Math.min(i+this.batchSize, this.seenRects.length)), this.seenRectOrderSeed
+                Arrays.copyOfRange(this.seenRects, i, Math.min(i+batchSize, this.seenRects.length)), this.seenRectOrderSeed
             );
-            Thread.sleep(this.pauseMS);
+            Thread.sleep(pauseMS);
         }
 
         Awaitility.await().atMost(30000, MILLISECONDS).until(
@@ -102,12 +91,9 @@ public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
             null,
             (i, j, dynamicReference, refMask, resultMaskBytes, refMaskBytes, aliasable) -> {
                 if (aliasable) {
-                    assertTrue(
-                        "Failed asserting identity " + refMask.toString() + " of ref tile " + j,
-                        dynamicReference.maskReadOperation(
-                            mask -> mask == ((boolean) refMask ? this.quadTreeMeta.FULL_MASK : this.quadTreeMeta.EMPTY_MASK)
-                        )
-                    );
+                    assertTrue((boolean) dynamicReference.maskReadOperation(
+                        mask -> mask == ((boolean) refMask ? this.quadTreeMeta.FULL_MASK : this.quadTreeMeta.EMPTY_MASK)
+                    ), "Failed asserting identity " + refMask.toString() + " of ref tile " + j);
                 }
             }
         );
