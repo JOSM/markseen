@@ -1,24 +1,20 @@
 package org.openstreetmap.josm.plugins.markseen;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.DoubleUnaryOperator;
 
-import static org.junit.Assert.fail;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 
-@RunWith(Parameterized.class)
-public class MarkSeenRegulaFalsiTest {
-    @Parameters(name="{index}-fx-{0}-{1}-{2}-x0-{6}-x1-{7}")
-    public static Collection<Object[]> getParameters() throws Exception {
+final class MarkSeenRegulaFalsiTest {
+    static Collection<Object[]> getParameters() throws Exception {
         final Object[][] unexpanded = new Object[][] {
             {
-                (DoubleUnaryOperator)(x -> Math.sin(x)),
+                (DoubleUnaryOperator)(Math::sin),
                 0.0001,
                 6,
                 new double[] {
@@ -68,7 +64,7 @@ public class MarkSeenRegulaFalsiTest {
             }
         };
 
-        ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
+        ArrayList<Object[]> paramSets = new ArrayList<>();
         for (int i=0; i<unexpanded.length; i++) {
             double[] x0s = (double[])unexpanded[i][3];
             double[] x1s = (double[])unexpanded[i][4];
@@ -115,41 +111,28 @@ public class MarkSeenRegulaFalsiTest {
         return paramSets;
     }
 
-    private final DoubleUnaryOperator fx;
-    private final double precision;
-    private final int maxIterations;
-    private final double x0;
-    private final double x1;
-
-    public MarkSeenRegulaFalsiTest(
-        final int fxIndex,  // fxIndex only present to help in naming scheme
-        final String xSign,  // xSign only present to help in naming scheme
-        final String ySign,  // ySign only present to help in naming scheme
-        final DoubleUnaryOperator fx_,
-        final double precision_,
-        final int maxIterations_,
-        final double x0_,
-        final double x1_
-    ) {
-        this.fx = fx_;
-        this.precision = precision_;
-        this.maxIterations = maxIterations_;
-        this.x0 = x0_;
-        this.x1 = x1_;
-    }
-
-    @Test
-    public void testSuccess() throws Exception {
+    @ParameterizedTest(name="{index}-fx-{0}-{1}-{2}-x0-{6}-x1-{7}")
+    @MethodSource("getParameters")
+    void testSuccess(
+            final int fxIndex,  // fxIndex only present to help in naming scheme
+            final String xSign,  // xSign only present to help in naming scheme
+            final String ySign,  // ySign only present to help in naming scheme
+            final DoubleUnaryOperator fx,
+            final double precision,
+            final int maxIterations,
+            final double x0,
+            final double x1
+    ) throws Exception {
         double result = MarkSeenRegulaFalsi.regulaFalsi(
-            this.fx,
-            this.x0,
-            this.x1,
-            this.precision,
-            this.maxIterations
+            fx,
+            x0,
+            x1,
+            precision,
+            maxIterations
         );
 
-        if (this.fx.applyAsDouble(result) > Math.abs(this.precision)) {
-            fail("x =" + result + ", y =" + this.fx.applyAsDouble(result) + ", precision=" + this.precision);
+        if (fx.applyAsDouble(result) > Math.abs(precision)) {
+            fail("x =" + result + ", y =" + fx.applyAsDouble(result) + ", precision=" + precision);
         }
     }
 }

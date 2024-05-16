@@ -5,20 +5,14 @@ import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import java.awt.Color;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 
-@RunWith(Parameterized.class)
-public class QuadTreeMetaSeenRectOrderTest extends BaseQuadTreeMetaTest {
+final class QuadTreeMetaSeenRectOrderTest extends BaseQuadTreeMetaTest {
     private static final int variants = 16;
 
-    @Parameters(name="{index}-scenario-{0}-seed-{1}")
-    public static Collection<Object[]> getParameters() throws IOException {
+    static Collection<Object[]> getParameters() throws IOException {
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         Object[][] scenarios = getTestScenarios();
         for (int i=0; i<scenarios.length; i++) {
@@ -37,13 +31,10 @@ public class QuadTreeMetaSeenRectOrderTest extends BaseQuadTreeMetaTest {
         return paramSets;
     }
 
-    public QuadTreeMetaSeenRectOrderTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
-    throws IOException {
-        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
-    }
-
-    @Test(timeout=10000)
-    public void test() {
+    @ParameterizedTest(name="{index}-scenario-{0}-seed-{1}")
+    @MethodSource("getParameters")
+    void test(int scenarioIndex, Integer seenRectOrderSeed, Integer referenceTileOrderSeed) throws IOException {
+        super.setup(scenarioIndex, seenRectOrderSeed, referenceTileOrderSeed);
         QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);
 
         this.markRectsAsync(this.quadTreeMeta, this.seenRects, this.seenRectOrderSeed);

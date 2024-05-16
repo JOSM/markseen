@@ -1,36 +1,24 @@
 package org.openstreetmap.josm.plugins.markseen;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.IOException;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.IndexColorModel;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.tools.Logging;
 
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
-
-@RunWith(Parameterized.class)
-public class QuadTreeNodeOptimizeTest extends BaseQuadTreeNodeTest {
+final class QuadTreeNodeOptimizeTest extends BaseQuadTreeNodeTest {
     private static final int variants = 6;
 
-    // parametrized variables
-    protected final Integer optimizeStride;
-
-    @Parameters(name="{index}-scenario-{0}-seed-{1}-stride-{2}")
-    public static Collection<Object[]> getParameters() throws IOException {
-        ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
+    static Collection<Object[]> getParameters() throws IOException {
+        ArrayList<Object[]> paramSets = new ArrayList<>();
         Object[][] scenarios = getTestScenarios();
         for (int i=0; i<scenarios.length; i++) {
             Object[] seenRects = (Object[])scenarios[i][1];
@@ -58,19 +46,15 @@ public class QuadTreeNodeOptimizeTest extends BaseQuadTreeNodeTest {
         return paramSets;
     }
 
-    public QuadTreeNodeOptimizeTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer optimizeStride_)
-    throws IOException {
-        super(scenarioIndex_, seenRectOrderSeed_, null);
-        this.optimizeStride = optimizeStride_;
-    }
-
-    @Test
-    public void test() {
+    @ParameterizedTest(name="{index}-scenario-{0}-seed-{1}-stride-{2}")
+    @MethodSource("getParameters")
+    void test(int scenarioIndex, Integer seenRectOrderSeed, Integer optimizeStride) throws IOException {
+        super.setup(scenarioIndex, seenRectOrderSeed, null);
         QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
         quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
         this.markRects(quadTreeMeta, this.seenRects, this.seenRectOrderSeed, false, (i, j, bounds, minTilesAcross) -> {
-            if (this.optimizeStride != null && i % this.optimizeStride == 0) {
+            if (optimizeStride != null && i % optimizeStride == 0) {
                 quadTreeMeta.quadTreeRoot.optimize();
             }
         });
@@ -86,11 +70,11 @@ public class QuadTreeNodeOptimizeTest extends BaseQuadTreeNodeTest {
             (node, i, j, resultMask, refMask, resultMaskBytes, refMaskBytes, aliasable) -> {
 
                 if (aliasable) {
-                    assertTrue(
-                        "Failed asserting identity " + refMask.toString() + " of ref tile " + j,
-                        resultMask == ((boolean) refMask ? quadTreeMeta.FULL_MASK : quadTreeMeta.EMPTY_MASK)
+                    assertEquals(
+                        ((boolean) refMask ? quadTreeMeta.FULL_MASK : quadTreeMeta.EMPTY_MASK), resultMask,
+                        "Failed asserting identity " + refMask + " of ref tile " + j
                     );
-                } else if (Boolean.class.isInstance(refMask)) {
+                } else if (refMask instanceof Boolean) {
                     try {
                         if (!(boolean) TestUtils.getPrivateField(node, "belowCanonical")) {
                             Logging.info(

@@ -39,7 +39,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     private class MarkSeenToggleRecordAction extends ToggleAction implements PropertyChangeListener {
         public MarkSeenToggleRecordAction() {
             super(tr("Record seen areas"),
-                new ImageProvider("icons/24x24/record.png"),
+                new ImageProvider("icons/24x24/record"),
                 recordActionBaseToolTipText,
                 Shortcut.registerShortcut(
                     "menu:view:markseen:record",
@@ -80,7 +80,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         public MarkSeenClearAction() {
             super(
                 tr("Clear"),
-                new ImageProvider("icons/24x24/clear.png"),
+                new ImageProvider("icons/24x24/clear"),
                 tr("Clear record of seen areas"),
                 Shortcut.registerShortcut(
                     "menu:view:markseen:clear",
@@ -104,7 +104,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         public MarkSeenSetMaxViewportAction() {
             super(
                 tr("Set max viewport size from current"),
-                new ImageProvider("icons/24x24/setmaxviewportfromcurrent.png"),
+                new ImageProvider("icons/24x24/setmaxviewportfromcurrent"),
                 tr("Set current viewport size as the maximum for recording as seen"),
                 Shortcut.registerShortcut(
                     "menu:view:markseen:setmaxviewportfromcurrent",
@@ -163,7 +163,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         this.recordMinZoom.addChangeListener(this);
 
         this.markSeenMainMenu = new JMenu(tr("MarkSeen"));
-        this.markSeenMainMenu.setIcon(new ImageProvider("icons/16x16/markseen.png").get());
+        this.markSeenMainMenu.setIcon(new ImageProvider("icons/16x16/markseen").get());
         this.mainMenuRecordItem = new JCheckBoxMenuItem(this.recordAction);
         this.mainMenuRecordItem.setAccelerator(this.recordAction.getShortcut().getKeyStroke());
         this.recordAction.addButtonModel(this.mainMenuRecordItem.getModel());

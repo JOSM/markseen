@@ -1,28 +1,21 @@
 package org.openstreetmap.josm.plugins.markseen;
 
-import java.io.IOException;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.math.BigInteger;
 import java.util.List;
 import java.lang.AssertionError;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
+import org.junit.jupiter.api.Disabled;
 import org.openstreetmap.josm.data.Bounds;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Ignore;
-
-
-@Ignore
+@Disabled
 public class BaseQuadTreeNodeTest extends BaseRectTest {
-    public BaseQuadTreeNodeTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
-    throws IOException {
-        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
-    }
 
     @FunctionalInterface
     interface AfterRectMarkAction {
@@ -135,7 +128,7 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
         boolean write,
         InspectExtraAssertion extraAssertion
     ) {
-        assertTrue("assertContents will not work reliably in non-default order", orderSeed == null || constReferenceMask != null || !assertContents);
+        assertTrue(orderSeed == null || constReferenceMask != null || !assertContents, "assertContents will not work reliably in non-default order");
         final List<Integer> remapping = getRemapping(referenceTiles_.length, orderSeed);
 
         for (int i = 0; i<referenceTiles_.length; i++) {
@@ -150,8 +143,8 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
             boolean refMaskOptAliasable = referenceTileInfo.length >= 5 ? (boolean)referenceTileInfo[4] : false;
 
             assertFalse(
-                "refMask must be boolean if refMaskOptAliasable is true",
-                refMaskOptAliasable && !Boolean.class.isInstance(refMask)
+                refMaskOptAliasable && !Boolean.class.isInstance(refMask),
+                    "refMask must be boolean if refMaskOptAliasable is true"
             );
 
             QuadTreeNode node = quadTreeMeta.quadTreeRoot.getNodeForTile(
@@ -173,9 +166,10 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
                     );
                 } catch (final AssertionError e) {
                     System.out.format("assertArrayEquals failed on reference tile %d\n", j);
+                    // Java 17 has HexFormat.of().formatHex(byte[])
                     System.out.println(
-                        "ref = " + javax.xml.bind.DatatypeConverter.printHexBinary(refMaskBytes) +
-                        ", result = " + javax.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes)
+                        "ref = " + new BigInteger(1, refMaskBytes).toString(16) +
+                        ", result = " + new BigInteger(1, resultMaskBytes).toString(16)
                     );
                     throw e;
                 }

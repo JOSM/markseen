@@ -1,9 +1,15 @@
 package org.openstreetmap.josm.plugins.markseen;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.lang.AssertionError;
+import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -12,40 +18,33 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Disabled;
 import org.openstreetmap.gui.jmapviewer.Tile;
 import org.openstreetmap.gui.jmapviewer.interfaces.TileSource;
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.data.Bounds;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.After;
-import org.junit.Ignore;
 import mockit.Mock;
 import mockit.MockUp;
-import mockit.Deencapsulation;
 import mockit.Invocation;
+import org.openstreetmap.josm.data.imagery.ImageryInfo;
+import org.openstreetmap.josm.data.imagery.JosmTemplatedTMSTileSource;
+import org.openstreetmap.josm.tools.ReflectionUtils;
+import org.openstreetmap.josm.tools.Utils;
 
 
-@Ignore
+@Disabled
 public class BaseQuadTreeMetaTest extends BaseRectTest {
     public static QuadTreeNodeDynamicReference[] createDynamicReferences(QuadTreeMeta quadTreeMeta, Object[][] referenceTiles_) {
-        new MockUp<Tile>() {
-            @Mock void $init(Invocation invocation, TileSource source, int xtile, int ytile, int zoom) {
-                Tile tile = invocation.getInvokedInstance();
-                Deencapsulation.setField(tile, "xtile", xtile);
-                Deencapsulation.setField(tile, "ytile", ytile);
-                Deencapsulation.setField(tile, "zoom", zoom);
-            }
-        };
+        TileSource tileSource = new JosmTemplatedTMSTileSource(new ImageryInfo("FooBar", "https://example.org/{z}/{x}/{y}"));
+
         QuadTreeNodeDynamicReference[] refs = new QuadTreeNodeDynamicReference[referenceTiles_.length];
         for (int i=0; i<referenceTiles_.length; i++) {
-            Tile mockTile = new Tile(null, (int)referenceTiles_[i][1], (int)referenceTiles_[i][2], (int)referenceTiles_[i][0]);
+            Tile mockTile = new Tile(tileSource, (int)referenceTiles_[i][1], (int)referenceTiles_[i][2], (int)referenceTiles_[i][0]);
             refs[i] = new QuadTreeNodeDynamicReference(quadTreeMeta, mockTile);
         }
         return refs;
@@ -53,9 +52,9 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
 
     protected QuadTreeMeta quadTreeMeta;
 
-    public BaseQuadTreeMetaTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
+    public void setup(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
     throws IOException {
-        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
+        super.setup(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
         this.initQuadTreeMeta();
     }
 
@@ -63,7 +62,7 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         this.quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
     }
 
-    @After
+    @AfterEach
     public void destroyQuadTreeMeta() throws Exception {
         final ThreadPoolExecutor quadTreeEditExecutor = ((ThreadPoolExecutor) TestUtils.getPrivateField(quadTreeMeta, "quadTreeEditExecutor"));
         final ThreadPoolExecutor quadTreeOptimizeExecutor = ((ThreadPoolExecutor) TestUtils.getPrivateField(quadTreeMeta, "quadTreeOptimizeExecutor"));
@@ -151,7 +150,7 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         Object constReferenceMask,
         InspectExtraAssertion extraAssertion
     ) {
-        assertTrue("assertContents will not work reliably in non-default order", orderSeed == null || constReferenceMask != null || !assertContents);
+        assertTrue(orderSeed == null || constReferenceMask != null || !assertContents, "assertContents will not work reliably in non-default order");
         assertEquals(dynamicReferences.length, referenceTiles_.length);
 
         List<Integer> remapping = getRemapping(referenceTiles_.length, orderSeed);
@@ -176,9 +175,10 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
                     );
                 } catch (final AssertionError e) {
                     System.out.format("assertArrayEquals failed on reference tile %d\n", j);
+                    // Java 17 has HexFormat.of().formatHex(byte[])
                     System.out.println(
-                        "ref = " + javax.xml.bind.DatatypeConverter.printHexBinary(refMaskBytes) +
-                        ", result = " + javax.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes)
+                        "ref = " + new BigInteger(1, refMaskBytes).toString(16) +
+                        ", result = " + new BigInteger(1, resultMaskBytes).toString(16)
                     );
                     throw e;
                 }

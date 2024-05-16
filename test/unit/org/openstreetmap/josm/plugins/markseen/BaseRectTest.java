@@ -10,21 +10,19 @@ import java.util.stream.IntStream;
 
 import java.awt.image.DataBufferByte;
 
+import org.junit.jupiter.api.Disabled;
 import org.openstreetmap.josm.data.Bounds;
 
-import org.junit.Ignore;
-
-
-@Ignore
+@Disabled
 public class BaseRectTest extends BaseTest {
     // parametrized variables
-    protected final int scenarioIndex;
-    protected final Integer seenRectOrderSeed;
-    protected final Integer referenceTileOrderSeed;
+    protected int scenarioIndex;
+    protected Integer seenRectOrderSeed;
+    protected Integer referenceTileOrderSeed;
     // derived parametrized variables
-    protected final int tileSize;
-    protected final Object[][] seenRects;
-    protected final Object[][] referenceTiles;
+    protected int tileSize;
+    protected Object[][] seenRects;
+    protected Object[][] referenceTiles;
 
     private static Object[][] scenarios;
     protected static Object[][] getTestScenarios() throws IOException {
@@ -211,7 +209,7 @@ public class BaseRectTest extends BaseTest {
         return scenarios;
     }
 
-    public BaseRectTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
+    public void setup(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
     throws IOException {
         this.scenarioIndex = scenarioIndex_;
         this.seenRectOrderSeed = seenRectOrderSeed_;

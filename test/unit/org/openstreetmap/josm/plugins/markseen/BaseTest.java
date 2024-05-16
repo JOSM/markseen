@@ -4,10 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 
 
-@Ignore
+@Disabled
 public class BaseTest {
     protected static byte[] byteArrayFromResource(String resourcePath) throws IOException {
         InputStream resourceStream = BaseTest.class.getClassLoader().getResourceAsStream(resourcePath);
