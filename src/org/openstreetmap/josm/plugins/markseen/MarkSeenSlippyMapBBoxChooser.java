@@ -1,3 +1,4 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.awt.Color;
@@ -7,7 +8,6 @@ import java.awt.Rectangle;
 
 import org.openstreetmap.josm.data.Bounds;
 import org.openstreetmap.josm.gui.bbox.SlippyMapBBoxChooser;
-
 
 public class MarkSeenSlippyMapBBoxChooser extends SlippyMapBBoxChooser implements QuadTreeMeta.QuadTreeModifiedListener {
     private Bounds scaleHintBounds = null;

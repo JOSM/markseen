@@ -1,14 +1,10 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
+import java.awt.Color;
 import java.io.IOException;
-import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.IndexColorModel;
 
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.tools.Logging;
@@ -20,7 +16,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-
 @RunWith(Parameterized.class)
 public class QuadTreeNodeOptimizeTest extends BaseQuadTreeNodeTest {
     private static final int variants = 6;
@@ -28,20 +23,20 @@ public class QuadTreeNodeOptimizeTest extends BaseQuadTreeNodeTest {
     // parametrized variables
     protected final Integer optimizeStride;
 
-    @Parameters(name="{index}-scenario-{0}-seed-{1}-stride-{2}")
+    @Parameters(name = "{index}-scenario-{0}-seed-{1}-stride-{2}")
     public static Collection<Object[]> getParameters() throws IOException {
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         Object[][] scenarios = getTestScenarios();
-        for (int i=0; i<scenarios.length; i++) {
-            Object[] seenRects = (Object[])scenarios[i][1];
+        for (int i = 0; i < scenarios.length; i++) {
+            Object[] seenRects = (Object[]) scenarios[i][1];
 
             // we'd rather avoid testing against more permutations than exist for the number of seenRects
             int srFact = 1;
-            for(int m=1; m<=seenRects.length && srFact<=variants; m++) {
+            for (int m = 1; m <= seenRects.length && srFact <= variants; m++) {
                 srFact = srFact*m;
             }
 
-            for (int j=0; j<Math.min(srFact, variants); j++) {
+            for (int j = 0; j < Math.min(srFact, variants); j++) {
                 // variant with null optimizeStride for only optimizing at end
                 paramSets.add(new Object[] {i, j, null});
 
@@ -100,7 +95,9 @@ public class QuadTreeNodeOptimizeTest extends BaseQuadTreeNodeTest {
                                 // the rescaling process at a higher level
                             );
                         }
-                    } catch (ReflectiveOperationException e) { throw new RuntimeException(e); }
+                    } catch (ReflectiveOperationException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         );

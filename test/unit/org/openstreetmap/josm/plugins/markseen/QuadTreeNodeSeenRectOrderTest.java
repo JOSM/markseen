@@ -1,39 +1,35 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
+import java.awt.Color;
+
 import java.io.IOException;
-import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.IndexColorModel;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-
 @RunWith(Parameterized.class)
 public class QuadTreeNodeSeenRectOrderTest extends BaseQuadTreeNodeTest {
     private static final int variants = 16;
 
-    @Parameters(name="{index}-scenario-{0}-seed-{1}")
+    @Parameters(name = "{index}-scenario-{0}-seed-{1}")
     public static Collection<Object[]> getParameters() throws IOException {
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         Object[][] scenarios = getTestScenarios();
-        for (int i=0; i<scenarios.length; i++) {
-            Object[] seenRects = (Object[])scenarios[i][1];
+        for (int i = 0; i < scenarios.length; i++) {
+            Object[] seenRects = (Object[]) scenarios[i][1];
 
             // we'd rather avoid testing against more permutations than exist for the number of seenRects
             int srFact = 1;
-            for(int m=1; m<=seenRects.length && srFact<=variants; m++) {
+            for (int m = 1; m <= seenRects.length && srFact <= variants; m++) {
                 srFact = srFact*m;
             }
 
-            for (int j=0; j<Math.min(srFact, variants); j++) {
+            for (int j = 0; j < Math.min(srFact, variants); j++) {
                 paramSets.add(new Object[] {i, j});
             }
         }

@@ -1,15 +1,14 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import java.awt.Color;
 import java.io.IOException;
-import java.lang.Math;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ThreadPoolExecutor;
-
-import java.awt.Color;
 
 import static org.junit.Assert.assertTrue;
 
@@ -24,7 +23,6 @@ import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.testutils.JOSMTestRules;
 
-
 @RunWith(Parameterized.class)
 public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
     private static final int variants = 2;
@@ -33,12 +31,12 @@ public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
     protected final int batchSize;
     protected final int pauseMS;
 
-    @Parameters(name="{index}-scenario-{0}-batchSize-{1}-pause-{2}ms")
+    @Parameters(name = "{index}-scenario-{0}-batchSize-{1}-pause-{2}ms")
     public static Collection<Object[]> getParameters() throws IOException {
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         Object[][] scenarios = getTestScenarios();
-        for (int i=0; i<scenarios.length; i++) {
-            Object[] seenRects = (Object[])scenarios[i][1];
+        for (int i = 0; i < scenarios.length; i++) {
+            Object[] seenRects = (Object[]) scenarios[i][1];
 
             // use fib sequence to choose batchSize values
             int a = 1, b = 1, c;
@@ -71,7 +69,7 @@ public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
         Config.getPref().putInt("markseen.autoOptimizeDelayMS", 1000);
         QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);
 
-        for (int i=0; i<this.seenRects.length; i+=this.batchSize) {
+        for (int i = 0; i < this.seenRects.length; i += this.batchSize) {
             this.markRectsAsync(
                 this.quadTreeMeta,
                 Arrays.copyOfRange(this.seenRects, i, Math.min(i+this.batchSize, this.seenRects.length)), this.seenRectOrderSeed
@@ -89,7 +87,9 @@ public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
                         this.quadTreeMeta,
                         "quadTreeOptimizeExecutor"
                     )).getActiveCount() == 0;
-                } catch (ReflectiveOperationException e) { throw new RuntimeException(e); }
+                } catch (ReflectiveOperationException e) {
+                    throw new RuntimeException(e);
+                }
             }
         );
 

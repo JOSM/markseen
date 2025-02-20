@@ -1,3 +1,4 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.awt.Color;
@@ -6,8 +7,6 @@ import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.awt.image.IndexColorModel;
-
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
 
@@ -18,7 +17,7 @@ import org.openstreetmap.josm.tools.Logging;
 
 class QuadTreeNode {
     public static class ExtremeAspectRatioException extends UnsupportedOperationException {
-        public ExtremeAspectRatioException() {
+        ExtremeAspectRatioException() {
             super("Proposed rect has such extreme aspect ratio that it would be zero-width at preferredZoom");
         }
     }
@@ -32,10 +31,10 @@ class QuadTreeNode {
     private boolean dirty;
 
     /** Children listed in z-order, x-minor */
-    private final QuadTreeNode [] children = {null, null, null, null};
+    private final QuadTreeNode[] children = {null, null, null, null};
 
     /** Intended for constructing the root node */
-    public QuadTreeNode(QuadTreeMeta quadTreeMeta_) {
+    QuadTreeNode(QuadTreeMeta quadTreeMeta_) {
         this.quadTreeMeta = quadTreeMeta_;
 
         this.belowCanonical = false;
@@ -46,7 +45,7 @@ class QuadTreeNode {
     }
 
     /** Intended for constructing child nodes */
-    public QuadTreeNode(QuadTreeNode parent, QuadTreeMeta quadTreeMeta_) {
+    QuadTreeNode(QuadTreeNode parent, QuadTreeMeta quadTreeMeta_) {
         assert parent != null;
         this.parent = parent;
         this.quadTreeMeta = quadTreeMeta_;
@@ -81,7 +80,7 @@ class QuadTreeNode {
         int zoom,
         boolean write
     ) {
-        assert (!write) || this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread();
+        assert !write || this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread();
         // if we don't know we're the root we can't be sure we're not belowCanonical
         assert parent == null;
 
@@ -107,9 +106,9 @@ class QuadTreeNode {
         // assert this tile is actually beneath us
         assert zoomThis < zoomTarget;
         assert (xtileThis << (zoomTarget-zoomThis)) <= xtileTarget;
-        assert xtileTarget <= ((xtileThis << (zoomTarget-zoomThis)) + (1<<(zoomTarget-zoomThis)));
+        assert xtileTarget <= ((xtileThis << (zoomTarget-zoomThis)) + (1 << (zoomTarget-zoomThis)));
         assert (ytileThis << (zoomTarget-zoomThis)) <= ytileTarget;
-        assert ytileTarget <= ((ytileThis << (zoomTarget-zoomThis)) + (1<<(zoomTarget-zoomThis)));
+        assert ytileTarget <= ((ytileThis << (zoomTarget-zoomThis)) + (1 << (zoomTarget-zoomThis)));
         // also assert consistency of belowCanonical
         assert this.belowCanonical == recBelowCanonical;
 
@@ -117,12 +116,12 @@ class QuadTreeNode {
         int xtileNext = 2*xtileThis;
         int ytileNext = 2*ytileThis;
 
-        if (xtileTarget >= ((xtileThis << (zoomTarget-zoomThis)) + (1<<((zoomTarget-zoomThis)-1)))) {
+        if (xtileTarget >= ((xtileThis << (zoomTarget-zoomThis)) + (1 << ((zoomTarget-zoomThis)-1)))) {
             childIndex |= 1;
             xtileNext++;
         }
-        if (ytileTarget >= ((ytileThis << (zoomTarget-zoomThis)) + (1<<((zoomTarget-zoomThis)-1)))) {
-            childIndex |= (1<<1);
+        if (ytileTarget >= ((ytileThis << (zoomTarget-zoomThis)) + (1 << ((zoomTarget-zoomThis)-1)))) {
+            childIndex |= (1 << 1);
             ytileNext++;
         }
 
@@ -169,7 +168,7 @@ class QuadTreeNode {
         if ((childIndex & 1) != 0) {
             affineTransform.translate(-tileSize, 0);
         }
-        if ((childIndex & (1<<1)) != 0) {
+        if ((childIndex & (1 << 1)) != 0) {
             affineTransform.translate(0, -tileSize);
         }
         affineTransform.scale(2, 2);
@@ -205,7 +204,7 @@ class QuadTreeNode {
         Graphics2D gCopy;
         QuadTreeNode child;
 
-        for (int i=0; i<children.length; i++) {
+        for (int i = 0; i < children.length; i++) {
             child = this.children[i];
             // we shouldn't be encountering null children above canonical level
             assert child != null;
@@ -219,7 +218,7 @@ class QuadTreeNode {
             if ((i & 1) != 0) {
                 gCopy.translate(tileSize, 0);
             }
-            if ((i & (1<<1)) != 0) {
+            if ((i & (1 << 1)) != 0) {
                 gCopy.translate(0, tileSize);
             }
             child.drawOntoAncestor(gCopy);
@@ -249,7 +248,7 @@ class QuadTreeNode {
      *                  will be returned if getMask can't return a sensible result without this flag.
      */
     public BufferedImage getMask(boolean write, boolean construct) {
-        assert (!write) || this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread();
+        assert !write || this.quadTreeMeta.quadTreeRWLock.isWriteLockedByCurrentThread();
         assert write || !construct : "Use of the construct argument requires write access";
 
         if (this.canonicalMask != null) {
@@ -299,7 +298,7 @@ class QuadTreeNode {
                 }
                 int tileSize = this.quadTreeMeta.tileSize;
                 Graphics2D g = mask_.createGraphics();
-                g.setBackground(new Color(0,0,0,0));
+                g.setBackground(new Color(0, 0, 0, 0));
                 g.clearRect(0, 0, tileSize, tileSize);
                 this.drawChildrenOntoAncestor(g);
             }
@@ -322,7 +321,7 @@ class QuadTreeNode {
         if (dirtySelf) {
             this.dirty = true;
         }
-        for (int i=0; i<this.children.length; i++) {
+        for (int i = 0; i < this.children.length; i++) {
             QuadTreeNode child = this.getChild(i, false);
             if (child != null) {
                 child.dirtyDescendants(true);
@@ -335,7 +334,7 @@ class QuadTreeNode {
             this.canonicalMask = null;
             this.belowCanonical = true;
         }
-        for (int i=0; i<this.children.length; i++) {
+        for (int i = 0; i < this.children.length; i++) {
             QuadTreeNode child = this.getChild(i, false);
             if (child != null) {
                 child.setDescendantsBelowCanonical(true);
@@ -411,11 +410,11 @@ class QuadTreeNode {
             if (zoomThis < preferredZoom || this.isAboveCanonical()) {
                 // we're at too low a zoom level to start any drawing - we should recurse, which will also have the
                 // effect of more finely pinning down the edge
-                for (int i=0; i<this.children.length; i++) {
+                for (int i = 0; i < this.children.length; i++) {
                     QuadTreeNode child = this.getChild(i, true);
                     child.markRectSeenInner(
-                        (xThis*2)+((i&1) != 0 ? tileSize : 0),
-                        (yThis*2)+((i&(1<<1)) != 0 ? tileSize : 0),
+                        (xThis*2)+((i & 1) != 0 ? tileSize : 0),
+                        (yThis*2)+((i & (1 << 1)) != 0 ? tileSize : 0),
                         zoomThis+1,
                         x0*2,
                         y0*2,
@@ -460,10 +459,10 @@ class QuadTreeNode {
                     g.setPaint(this.quadTreeMeta.MARK_COLOR);
                     g.translate(-xThis, -yThis);
                     g.fill(new Rectangle(
-                        (int)Math.round(x0),
-                        (int)Math.round(y0),
-                        (int)Math.round(x1-x0),
-                        (int)Math.round(y1-y0)
+                        (int) Math.round(x0),
+                        (int) Math.round(y0),
+                        (int) Math.round(x1-x0),
+                        (int) Math.round(y1-y0)
                     ));
 
                     // mark ancestors & descendants dirty
@@ -495,7 +494,7 @@ class QuadTreeNode {
 
         // calculate "snapped" versions of these coordinates so that we don't get discontinuities between different
         // zoom levels able to render them with different precision.
-        int preferredZoomFactor = 1<<preferredZoom;
+        int preferredZoomFactor = 1 << preferredZoom;
         double x0s = Math.rint(x0*preferredZoomFactor)/preferredZoomFactor;
         double x1s = Math.rint(x1*preferredZoomFactor)/preferredZoomFactor;
         double y0s = Math.rint(y0*preferredZoomFactor)/preferredZoomFactor;
@@ -591,7 +590,7 @@ class QuadTreeNode {
             // continue to descend to canonical level, keeping note whether all children return the
             // same aliasable BufferedImage
             BufferedImage commonAliasable = null;
-            for (int i=0; i<this.children.length; i++) {
+            for (int i = 0; i < this.children.length; i++) {
                 BufferedImage childResult = this.children[i].optimize(interruptable);
 
                 if (i == 0) {
@@ -623,7 +622,7 @@ class QuadTreeNode {
         if (this.belowCanonical) {
             assert this.canonicalMask == null;
         }
-        for (int i=0; i<this.children.length; i++) {
+        for (int i = 0; i < this.children.length; i++) {
             QuadTreeNode child = this.getChild(i, false);
             if (child == null) {
                 assert !this.isAboveCanonical();

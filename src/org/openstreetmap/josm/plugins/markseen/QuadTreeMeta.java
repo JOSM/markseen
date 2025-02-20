@@ -1,14 +1,10 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
-
-import java.lang.Runnable;
-import java.lang.Thread;
-import java.lang.Throwable;
 
 import java.util.HashSet;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -30,7 +26,7 @@ public class QuadTreeMeta {
     private static class WriteInhibitedBufferedImage extends BufferedImage {
         public boolean inhibitWrites = false;
 
-        public WriteInhibitedBufferedImage(int width, int height, int imageType, IndexColorModel cm, Color constColor) {
+        WriteInhibitedBufferedImage(int width, int height, int imageType, IndexColorModel cm, Color constColor) {
             super(width, height, imageType, cm);
             Graphics2D g = this.createGraphics();
             g.setBackground(constColor);
@@ -58,7 +54,7 @@ public class QuadTreeMeta {
     }
 
     private class QuadTreeEditExecutor extends ThreadPoolExecutor {
-        public QuadTreeEditExecutor() {
+        QuadTreeEditExecutor() {
             super(1, 1, 5, java.util.concurrent.TimeUnit.MINUTES, new ArrayBlockingQueue<Runnable>(16));
         }
 
@@ -73,7 +69,7 @@ public class QuadTreeMeta {
         public void afterExecute(Runnable runnable, Throwable throwable) {
             if (this.getQueue().isEmpty()) {
                 QuadTreeMeta.this.quadTreeRWLock.writeLock().unlock();
-                synchronized(QuadTreeMeta.this.modifiedListeners) {
+                synchronized (QuadTreeMeta.this.modifiedListeners) {
                     for (QuadTreeModifiedListener listener: QuadTreeMeta.this.modifiedListeners) {
                         listener.quadTreeModified();
                     }
@@ -114,7 +110,7 @@ public class QuadTreeMeta {
         private final double minTilesAcross;
         private final boolean checkIntegrity;
 
-        public MarkBoundsSeenRequest(Bounds bounds_, double minTilesAcross_, boolean checkIntegrity_) {
+        MarkBoundsSeenRequest(Bounds bounds_, double minTilesAcross_, boolean checkIntegrity_) {
             this.bounds = bounds_;
             this.minTilesAcross = minTilesAcross_;
             this.checkIntegrity = checkIntegrity_;
@@ -133,13 +129,7 @@ public class QuadTreeMeta {
         }
     }
 
-    private class ClearRequest implements Runnable {
-        private final boolean checkIntegrity;
-
-        public ClearRequest(boolean checkIntegrity_) {
-            this.checkIntegrity = checkIntegrity_;
-        }
-
+    private final class ClearRequest implements Runnable {
         @Override
         public void run() {
             QuadTreeMeta.this.quadTreeRoot.clear();
@@ -154,7 +144,7 @@ public class QuadTreeMeta {
     // the two operations can't run concurrently, doing so would introduce some weirdness arising from it
     // being used to handle both "real" edits and "edits" that have no visible effect.
     private class QuadTreeOptimizeExecutor extends ThreadPoolExecutor implements QuadTreeModifiedListener {
-        public QuadTreeOptimizeExecutor() {
+        QuadTreeOptimizeExecutor() {
             super(1, 1, 2, java.util.concurrent.TimeUnit.MINUTES, new SynchronousQueue<Runnable>());
             this.allowCoreThreadTimeOut(true);
             this.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
@@ -187,6 +177,7 @@ public class QuadTreeMeta {
             }
         }
 
+        @Override
         public void quadTreeModified() {
             this.execute(() -> {
                 try {
@@ -204,8 +195,8 @@ public class QuadTreeMeta {
 
     // we don't worry about using the specific configured color ("maskColor") for marking regions, instead just expect
     // the palette to match opaque white to that color and transparent black to the "background" color
-    protected final static Color UNMARK_COLOR = new Color(0, 0, 0, 0);
-    protected final static Color MARK_COLOR = new Color(255, 255, 255, 255);
+    protected static final Color UNMARK_COLOR = new Color(0, 0, 0, 0);
+    protected static final Color MARK_COLOR = new Color(255, 255, 255, 255);
 
     public final ReentrantReadWriteLock quadTreeRWLock = new ReentrantReadWriteLock();
 
@@ -232,10 +223,10 @@ public class QuadTreeMeta {
         this.maskColorModel = new IndexColorModel(
             1,
             2,
-            new byte[]{(byte)0, (byte)this.maskColor.getRed()},
-            new byte[]{(byte)0, (byte)this.maskColor.getGreen()},
-            new byte[]{(byte)0, (byte)this.maskColor.getBlue()},
-            new byte[]{(byte)0, (byte)(this.maskOpacity*255)}
+            new byte[]{(byte) 0, (byte) this.maskColor.getRed()},
+            new byte[]{(byte) 0, (byte) this.maskColor.getGreen()},
+            new byte[]{(byte) 0, (byte) this.maskColor.getBlue()},
+            new byte[]{(byte) 0, (byte) (this.maskOpacity*255)}
         );
 
         this.EMPTY_MASK = new WriteInhibitedBufferedImage(
@@ -272,11 +263,7 @@ public class QuadTreeMeta {
     }
 
     public void requestClear() {
-        this.requestClear(false);
-    }
-
-    public void requestClear(boolean checkIntegrity) {
-        this.quadTreeEditExecutor.execute(new ClearRequest(checkIntegrity));
+        this.quadTreeEditExecutor.execute(new ClearRequest());
     }
 
     protected long getEditRequestQueueCompletedTaskCount() {

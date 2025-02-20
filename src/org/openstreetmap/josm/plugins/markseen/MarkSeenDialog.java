@@ -1,3 +1,4 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.awt.BorderLayout;
@@ -33,7 +34,8 @@ import org.openstreetmap.josm.spi.preferences.Config;
 import org.openstreetmap.josm.tools.ImageProvider;
 
 /**
- * Essentially a modified copy of {@link MinimapDialog} rather than an subclass because it's keen on its privacy.
+ * Essentially a modified copy of {@link org.openstreetmap.josm.gui.dialogs.MinimapDialog} rather
+ * than an subclass because it's keen on its privacy.
  */
 public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent.ZoomChangeListener, PropertyChangeListener, ChangeListener {
     private boolean skipZoomEvents;
@@ -60,7 +62,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         ToggleAction recordAction_,
         BoundedRangeModel recordMinZoom_
     ) {
-        super(tr("MarkSeen Viewer"), "markseen.png", tr("Shows viewed map areas on a familiar small map"), null, 150);
+        super(tr("MarkSeen Viewer"), "markseen", tr("Shows viewed map areas on a familiar small map"), null, 150);
         this.quadTreeMeta = quadTreeMeta_;
         this.recordMinZoomSlider = new JSlider(recordMinZoom_);
         this.recordMinZoomSliderLabel = new JLabel(tr("Max viewport size"));
@@ -82,6 +84,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
 
         this.slippyMap = new MarkSeenSlippyMapBBoxChooser(this.quadTreeMeta);
     }
+
     private synchronized void initialize() {
         if (!this.initialized) {
             this.slippyMap.setSizeButtonVisible(false);
@@ -124,6 +127,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
             this.initialized = true;
         }
     }
+
     @Override
     public void showDialog() {
         initialize();
@@ -131,11 +135,13 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
         super.showDialog();
         this.zoomChanged();
     }
+
     @Override
     public void hideDialog() {
         NavigatableComponent.removeZoomChangeListener(this);
         super.hideDialog();
     }
+
     @Override
     public void zoomChanged() {
         if (!skipZoomEvents && MainApplication.isDisplayingMapView()) {
@@ -150,6 +156,7 @@ public class MarkSeenDialog extends ToggleDialog implements NavigatableComponent
             skipZoomEvents = false;
         }
     }
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         final Object source = evt.getSource();

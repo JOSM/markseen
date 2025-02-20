@@ -7,3 +7,5 @@ test/report/
 josm.jar
 failed.png
 test/config/unit-josm.home
+checkstyle-josm-markseen.xml
+javadoc

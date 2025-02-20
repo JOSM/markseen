@@ -1,10 +1,10 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import org.junit.Test;
 
-
 public class MarkSeenRegulaFalsiFailureTest {
-    @Test(expected=MarkSeenRegulaFalsi.ExceededIterationsException.class)
+    @Test(expected = MarkSeenRegulaFalsi.ExceededIterationsException.class)
     public void testExceededIterations() throws Exception {
         MarkSeenRegulaFalsi.regulaFalsi(
             x -> Math.cos(x) + (0.1*x*x) - 2.,
@@ -15,7 +15,7 @@ public class MarkSeenRegulaFalsiFailureTest {
         );
     }
 
-    @Test(expected=UnsupportedOperationException.class)
+    @Test(expected = UnsupportedOperationException.class)
     public void testDoublePositive() throws Exception {
         MarkSeenRegulaFalsi.regulaFalsi(
             x -> Math.sin(x),
@@ -26,7 +26,7 @@ public class MarkSeenRegulaFalsiFailureTest {
         );
     }
 
-    @Test(expected=UnsupportedOperationException.class)
+    @Test(expected = UnsupportedOperationException.class)
     public void testDoubleNegative() throws Exception {
         MarkSeenRegulaFalsi.regulaFalsi(
             x -> Math.sin(x),
@@ -37,7 +37,7 @@ public class MarkSeenRegulaFalsiFailureTest {
         );
     }
 
-    @Test(expected=MarkSeenRegulaFalsi.ExceededRangeDetermination.class)
+    @Test(expected = MarkSeenRegulaFalsi.ExceededRangeDetermination.class)
     public void testGeometricSearchExceedRange() throws Exception {
         // searching upwards, this will never change sign
         MarkSeenRegulaFalsi.regulaFalsiGeometricSearch(

@@ -1,3 +1,4 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.io.ByteArrayOutputStream;
@@ -5,7 +6,6 @@ import java.io.InputStream;
 import java.io.IOException;
 
 import org.junit.Ignore;
-
 
 @Ignore
 public class BaseTest {

@@ -1,3 +1,4 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.util.ArrayList;
@@ -11,14 +12,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-
 @RunWith(Parameterized.class)
 public class MarkSeenRegulaFalsiGeometricSearchTest {
-    @Parameters(name="{index}-fx-{0}-{1}-lbx-{5}")
+    @Parameters(name = "{index}-fx-{0}-{1}-lbx-{5}")
     public static Collection<Object[]> getParameters() throws Exception {
         final Object[][] unexpanded = new Object[][] {
             {
-                (DoubleUnaryOperator)(x -> Math.cos(x) + (0.1*x*x) - 2.),
+                (DoubleUnaryOperator) (x -> Math.cos(x) + (0.1*x*x) - 2.),
                 0.01,
                 10,
                 new double[] {
@@ -31,7 +31,7 @@ public class MarkSeenRegulaFalsiGeometricSearchTest {
                 2.
             },
             {
-                (DoubleUnaryOperator)(x -> 1./x - 0.5),
+                (DoubleUnaryOperator) (x -> 1./x - 0.5),
                 0.001,
                 6,
                 new double[] {
@@ -44,7 +44,7 @@ public class MarkSeenRegulaFalsiGeometricSearchTest {
                 5.
             },
             {
-                (DoubleUnaryOperator)(x -> Math.sqrt(x)-105.),
+                (DoubleUnaryOperator) (x -> Math.sqrt(x)-105.),
                 0.0001,
                 12,
                 new double[] {
@@ -56,7 +56,7 @@ public class MarkSeenRegulaFalsiGeometricSearchTest {
                 1.8
             },
             {
-                (DoubleUnaryOperator)(x -> 10./x - 50.),
+                (DoubleUnaryOperator) (x -> 10./x - 50.),
                 0.001,
                 10,
                 new double[] {
@@ -69,7 +69,7 @@ public class MarkSeenRegulaFalsiGeometricSearchTest {
                 0.5
             },
             {
-                ((DoubleUnaryOperator)(x -> (x*x - 30.) * 20.)).compose(x -> x-30.),
+                ((DoubleUnaryOperator) (x -> (x*x - 30.) * 20.)).compose(x -> x-30.),
                 0.001,
                 6,
                 new double[] {
@@ -82,16 +82,16 @@ public class MarkSeenRegulaFalsiGeometricSearchTest {
         };
 
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
-        for (int i=0; i<unexpanded.length; i++) {
-            double[] initialXs = (double[])unexpanded[i][3];
-            DoubleUnaryOperator fx = (DoubleUnaryOperator)unexpanded[i][0];
+        for (int i = 0; i < unexpanded.length; i++) {
+            double[] initialXs = (double[]) unexpanded[i][3];
+            DoubleUnaryOperator fx = (DoubleUnaryOperator) unexpanded[i][0];
 
-            for (int m=0; m<2; m++) {
+            for (int m = 0; m < 2; m++) {
                 // possibly negate the output from fx (the "y value")
                 DoubleUnaryOperator fxm = m == 0 ? fx : fx.andThen(y -> -y);
                 String ySign = m == 0 ? "ypos" : "yneg";
 
-                for (int j=0; j<initialXs.length; j++) {
+                for (int j = 0; j < initialXs.length; j++) {
                     paramSets.add(new Object[] {
                         i,
                         ySign,

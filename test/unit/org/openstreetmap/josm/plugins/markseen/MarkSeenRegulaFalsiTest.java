@@ -1,3 +1,4 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.util.ArrayList;
@@ -11,14 +12,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-
 @RunWith(Parameterized.class)
 public class MarkSeenRegulaFalsiTest {
-    @Parameters(name="{index}-fx-{0}-{1}-{2}-x0-{6}-x1-{7}")
+    @Parameters(name = "{index}-fx-{0}-{1}-{2}-x0-{6}-x1-{7}")
     public static Collection<Object[]> getParameters() throws Exception {
         final Object[][] unexpanded = new Object[][] {
             {
-                (DoubleUnaryOperator)(x -> Math.sin(x)),
+                (DoubleUnaryOperator) (x -> Math.sin(x)),
                 0.0001,
                 6,
                 new double[] {
@@ -35,7 +35,7 @@ public class MarkSeenRegulaFalsiTest {
                 }
             },
             {
-                (DoubleUnaryOperator)(x -> Math.cos(x) + (0.1*x*x) - 2.),
+                (DoubleUnaryOperator) (x -> Math.cos(x) + (0.1*x*x) - 2.),
                 0.005,
                 10,
                 new double[] {
@@ -52,7 +52,7 @@ public class MarkSeenRegulaFalsiTest {
                 }
             },
             {
-                ((DoubleUnaryOperator)(x -> Math.log(x) + 1./x - 1.5)).compose(x -> Math.min(x, 2.7)),
+                ((DoubleUnaryOperator) (x -> Math.log(x) + 1./x - 1.5)).compose(x -> Math.min(x, 2.7)),
                 0.01,
                 20,
                 new double[] {
@@ -69,24 +69,24 @@ public class MarkSeenRegulaFalsiTest {
         };
 
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
-        for (int i=0; i<unexpanded.length; i++) {
-            double[] x0s = (double[])unexpanded[i][3];
-            double[] x1s = (double[])unexpanded[i][4];
-            DoubleUnaryOperator fx = (DoubleUnaryOperator)unexpanded[i][0];
+        for (int i = 0; i < unexpanded.length; i++) {
+            double[] x0s = (double[]) unexpanded[i][3];
+            double[] x1s = (double[]) unexpanded[i][4];
+            DoubleUnaryOperator fx = (DoubleUnaryOperator) unexpanded[i][0];
 
-            for (int m=0; m<2; m++) {
+            for (int m = 0; m < 2; m++) {
                 // possibly negate the output from fx (the "y value")
                 DoubleUnaryOperator fxm = m == 0 ? fx : fx.andThen(y -> -y);
                 String ySign = m == 0 ? "ypos" : "yneg";
 
-                for (int n=0; n<2; n++) {
+                for (int n = 0; n < 2; n++) {
                     // possibly negate the input to fx (the "x value") along with negating x0 and x1
                     DoubleUnaryOperator fxmn = n == 0 ? fxm : fxm.compose(x -> -x);
                     double xSignMul = n == 0 ? 1. : -1.;
                     String xSign = n == 0 ? "xpos" : "xneg";
 
-                    for (int j=0; j<x0s.length; j++) {
-                        for (int k=0; k<x1s.length; k++) {
+                    for (int j = 0; j < x0s.length; j++) {
+                        for (int k = 0; k < x1s.length; k++) {
                             paramSets.add(new Object[] {
                                 i,
                                 xSign,

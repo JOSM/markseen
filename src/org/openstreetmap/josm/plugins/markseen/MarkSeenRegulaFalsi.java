@@ -1,18 +1,18 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.util.function.DoubleUnaryOperator;
-
 
 public class MarkSeenRegulaFalsi {
     private MarkSeenRegulaFalsi() {
         // Hide constructor for utility classes
     }
 
-    public static class RegulaFalsiException extends Exception {};
+    public static class RegulaFalsiException extends Exception {}
 
-    public static class ExceededIterationsException extends RegulaFalsiException {};
+    public static class ExceededIterationsException extends RegulaFalsiException {}
 
-    public static class ExceededRangeDetermination extends RegulaFalsiException {};
+    public static class ExceededRangeDetermination extends RegulaFalsiException {}
 
     protected static double regulaFalsi(
         final DoubleUnaryOperator fx,
@@ -30,7 +30,7 @@ public class MarkSeenRegulaFalsi {
             throw new UnsupportedOperationException("f(x0) and f(x1) are both " + (y0 < 0 ? "negative" : "positive"));
         }
 
-        for(int i=0; ; i++) {
+        for (int i = 0; ; i++) {
             assert y0 * y1 < 0;
 
             xn = ((x0 * y1) - (x1 * y0)) / (y1 - y0);
@@ -74,7 +74,7 @@ public class MarkSeenRegulaFalsi {
         double nearY = fx.applyAsDouble(nearX);
         double farX = -1.;
 
-        for (int i=0; i<32; i++) {
+        for (int i = 0; i < 32; i++) {
             assert nearX * initialX > 0.;
 
             double newX = nearX * searchFactor;
@@ -99,5 +99,5 @@ public class MarkSeenRegulaFalsi {
             precision,
             maxIterations
         );
-    };
+    }
 }

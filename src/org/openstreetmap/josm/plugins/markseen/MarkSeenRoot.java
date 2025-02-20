@@ -1,3 +1,4 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.beans.PropertyChangeEvent;
@@ -19,6 +20,7 @@ import static org.openstreetmap.josm.tools.I18n.tr;
 import org.openstreetmap.josm.actions.JosmAction;
 import org.openstreetmap.josm.actions.ToggleAction;
 import org.openstreetmap.josm.data.Bounds;
+import org.openstreetmap.josm.data.IBounds;
 import org.openstreetmap.josm.data.ProjectionBounds;
 import org.openstreetmap.josm.data.projection.Projection;
 import org.openstreetmap.josm.gui.MainMenu;
@@ -32,14 +34,13 @@ import org.openstreetmap.josm.tools.ImageProvider;
 import org.openstreetmap.josm.tools.Logging;
 import org.openstreetmap.josm.tools.Shortcut;
 
-
 public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, ChangeListener {
     private static final String recordActionBaseToolTipText = tr("Mark seen areas of map in MarkSeen viewer");
 
     private class MarkSeenToggleRecordAction extends ToggleAction implements PropertyChangeListener {
-        public MarkSeenToggleRecordAction() {
+        MarkSeenToggleRecordAction() {
             super(tr("Record seen areas"),
-                new ImageProvider("icons/24x24/record.png"),
+                new ImageProvider("icons/24x24/record"),
                 recordActionBaseToolTipText,
                 Shortcut.registerShortcut(
                     "menu:view:markseen:record",
@@ -59,7 +60,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         public void propertyChange(PropertyChangeEvent e) {
             if (e.getPropertyName().equals("enabled") && e.getSource() == this) {
                 String r = recordActionBaseToolTipText;
-                if (!(Boolean)e.getNewValue()) {
+                if (!(Boolean) e.getNewValue()) {
                     r += tr(" (disabled while viewport larger than set limit)");
                 }
                 this.setTooltip(r);
@@ -77,10 +78,10 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     }
 
     private class MarkSeenClearAction extends JosmAction {
-        public MarkSeenClearAction() {
+        MarkSeenClearAction() {
             super(
                 tr("Clear"),
-                new ImageProvider("icons/24x24/clear.png"),
+                new ImageProvider("icons/24x24/clear"),
                 tr("Clear record of seen areas"),
                 Shortcut.registerShortcut(
                     "menu:view:markseen:clear",
@@ -101,10 +102,10 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     }
 
     private class MarkSeenSetMaxViewportAction extends JosmAction {
-        public MarkSeenSetMaxViewportAction() {
+        MarkSeenSetMaxViewportAction() {
             super(
                 tr("Set max viewport size from current"),
-                new ImageProvider("icons/24x24/setmaxviewportfromcurrent.png"),
+                new ImageProvider("icons/24x24/setmaxviewportfromcurrent"),
                 tr("Set current viewport size as the maximum for recording as seen"),
                 Shortcut.registerShortcut(
                     "menu:view:markseen:setmaxviewportfromcurrent",
@@ -135,12 +136,8 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
 
     private final JMenu markSeenMainMenu;
 
-    private final JMenuItem mainMenuRecordItem;
-    private final JMenuItem mainMenuClearItem;
-    private final JMenuItem mainMenuSetMaxViewportItem;
-
-    private final static int recordMinZoomMin = 4;
-    private final static int recordMinZoomMax = 24;
+    private static final int recordMinZoomMin = 4;
+    private static final int recordMinZoomMax = 24;
 
     private MarkSeenDialog dialog;
 
@@ -163,13 +160,13 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         this.recordMinZoom.addChangeListener(this);
 
         this.markSeenMainMenu = new JMenu(tr("MarkSeen"));
-        this.markSeenMainMenu.setIcon(new ImageProvider("icons/16x16/markseen.png").get());
-        this.mainMenuRecordItem = new JCheckBoxMenuItem(this.recordAction);
-        this.mainMenuRecordItem.setAccelerator(this.recordAction.getShortcut().getKeyStroke());
-        this.recordAction.addButtonModel(this.mainMenuRecordItem.getModel());
-        this.markSeenMainMenu.add(this.mainMenuRecordItem);
-        this.mainMenuClearItem = MainMenu.add(this.markSeenMainMenu, this.clearAction, false);
-        this.mainMenuSetMaxViewportItem = MainMenu.add(this.markSeenMainMenu, this.setMaxViewportAction, false);
+        this.markSeenMainMenu.setIcon(new ImageProvider("icons/16x16/markseen").get());
+        final JMenuItem mainMenuRecordItem = new JCheckBoxMenuItem(this.recordAction);
+        mainMenuRecordItem.setAccelerator(this.recordAction.getShortcut().getKeyStroke());
+        this.recordAction.addButtonModel(mainMenuRecordItem.getModel());
+        this.markSeenMainMenu.add(mainMenuRecordItem);
+        MainMenu.add(this.markSeenMainMenu, this.clearAction, false);
+        MainMenu.add(this.markSeenMainMenu, this.setMaxViewportAction, false);
     }
 
     public void mapFrameInitialized(MapFrame oldFrame, MapFrame newFrame) {
@@ -207,7 +204,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
         );
     }
 
-    protected static double viewportSizeFromBounds(final Bounds bounds) {
+    protected static double viewportSizeFromBounds(final IBounds bounds) {
         return bounds.getMin().greatCircleDistance(bounds.getMax());
     }
 
@@ -225,7 +222,7 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
 
     protected static Bounds estimateCurrentBoundsScaledForZoom(final int msZoom) {
         if (MainApplication.isDisplayingMapView()) {
-            final int targetViewportSize = 1<<msZoom;
+            final int targetViewportSize = 1 << msZoom;
             final MapView mv = MainApplication.getMap().mapView;
             final Projection proj = mv.getProjection();
             final ProjectionBounds currentPB = mv.getProjectionBounds();
@@ -250,14 +247,14 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
             }
         }
         return null;
-    };
+    }
 
     protected void updateRecordActionEnabled(final Bounds currentBounds) {
         if (this.recordMinZoom.getValue() == this.recordMinZoom.getMaximum()) {
             // "infinity" setting - always recordable
             this.recordAction.setEnabled(true);
         } else {
-            final int recordMaxSpan = 1<<this.recordMinZoom.getValue();
+            final int recordMaxSpan = 1 << this.recordMinZoom.getValue();
             this.recordAction.setEnabled(viewportSizeFromBounds(currentBounds) < recordMaxSpan);
         }
     }

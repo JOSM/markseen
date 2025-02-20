@@ -1,3 +1,4 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.awt.Graphics;
@@ -70,7 +71,6 @@ public class MarkSeenTile extends Tile {
     protected void paintPlaceholder(Graphics g, int x, int y, int width, int height) {
         super.paint(g, x, y, width, height);
     }
-
 
     /**
      * Verbatim copy from Tile implementation to allow loadPlaceholderFromCache to work

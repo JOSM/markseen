@@ -1,22 +1,11 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
-
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
 
 import org.openstreetmap.gui.jmapviewer.Tile;
 import org.openstreetmap.gui.jmapviewer.TileController;
 import org.openstreetmap.gui.jmapviewer.interfaces.TileCache;
-import org.openstreetmap.gui.jmapviewer.interfaces.TileLoader;
 import org.openstreetmap.gui.jmapviewer.interfaces.TileLoaderListener;
 import org.openstreetmap.gui.jmapviewer.interfaces.TileSource;
-
-import org.openstreetmap.josm.data.Bounds;
-
 
 public class MarkSeenTileController extends TileController {
     public final QuadTreeMeta quadTreeMeta;

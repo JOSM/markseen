@@ -1,3 +1,4 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import java.awt.image.BufferedImage;
@@ -6,7 +7,6 @@ import java.lang.ref.WeakReference;
 import java.util.function.Function;
 
 import org.openstreetmap.gui.jmapviewer.Tile;
-
 
 /**
 *  The idea of this being a "dynamic reference" is that, given a tile's x/y/z, could keep a memo to that QuadTreeNode
@@ -18,7 +18,7 @@ class QuadTreeNodeDynamicReference {
     private final QuadTreeMeta quadTreeMeta;
     private final Tile tile;
 
-    public QuadTreeNodeDynamicReference(QuadTreeMeta quadTreeMeta_, Tile tile_) {
+    QuadTreeNodeDynamicReference(QuadTreeMeta quadTreeMeta_, Tile tile_) {
         this.quadTreeMeta = quadTreeMeta_;
         this.tile = tile_;
     }
@@ -45,7 +45,7 @@ class QuadTreeNodeDynamicReference {
         return node;
     }
 
-    public <R> R maskReadOperation(Function<BufferedImage,R> operation) {
+    public <R> R maskReadOperation(Function<BufferedImage, R> operation) {
         return this.maskReadOperation(operation, false);
     }
 
@@ -53,7 +53,7 @@ class QuadTreeNodeDynamicReference {
      *  Performs minimal amount of locking required to be able to perform `operation`, a function which accepts the
      *  current QuadTreeNode mask as an argument and releases the lock(s) afterwards.
      */
-    public <R> R maskReadOperation(Function<BufferedImage,R> operation, boolean checkIntegrity) {
+    public <R> R maskReadOperation(Function<BufferedImage, R> operation, boolean checkIntegrity) {
         // attempt with read-lock first
         this.quadTreeMeta.quadTreeRWLock.readLock().lock();
         QuadTreeNode node = this.getQuadTreeNode(false);

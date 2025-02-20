@@ -1,9 +1,9 @@
+// License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.JMenuItem;
 import javax.swing.JSlider;
-import javax.swing.JComponent;
 import javax.swing.JButton;
 import javax.swing.JToggleButton;
 import java.awt.Graphics2D;
@@ -14,7 +14,6 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.regex.Matcher;
-import java.lang.AssertionError;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -37,7 +36,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,7 +44,6 @@ import org.junit.Test;
 import org.awaitility.Awaitility;
 
 import com.google.common.collect.ImmutableMap;
-
 
 public class MarkSeenRootTest {
     private static BufferedImage originalErrorImage;
@@ -144,7 +141,8 @@ public class MarkSeenRootTest {
     protected static BufferedImage probeScratchImage;
 
     public void renderAndAssert(final Consumer<BufferedImage> assertion) {
-        if (probeScratchImage == null || probeScratchImage.getWidth() != this.slippyMap.getSize().width || probeScratchImage.getHeight() != this.slippyMap.getSize().height) {
+        if (probeScratchImage == null || probeScratchImage.getWidth() != this.slippyMap.getSize().width
+        || probeScratchImage.getHeight() != this.slippyMap.getSize().height) {
             probeScratchImage = new BufferedImage(
                 this.slippyMap.getSize().width,
                 this.slippyMap.getSize().height,
@@ -177,17 +175,17 @@ public class MarkSeenRootTest {
         this.markSeenRoot = new MarkSeenRoot();
         this.markSeenRoot.mapFrameInitialized(null, mainMap);
 
-        this.recordAction = (ToggleAction)TestUtils.getPrivateField(this.markSeenRoot, "recordAction");
-        this.mainMenuRecordItem = (JMenuItem)TestUtils.getPrivateField(this.markSeenRoot, "mainMenuRecordItem");
-        this.recordMinZoom = (BoundedRangeModel)TestUtils.getPrivateField(this.markSeenRoot, "recordMinZoom");
-        this.dialog = (MarkSeenDialog)TestUtils.getPrivateField(this.markSeenRoot, "dialog");
+        this.recordAction = (ToggleAction) TestUtils.getPrivateField(this.markSeenRoot, "recordAction");
+        this.mainMenuRecordItem = (JMenuItem) TestUtils.getPrivateField(this.markSeenRoot, "mainMenuRecordItem");
+        this.recordMinZoom = (BoundedRangeModel) TestUtils.getPrivateField(this.markSeenRoot, "recordMinZoom");
+        this.dialog = (MarkSeenDialog) TestUtils.getPrivateField(this.markSeenRoot, "dialog");
 
-        this.recordMinZoomSlider = (JSlider)TestUtils.getPrivateField(this.dialog, "recordMinZoomSlider");
-        this.recordToggleButton = (JToggleButton)TestUtils.getPrivateField(this.dialog, "recordToggleButton");
-        this.clearButton = (JButton)TestUtils.getPrivateField(this.dialog, "clearButton");
-        this.slippyMap = (SlippyMapBBoxChooser)TestUtils.getPrivateField(this.dialog, "slippyMap");
+        this.recordMinZoomSlider = (JSlider) TestUtils.getPrivateField(this.dialog, "recordMinZoomSlider");
+        this.recordToggleButton = (JToggleButton) TestUtils.getPrivateField(this.dialog, "recordToggleButton");
+        this.clearButton = (JButton) TestUtils.getPrivateField(this.dialog, "clearButton");
+        this.slippyMap = (SlippyMapBBoxChooser) TestUtils.getPrivateField(this.dialog, "slippyMap");
 
-        this.mainMenuSetMaxViewportItem = (JMenuItem)TestUtils.getPrivateField(this.markSeenRoot, "mainMenuSetMaxViewportItem");
+        this.mainMenuSetMaxViewportItem = (JMenuItem) TestUtils.getPrivateField(this.markSeenRoot, "mainMenuSetMaxViewportItem");
     }
 
     public void assertControlStates(int recordMinZoomValue, boolean recordActionSelected, boolean recordActionEnabled) {
@@ -239,19 +237,21 @@ public class MarkSeenRootTest {
 
         this.assertControlStates(12, false, true);
 
-         // the actual bounds get adjusted to match the mapview's aspect ratio and for the next move we want to try and
-         // do a pure pan, ensuring we aren't within an area already considered "seen"
+        // the actual bounds get adjusted to match the mapview's aspect ratio and for the next move we want to try and
+        // do a pure pan, ensuring we aren't within an area already considered "seen"
         Bounds actualBounds = mainMap.mapView.getState().getViewArea().getLatLonBoundsBox();
 
         // should be unrecorded pan
-        mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat(), actualBounds.getMinLon()+0.005, actualBounds.getMaxLat(), actualBounds.getMaxLon()+0.005));
+        mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat(), actualBounds.getMinLon()+0.005,
+            actualBounds.getMaxLat(), actualBounds.getMaxLon()+0.005));
 
         this.assertControlStates(12, false, true);
         this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff, false));
 
         // another unrecorded pure pan
         actualBounds = mainMap.mapView.getState().getViewArea().getLatLonBoundsBox();
-        mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat()+0.001, actualBounds.getMinLon(), actualBounds.getMaxLat()+0.001, actualBounds.getMaxLon()));
+        mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat()+0.001, actualBounds.getMinLon(),
+            actualBounds.getMaxLat()+0.001, actualBounds.getMaxLon()));
 
         this.assertControlStates(12, false, true);
         this.renderAndAssert(i -> probePixels(i, 0x0, 0x0, 0x0, 0xff80ff, false));
@@ -270,7 +270,8 @@ public class MarkSeenRootTest {
 
         // another unrecorded pure pan back down
         actualBounds = mainMap.mapView.getState().getViewArea().getLatLonBoundsBox();
-        mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat()-0.001, actualBounds.getMinLon(), actualBounds.getMaxLat()-0.001, actualBounds.getMaxLon()));
+        mainMap.mapView.zoomTo(new Bounds(actualBounds.getMinLat()-0.001, actualBounds.getMinLon(),
+            actualBounds.getMaxLat()-0.001, actualBounds.getMaxLon()));
 
         // should have revealed another painted region
         this.assertControlStates(12, false, true);
@@ -413,7 +414,7 @@ public class MarkSeenRootTest {
             // no point in asserting certrality of bbox "cross" - too small to be reliable
         });
 
-        Bounds shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
+        Bounds shb = (Bounds) TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
         assertTrue(Math.abs(shb.getMinLat() - -77.8712701) < 0.008);
         assertTrue(Math.abs(shb.getMinLon() - -41.532751) < 0.008);
         assertTrue(Math.abs(shb.getMaxLat() - -77.8582611) < 0.008);
@@ -446,7 +447,7 @@ public class MarkSeenRootTest {
             );
         });
 
-        shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
+        shb = (Bounds) TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
         assertTrue(Math.abs(shb.getMinLat() - -77.8907578) < 0.008);
         assertTrue(Math.abs(shb.getMinLon() - -41.6255752) < 0.008);
         assertTrue(Math.abs(shb.getMaxLat() - -77.8387218) < 0.008);
@@ -472,7 +473,7 @@ public class MarkSeenRootTest {
             );
         });
 
-        shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
+        shb = (Bounds) TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
         assertTrue(Math.abs(shb.getMinLat() - -77.9166935) < 0.008);
         assertTrue(Math.abs(shb.getMinLon() - -41.749341) < 0.008);
         assertTrue(Math.abs(shb.getMaxLat() - -77.8126213) < 0.008);
@@ -521,7 +522,7 @@ public class MarkSeenRootTest {
             );
         });
 
-        shb = (Bounds)TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
+        shb = (Bounds) TestUtils.getPrivateField(this.slippyMap, "scaleHintBounds");
 
         assertTrue(Math.abs(shb.getMinLat() - -78.6698339) < 0.008);
         assertTrue(Math.abs(shb.getMinLon() - -45.4624486) < 0.008);
