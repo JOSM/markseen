@@ -2,7 +2,6 @@
 <project name="markseen" default="dist" basedir=".">
     <property name="plugin.main.version" value="19044"/>
     <property name="plugin.author" value="Robert Scott"/>
-    <property name="plugin.version" value="15"/>
     <property name="plugin.class" value="org.openstreetmap.josm.plugins.markseen.MarkSeenPlugin"/>
     <property name="plugin.description" value="Marks ’seen’ areas of the map"/>
     <property name="plugin.icon" value="images/icons/24x24/markseen.svg"/>
