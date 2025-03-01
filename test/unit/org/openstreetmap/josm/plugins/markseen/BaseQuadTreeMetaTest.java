@@ -6,6 +6,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.awt.Color;
 import java.awt.image.DataBufferByte;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -24,9 +25,11 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Ignore;
+import org.openstreetmap.josm.tools.JosmRuntimeException;
+import org.openstreetmap.josm.tools.ReflectionUtils;
+
 import mockit.Mock;
 import mockit.MockUp;
-import mockit.Deencapsulation;
 import mockit.Invocation;
 
 @Ignore
@@ -35,9 +38,17 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         new MockUp<Tile>() {
             @Mock void $init(Invocation invocation, TileSource source, int xtile, int ytile, int zoom) {
                 Tile tile = invocation.getInvokedInstance();
-                Deencapsulation.setField(tile, "xtile", xtile);
-                Deencapsulation.setField(tile, "ytile", ytile);
-                Deencapsulation.setField(tile, "zoom", zoom);
+                try {
+                    final Field xtileField = Tile.class.getDeclaredField("xtile");
+                    final Field ytileField = Tile.class.getDeclaredField("ytile");
+                    final Field zoomField = Tile.class.getDeclaredField("zoom");
+                    ReflectionUtils.setObjectsAccessible(xtileField, ytileField, zoomField);
+                    xtileField.setInt(tile, xtile);
+                    ytileField.setInt(tile, ytile);
+                    zoomField.setInt(tile, zoom);
+                } catch (ReflectiveOperationException roe) {
+                    throw new JosmRuntimeException(roe);
+                }
             }
         };
         QuadTreeNodeDynamicReference[] refs = new QuadTreeNodeDynamicReference[referenceTiles_.length];

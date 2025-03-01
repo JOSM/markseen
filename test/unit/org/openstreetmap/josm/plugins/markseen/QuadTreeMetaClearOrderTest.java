@@ -65,7 +65,7 @@ public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
         boolean clearSuccess = false;
         while (!clearSuccess) {
             try {
-                this.quadTreeMeta.requestClear(true);
+                this.quadTreeMeta.requestClear(); // Note: This _used_ to check integrity
                 clearSuccess = true;
             } catch (RejectedExecutionException e) {
                 try {
