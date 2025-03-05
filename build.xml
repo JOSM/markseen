@@ -12,4 +12,15 @@
   <target name="pre-compile" depends="fetch_dependencies">
     <!-- include fetch_dependencies task -->
   </target>
+    <target name="build-jar">
+        <jar destfile="${plugin.jar}" basedir="${plugin.build.dir}" manifest="${manifest}" manifestencoding="UTF-8" duplicate="preserve" level="9">
+            <restrict>
+                <archives>
+                    <zips>
+                        <fileset dir="${plugin.lib.dir}" excludes="*.jar" erroronmissingdir="no"/>
+                    </zips>
+                </archives>
+            </restrict>
+        </jar>
+    </target>
 </project>
