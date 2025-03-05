@@ -135,6 +135,10 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
     private final JosmAction setMaxViewportAction;
 
     private final JMenu markSeenMainMenu;
+    /* following three are stored to be used in the tests */
+    private final JMenuItem mainMenuRecordItem;
+    @SuppressWarnings("UnusedVariable") private final JMenuItem mainMenuClearItem;
+    @SuppressWarnings("UnusedVariable") private final JMenuItem mainMenuSetMaxViewportItem;
 
     private static final int recordMinZoomMin = 4;
     private static final int recordMinZoomMax = 24;
@@ -161,12 +165,12 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
 
         this.markSeenMainMenu = new JMenu(tr("MarkSeen"));
         this.markSeenMainMenu.setIcon(new ImageProvider("icons/16x16/markseen").get());
-        final JMenuItem mainMenuRecordItem = new JCheckBoxMenuItem(this.recordAction);
+        this.mainMenuRecordItem = new JCheckBoxMenuItem(this.recordAction);
         mainMenuRecordItem.setAccelerator(this.recordAction.getShortcut().getKeyStroke());
-        this.recordAction.addButtonModel(mainMenuRecordItem.getModel());
-        this.markSeenMainMenu.add(mainMenuRecordItem);
-        MainMenu.add(this.markSeenMainMenu, this.clearAction, false);
-        MainMenu.add(this.markSeenMainMenu, this.setMaxViewportAction, false);
+        this.recordAction.addButtonModel(this.mainMenuRecordItem.getModel());
+        this.markSeenMainMenu.add(this.mainMenuRecordItem);
+        this.mainMenuClearItem = MainMenu.add(this.markSeenMainMenu, this.clearAction, false);
+        this.mainMenuSetMaxViewportItem = MainMenu.add(this.markSeenMainMenu, this.setMaxViewportAction, false);
     }
 
     public void mapFrameInitialized(MapFrame oldFrame, MapFrame newFrame) {
