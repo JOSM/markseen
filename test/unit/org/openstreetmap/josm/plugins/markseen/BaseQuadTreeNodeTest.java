@@ -172,8 +172,8 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
                 } catch (final AssertionError e) {
                     System.out.format("assertArrayEquals failed on reference tile %d\n", j);
                     System.out.println(
-                        "ref = " + javax.xml.bind.DatatypeConverter.printHexBinary(refMaskBytes) +
-                        ", result = " + javax.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes)
+                        "ref = " + jakarta.xml.bind.DatatypeConverter.printHexBinary(refMaskBytes) +
+                        ", result = " + jakarta.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes)
                     );
                     throw e;
                 }

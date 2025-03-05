@@ -4,18 +4,28 @@ package org.openstreetmap.josm.plugins.markseen;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.image.DataBufferByte;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import org.openstreetmap.gui.jmapviewer.Coordinate;
+import org.openstreetmap.gui.jmapviewer.Projected;
 import org.openstreetmap.gui.jmapviewer.Tile;
+import org.openstreetmap.gui.jmapviewer.TileRange;
+import org.openstreetmap.gui.jmapviewer.TileXY;
+import org.openstreetmap.gui.jmapviewer.interfaces.ICoordinate;
+import org.openstreetmap.gui.jmapviewer.interfaces.IProjected;
 import org.openstreetmap.gui.jmapviewer.interfaces.TileSource;
+import org.openstreetmap.gui.jmapviewer.tilesources.AbstractTMSTileSource;
+import org.openstreetmap.gui.jmapviewer.tilesources.TileSourceInfo;
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.data.Bounds;
 
@@ -53,10 +63,78 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         };
         QuadTreeNodeDynamicReference[] refs = new QuadTreeNodeDynamicReference[referenceTiles_.length];
         for (int i = 0; i < referenceTiles_.length; i++) {
-            Tile mockTile = new Tile(null, (int) referenceTiles_[i][1], (int) referenceTiles_[i][2], (int) referenceTiles_[i][0]);
+            Tile mockTile = new Tile(new TileStubSource(), (int) referenceTiles_[i][1],
+                (int) referenceTiles_[i][2], (int) referenceTiles_[i][0]);
             refs[i] = new QuadTreeNodeDynamicReference(quadTreeMeta, mockTile);
         }
         return refs;
+    }
+
+    private static final class TileStubSource extends AbstractTMSTileSource {
+        private TileStubSource() {
+            super(new TileSourceInfo());
+        }
+
+        @Override
+        public Map<String, String> getMetadata(Map<String, List<String>> headers) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public double getDistance(double la1, double lo1, double la2, double lo2) {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+        @Override
+        public Point latLonToXY(double lat, double lon, int zoom) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public ICoordinate xyToLatLon(int x, int y, int zoom) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public TileXY latLonToTileXY(double lat, double lon, int zoom) {
+            return new TileXY(lon / 2, lat / 2);
+        }
+
+        @Override
+        public ICoordinate tileXYToLatLon(int x, int y, int zoom) {
+            return new Coordinate(2*y, 2*x);
+        }
+
+        @Override
+        public IProjected tileXYtoProjected(int x, int y, int zoom) {
+            return new Projected(2*x, 2*y);
+        }
+
+        @Override
+        public TileXY projectedToTileXY(IProjected p, int zoom) {
+            return new TileXY(p.getEast() / 2, p.getNorth() / 2);
+        }
+
+        @Override
+        public boolean isInside(Tile inner, Tile outer) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+
+        @Override
+        public TileRange getCoveringTileRange(Tile tile, int newZoom) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public String getServerCRS() {
+            return "EPSG:3857";
+        }
     }
 
     protected QuadTreeMeta quadTreeMeta;
@@ -189,8 +267,8 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
                 } catch (final AssertionError e) {
                     System.out.format("assertArrayEquals failed on reference tile %d\n", j);
                     System.out.println(
-                        "ref = " + javax.xml.bind.DatatypeConverter.printHexBinary(refMaskBytes) +
-                        ", result = " + javax.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes)
+                        "ref = " + jakarta.xml.bind.DatatypeConverter.printHexBinary(refMaskBytes) +
+                        ", result = " + jakarta.xml.bind.DatatypeConverter.printHexBinary(resultMaskBytes)
                     );
                     throw e;
                 }

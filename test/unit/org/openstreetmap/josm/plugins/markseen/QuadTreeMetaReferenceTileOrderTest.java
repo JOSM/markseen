@@ -105,9 +105,9 @@ public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
             } catch (final AssertionError e) {
                 System.out.format("assertArrayEquals failed on reference tile %d\n", i);
                 System.out.println("First read:");
-                System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(originalMasks[i]));
+                System.out.println(jakarta.xml.bind.DatatypeConverter.printHexBinary(originalMasks[i]));
                 System.out.println("Second read:");
-                System.out.println(javax.xml.bind.DatatypeConverter.printHexBinary(secondMask));
+                System.out.println(jakarta.xml.bind.DatatypeConverter.printHexBinary(secondMask));
                 throw e;
             }
         }
