@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- License: GPL. For details, see LICENSE file. -->
+<ivy-module version="2.0">
+    <info organisation="org.openstreetmap.josm.plugins" module="markseen"/>
+    <dependencies>
+        <dependency org="jakarta.xml.bind" name="jakarta.xml.bind-api" rev="4.0.2"/>
+    </dependencies>
+</ivy-module>

@@ -10,3 +10,4 @@ test/config/unit-josm.home
 checkstyle-josm-markseen.xml
 javadoc
 target
+lib
