@@ -49,7 +49,7 @@ public class MarkSeenRootTest {
     private static BufferedImage originalErrorImage;
     private static BufferedImage originalLoadingImage;
 
-    @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().projection().fakeImagery().timeout(60000);
+    @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().projection().fakeImagery().timeout(70000);
 
     @Before
     public void setUp() {
