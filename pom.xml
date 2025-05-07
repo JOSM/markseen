@@ -20,7 +20,7 @@
         <plugin.author>Robert Scott</plugin.author>
         <plugin.class>org.openstreetmap.josm.plugins.markseen.MarkSeenPlugin</plugin.class>
         <plugin.description>Marks ’seen’ areas of the map</plugin.description>
-        <plugin.icon>images/icons/24x24/markseen.svg</plugin.icon>
+        <plugin.icon>images/dialogs/markseen.svg</plugin.icon>
         <plugin.link>https://github.com/JOSM/markseen</plugin.link>
         <plugin.canloadatruntime>true</plugin.canloadatruntime>
     </properties>
