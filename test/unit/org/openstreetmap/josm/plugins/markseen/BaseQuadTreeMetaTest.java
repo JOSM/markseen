@@ -44,6 +44,9 @@ import mockit.Invocation;
 
 @Ignore
 public class BaseQuadTreeMetaTest extends BaseRectTest {
+    /* change to true to get debug output in commandline */
+    Boolean debug = false;
+
     public static QuadTreeNodeDynamicReference[] createDynamicReferences(QuadTreeMeta quadTreeMeta, Object[][] referenceTiles_) {
         new MockUp<Tile>() {
             @Mock void $init(Invocation invocation, TileSource source, int xtile, int ytile, int zoom) {
@@ -139,14 +142,10 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
 
     protected QuadTreeMeta quadTreeMeta;
 
-    public BaseQuadTreeMetaTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
+    public BaseQuadTreeMetaTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_, boolean autoOptimize)
     throws IOException {
         super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
-        this.initQuadTreeMeta();
-    }
-
-    protected void initQuadTreeMeta() {
-        this.quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
+        this.quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, autoOptimize);
     }
 
     @After
@@ -168,7 +167,8 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         for (int i = 0; i < seenRects_.length; i++) {
             int j = remapping.get(i);
             Object[] seenRectInfo = seenRects_[j];
-            System.out.format("(%d of %d) Requesting seen rect mark %d\n", i, seenRects_.length, j);
+            if (debug)
+                System.out.format("(%d of %d) Requesting seen rect mark %d\n", i, seenRects_.length, j);
             Bounds bounds = (Bounds) seenRectInfo[0];
             double minTilesAcross = (double) seenRectInfo[1];
 
@@ -181,6 +181,7 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e2) {
+                        System.out.format("interrupted\n");
                     }
                     // then retry
                 }
@@ -249,7 +250,8 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         for (int i = 0; i < referenceTiles_.length; i++) {
             final int j = remapping.get(i);
             Object[] referenceTileInfo = referenceTiles_[j];
-            System.out.format("(%d of %d) Checking reference tile %d\n", i, referenceTiles_.length, j);
+            if (debug)
+                System.out.format("(%d of %d) Checking reference tile %d\n", i, referenceTiles_.length, j);
             Object refMask = constReferenceMask != null ? constReferenceMask : referenceTileInfo[3];
             byte[] refMaskBytes = getRefMaskBytes(quadTreeMeta, refMask);
             boolean refMaskOptAliasable = referenceTileInfo.length >= 5 ? (boolean) referenceTileInfo[4] : false;
@@ -301,7 +303,8 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
 
         for (int i = 0; i < dynamicReferences.length; i++) {
             final int j = remapping.get(i);
-            System.out.format("(%d of %d) Requesting tile mask %d\n", i, dynamicReferences.length, j);
+            if (debug)
+                System.out.format("(%d of %d) Requesting tile mask %d\n", i, dynamicReferences.length, j);
 
             maskFutures.set(j, executor.submit(() -> dynamicReferences[j].maskReadOperation(
                 mask -> {

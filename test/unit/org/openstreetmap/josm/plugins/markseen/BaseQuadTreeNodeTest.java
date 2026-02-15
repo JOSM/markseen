@@ -16,6 +16,9 @@ import org.junit.Ignore;
 
 @Ignore
 public class BaseQuadTreeNodeTest extends BaseRectTest {
+    /* change to true to get debug output in commandline */
+    Boolean debug = false;
+
     public BaseQuadTreeNodeTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
     throws IOException {
         super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
@@ -55,7 +58,8 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
         for (int i = 0; i < seenRects_.length; i++) {
             int j = remapping.get(i);
             Object[] seenRectInfo = seenRects_[j];
-            System.out.format("(%d of %d) Marking seen rect %d\n", i, seenRects_.length, j);
+            if (debug)
+                System.out.format("(%d of %d) Marking seen rect %d\n", i, seenRects_.length, j);
             Bounds bounds = (Bounds) seenRectInfo[0];
             double minTilesAcross = (double) seenRectInfo[1];
 
@@ -139,7 +143,8 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
         for (int i = 0; i < referenceTiles_.length; i++) {
             int j = remapping.get(i);
             Object[] referenceTileInfo = referenceTiles_[j];
-            System.out.format("(%d of %d) Checking reference tile %d\n", i, referenceTiles_.length, j);
+            if (debug)
+                System.out.format("(%d of %d) Checking reference tile %d\n", i, referenceTiles_.length, j);
             int zoom = (int) referenceTileInfo[0];
             int tilex = (int) referenceTileInfo[1];
             int tiley = (int) referenceTileInfo[2];

@@ -36,7 +36,7 @@ public class QuadTreeMetaSeenRectOrderTest extends BaseQuadTreeMetaTest {
 
     public QuadTreeMetaSeenRectOrderTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
     throws IOException {
-        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
+        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_, false);
     }
 
     @Test(timeout = 10000)

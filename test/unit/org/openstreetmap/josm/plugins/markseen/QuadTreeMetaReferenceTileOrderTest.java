@@ -18,6 +18,9 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
+    /* change to true to get debug output in commandline */
+    Boolean debug = false;
+
     private static final int seenRectVariants = 8;
     private static final int referenceTileVariants = 2;
 
@@ -52,7 +55,7 @@ public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
 
     public QuadTreeMetaReferenceTileOrderTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
     throws IOException {
-        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
+        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_, false);
     }
 
     @Test(timeout = 10000)
@@ -95,7 +98,8 @@ public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
         );
 
         for (int i = 0; i < maskFutures2.size(); i++) {
-            System.out.format("(%d of %d) Cross-checking reference tile %d\n", i, this.referenceTiles.length, i);
+            if (debug)
+                System.out.format("(%d of %d) Cross-checking reference tile %d\n", i, this.referenceTiles.length, i);
             byte[] secondMask = getRefMaskBytes(this.quadTreeMeta, maskFutures2.get(i).get());
             try {
                 assertArrayEquals(

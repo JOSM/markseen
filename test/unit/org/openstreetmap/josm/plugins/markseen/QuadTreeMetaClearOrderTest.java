@@ -19,6 +19,8 @@ import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
 public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
+    /* change to true to get debug output in commandline */
+    Boolean debug = false;
     private static final int seenRectVariants = 8;
     private static final int referenceTileVariants = 2;
 
@@ -53,7 +55,7 @@ public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
 
     public QuadTreeMetaClearOrderTest(int scenarioIndex_, Integer seenRectOrderSeed_, Integer referenceTileOrderSeed_)
     throws IOException {
-        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_);
+        super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_, false);
     }
 
     @Test(timeout = 10000)
@@ -71,6 +73,7 @@ public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e2) {
+                    System.out.format("interrupted\n");
                 }
                 // then retry
             }
@@ -89,7 +92,8 @@ public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
 
         byte[] blankMaskBytes = getRefMaskBytes(this.quadTreeMeta, false);
         for (int i = 0; i < maskFutures.size(); i++) {
-            System.out.format("(%d of %d) Checking reference tile %d\n", i, this.referenceTiles.length, i);
+            if (debug)
+                System.out.format("(%d of %d) Checking reference tile %d\n", i, this.referenceTiles.length, i);
             byte[] resultMaskBytes = getRefMaskBytes(this.quadTreeMeta, maskFutures.get(i).get());
             try {
                 assertArrayEquals(

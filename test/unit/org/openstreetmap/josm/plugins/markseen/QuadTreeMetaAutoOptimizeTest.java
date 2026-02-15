@@ -53,13 +53,9 @@ public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
 
     @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().timeout(20000);
 
-    protected void initQuadTreeMeta() {
-        this.quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, true);
-    }
-
     public QuadTreeMetaAutoOptimizeTest(int scenarioIndex_, int batchSize_, int pauseMS_)
     throws IOException {
-        super(scenarioIndex_, null, null);
+        super(scenarioIndex_, null, null, true);
         this.batchSize = batchSize_;
         this.pauseMS = pauseMS_;
     }

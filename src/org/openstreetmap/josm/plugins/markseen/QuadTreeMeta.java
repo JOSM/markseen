@@ -24,7 +24,7 @@ public class QuadTreeMeta {
     // to do is catch potential bugs where something attempts to write to a mask that is intended to be shared &
     // constant
     private static class WriteInhibitedBufferedImage extends BufferedImage {
-        public boolean inhibitWrites = false;
+        private boolean inhibitWrites = false;
 
         WriteInhibitedBufferedImage(int width, int height, int imageType, IndexColorModel cm, Color constColor) {
             super(width, height, imageType, cm);
