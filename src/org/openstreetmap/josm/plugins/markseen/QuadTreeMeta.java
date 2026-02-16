@@ -140,6 +140,18 @@ public class QuadTreeMeta {
         void quadTreeModified();
     }
 
+    public void awaitIdle() throws InterruptedException {
+        while (true) {
+            if (quadTreeEditExecutor.getQueue().isEmpty()
+                && quadTreeOptimizeExecutor.getQueue().isEmpty()
+                && quadTreeEditExecutor.getActiveCount() == 0
+                && quadTreeOptimizeExecutor.getActiveCount() == 0) {
+                return;
+            }
+            Thread.sleep(10);
+        }
+    }
+
     // while it would be perfectly possible to perform optimize calls in the QuadTreeEditExecutor thread -
     // the two operations can't run concurrently, doing so would introduce some weirdness arising from it
     // being used to handle both "real" edits and "edits" that have no visible effect.

@@ -241,6 +241,11 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         Object constReferenceMask,
         InspectExtraAssertion extraAssertion
     ) {
+        try {
+            quadTreeMeta.awaitIdle();
+        } catch (InterruptedException e) {
+            System.out.println(e);
+        }
         assertTrue("assertContents will not work reliably in non-default order",
             orderSeed == null || constReferenceMask != null || !assertContents);
         assertEquals(dynamicReferences.length, referenceTiles_.length);
