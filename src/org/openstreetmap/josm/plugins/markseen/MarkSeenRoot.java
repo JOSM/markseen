@@ -43,11 +43,8 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
                 new ImageProvider("icons/24x24/record"),
                 recordActionBaseToolTipText,
                 Shortcut.registerShortcut(
-                    "menu:view:markseen:record",
-                    tr("Toggle MarkSeen recording"),
-                    KeyEvent.CHAR_UNDEFINED,
-                    Shortcut.NONE
-                ),
+                    "menu:view:markseen:record", tr("Toggle MarkSeen recording"),
+                    KeyEvent.CHAR_UNDEFINED, Shortcut.NONE),
                 true, /* register toolbar */
                 "MarkSeen/record",
                 false
@@ -84,11 +81,8 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
                 new ImageProvider("icons/24x24/clear"),
                 tr("Clear record of seen areas"),
                 Shortcut.registerShortcut(
-                    "menu:view:markseen:clear",
-                    tr("Clear MarkSeen areas"),
-                    KeyEvent.CHAR_UNDEFINED,
-                    Shortcut.NONE
-                ),
+                    "menu:view:markseen:clear", tr("Clear MarkSeen areas"),
+                    KeyEvent.CHAR_UNDEFINED, Shortcut.NONE),
                 true, /* register toolbar */
                 "MarkSeen/clear",
                 false
@@ -108,11 +102,8 @@ public class MarkSeenRoot implements NavigatableComponent.ZoomChangeListener, Ch
                 new ImageProvider("icons/24x24/setmaxviewportfromcurrent"),
                 tr("Set current viewport size as the maximum for recording as seen"),
                 Shortcut.registerShortcut(
-                    "menu:view:markseen:setmaxviewportfromcurrent",
-                    tr("Set max viewport size from current"),
-                    KeyEvent.CHAR_UNDEFINED,
-                    Shortcut.NONE
-                ),
+                    "menu:view:markseen:setmaxviewportfromcurrent", tr("Set max viewport size from current"),
+                    KeyEvent.CHAR_UNDEFINED, Shortcut.NONE),
                 true, /* register toolbar */
                 "MarkSeen/SetMaxViewportFromCurrent",
                 false
