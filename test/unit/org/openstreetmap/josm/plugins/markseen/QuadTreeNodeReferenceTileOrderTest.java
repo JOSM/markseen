@@ -6,17 +6,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "{index}-scenario-{0}-seeds-{1}-{2}")
+@MethodSource("getParameters")
 public class QuadTreeNodeReferenceTileOrderTest extends BaseQuadTreeNodeTest {
     private static final int seenRectVariants = 4;
     private static final int referenceTileVariants = 4;
 
-    @Parameters(name = "{index}-scenario-{0}-seeds-{1}-{2}")
     public static Collection<Object[]> getParameters() throws IOException {
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         Object[][] scenarios = getTestScenarios();

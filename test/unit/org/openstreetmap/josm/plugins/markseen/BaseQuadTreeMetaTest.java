@@ -29,12 +29,12 @@ import org.openstreetmap.gui.jmapviewer.tilesources.TileSourceInfo;
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.data.Bounds;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.After;
-import org.junit.Ignore;
+import org.junit.jupiter.api.AfterEach;
+
 import org.openstreetmap.josm.tools.JosmRuntimeException;
 import org.openstreetmap.josm.tools.ReflectionUtils;
 
@@ -42,8 +42,7 @@ import mockit.Mock;
 import mockit.MockUp;
 import mockit.Invocation;
 
-@Ignore
-public class BaseQuadTreeMetaTest extends BaseRectTest {
+public abstract class BaseQuadTreeMetaTest extends BaseRectTest {
     /* change to true to get debug output in commandline */
     Boolean debug = false;
 
@@ -148,7 +147,7 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         this.quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, autoOptimize);
     }
 
-    @After
+    @AfterEach
     public void destroyQuadTreeMeta() throws Exception {
         final ThreadPoolExecutor quadTreeEditExecutor = ((ThreadPoolExecutor)
             TestUtils.getPrivateField(quadTreeMeta, "quadTreeEditExecutor"));
@@ -246,8 +245,8 @@ public class BaseQuadTreeMetaTest extends BaseRectTest {
         } catch (InterruptedException e) {
             System.out.println(e);
         }
-        assertTrue("assertContents will not work reliably in non-default order",
-            orderSeed == null || constReferenceMask != null || !assertContents);
+        assertTrue(orderSeed == null || constReferenceMask != null || !assertContents,
+            "assertContents will not work reliably in non-default order");
         assertEquals(dynamicReferences.length, referenceTiles_.length);
 
         List<Integer> remapping = getRemapping(referenceTiles_.length, orderSeed);

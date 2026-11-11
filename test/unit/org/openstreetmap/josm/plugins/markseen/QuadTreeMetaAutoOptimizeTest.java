@@ -10,20 +10,22 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.awaitility.Awaitility;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.spi.preferences.Config;
-import org.openstreetmap.josm.testutils.JOSMTestRules;
+import org.openstreetmap.josm.testutils.annotations.BasicPreferences;
 
-@RunWith(Parameterized.class)
+@BasicPreferences
+@Timeout(value = 20, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+@ParameterizedClass(name = "{index}-scenario-{0}-batchSize-{1}-pause-{2}ms")
+@MethodSource("getParameters")
 public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
     private static final int variants = 2;
 
@@ -31,7 +33,6 @@ public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
     protected final int batchSize;
     protected final int pauseMS;
 
-    @Parameters(name = "{index}-scenario-{0}-batchSize-{1}-pause-{2}ms")
     public static Collection<Object[]> getParameters() throws IOException {
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         Object[][] scenarios = getTestScenarios();
@@ -50,8 +51,6 @@ public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
         }
         return paramSets;
     }
-
-    @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().timeout(20000);
 
     public QuadTreeMetaAutoOptimizeTest(int scenarioIndex_, int batchSize_, int pauseMS_)
     throws IOException {
@@ -99,10 +98,10 @@ public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {
             (i, j, dynamicReference, refMask, resultMaskBytes, refMaskBytes, aliasable) -> {
                 if (aliasable) {
                     assertTrue(
-                        "Failed asserting identity " + refMask.toString() + " of ref tile " + j,
-                        dynamicReference.maskReadOperation(
+                        dynamicReference.<Boolean>maskReadOperation(
                             mask -> mask == ((boolean) refMask ? this.quadTreeMeta.FULL_MASK : this.quadTreeMeta.EMPTY_MASK)
-                        )
+                        ),
+                        "Failed asserting identity " + refMask.toString() + " of ref tile " + j
                     );
                 }
             }

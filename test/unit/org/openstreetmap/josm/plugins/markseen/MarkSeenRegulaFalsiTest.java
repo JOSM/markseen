@@ -1,20 +1,19 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.DoubleUnaryOperator;
 
-import static org.junit.Assert.fail;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "{index}-fx-{0}-{1}-{2}-x0-{6}-x1-{7}")
+@MethodSource("getParameters")
 public class MarkSeenRegulaFalsiTest {
-    @Parameters(name = "{index}-fx-{0}-{1}-{2}-x0-{6}-x1-{7}")
     public static Collection<Object[]> getParameters() throws Exception {
         final Object[][] unexpanded = new Object[][] {
             {

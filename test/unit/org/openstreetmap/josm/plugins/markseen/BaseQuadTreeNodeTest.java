@@ -8,14 +8,12 @@ import java.util.List;
 
 import org.openstreetmap.josm.data.Bounds;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Ignore;
 
-@Ignore
-public class BaseQuadTreeNodeTest extends BaseRectTest {
+public abstract class BaseQuadTreeNodeTest extends BaseRectTest {
     /* change to true to get debug output in commandline */
     Boolean debug = false;
 
@@ -136,8 +134,8 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
         boolean write,
         InspectExtraAssertion extraAssertion
     ) {
-        assertTrue("assertContents will not work reliably in non-default order",
-            orderSeed == null || constReferenceMask != null || !assertContents);
+        assertTrue(orderSeed == null || constReferenceMask != null || !assertContents,
+            "assertContents will not work reliably in non-default order");
         final List<Integer> remapping = getRemapping(referenceTiles_.length, orderSeed);
 
         for (int i = 0; i < referenceTiles_.length; i++) {
@@ -153,8 +151,8 @@ public class BaseQuadTreeNodeTest extends BaseRectTest {
             boolean refMaskOptAliasable = referenceTileInfo.length >= 5 ? (boolean) referenceTileInfo[4] : false;
 
             assertFalse(
-                "refMask must be boolean if refMaskOptAliasable is true",
-                refMaskOptAliasable && !Boolean.class.isInstance(refMask)
+                refMaskOptAliasable && !Boolean.class.isInstance(refMask),
+                "refMask must be boolean if refMaskOptAliasable is true"
             );
 
             QuadTreeNode node = quadTreeMeta.quadTreeRoot.getNodeForTile(

@@ -5,10 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 
-import org.junit.Ignore;
 
-@Ignore
-public class BaseTest {
+public abstract class BaseTest {
     protected static byte[] byteArrayFromResource(String resourcePath) throws IOException {
         InputStream resourceStream = BaseTest.class.getClassLoader().getResourceAsStream(resourcePath);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
