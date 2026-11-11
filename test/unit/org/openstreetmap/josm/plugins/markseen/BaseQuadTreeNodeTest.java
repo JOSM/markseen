@@ -12,10 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.Disabled;
 
-@Disabled
-public class BaseQuadTreeNodeTest extends BaseRectTest {
+public abstract class BaseQuadTreeNodeTest extends BaseRectTest {
     /* change to true to get debug output in commandline */
     Boolean debug = false;
 

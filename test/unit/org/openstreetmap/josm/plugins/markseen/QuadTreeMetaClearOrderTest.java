@@ -11,7 +11,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -59,7 +58,8 @@ public class QuadTreeMetaClearOrderTest extends BaseQuadTreeMetaTest {
         super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_, false);
     }
 
-    @Test @Timeout(value = 10000, unit = TimeUnit.MILLISECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+    @Test
+    @Timeout(value = 10, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     public void testClearUnseen()
     throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
         QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);

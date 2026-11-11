@@ -12,10 +12,8 @@ import java.awt.image.DataBufferByte;
 
 import org.openstreetmap.josm.data.Bounds;
 
-import org.junit.jupiter.api.Disabled;
 
-@Disabled
-public class BaseRectTest extends BaseTest {
+public abstract class BaseRectTest extends BaseTest {
     // parametrized variables
     protected final int scenarioIndex;
     protected final Integer seenRectOrderSeed;

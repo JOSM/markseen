@@ -20,12 +20,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.spi.preferences.Config;
-import org.openstreetmap.josm.testutils.annotations.Main;
-import org.openstreetmap.josm.testutils.annotations.FullPreferences;
+import org.openstreetmap.josm.testutils.annotations.BasicPreferences;
 
-@Main
-@FullPreferences
-@Timeout(20)
+@BasicPreferences
+@Timeout(value = 20, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 @ParameterizedClass(name = "{index}-scenario-{0}-batchSize-{1}-pause-{2}ms")
 @MethodSource("getParameters")
 public class QuadTreeMetaAutoOptimizeTest extends BaseQuadTreeMetaTest {

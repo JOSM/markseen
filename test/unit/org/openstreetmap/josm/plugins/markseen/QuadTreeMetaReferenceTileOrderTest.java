@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -59,7 +58,8 @@ public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
         super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_, false);
     }
 
-    @Test @Timeout(value = 10000, unit = TimeUnit.MILLISECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+    @Test
+    @Timeout(value = 10, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     public void test()
     throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
         QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);

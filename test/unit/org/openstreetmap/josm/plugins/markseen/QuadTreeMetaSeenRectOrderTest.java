@@ -4,7 +4,6 @@ package org.openstreetmap.josm.plugins.markseen;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -40,7 +39,8 @@ public class QuadTreeMetaSeenRectOrderTest extends BaseQuadTreeMetaTest {
         super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_, false);
     }
 
-    @Test @Timeout(value = 10000, unit = TimeUnit.MILLISECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
+    @Test
+    @Timeout(value = 10, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     public void test() {
         QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);
 

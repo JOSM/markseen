@@ -52,7 +52,7 @@ import com.google.common.collect.ImmutableMap;
 @FullPreferences
 @Projection
 @FakeImagery
-@Timeout(70)
+@Timeout(value = 70, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
 public class MarkSeenRootTest {
     private static BufferedImage originalErrorImage;
     private static BufferedImage originalLoadingImage;

@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 
 import org.openstreetmap.josm.tools.JosmRuntimeException;
 import org.openstreetmap.josm.tools.ReflectionUtils;
@@ -43,8 +42,7 @@ import mockit.Mock;
 import mockit.MockUp;
 import mockit.Invocation;
 
-@Disabled
-public class BaseQuadTreeMetaTest extends BaseRectTest {
+public abstract class BaseQuadTreeMetaTest extends BaseRectTest {
     /* change to true to get debug output in commandline */
     Boolean debug = false;
 
