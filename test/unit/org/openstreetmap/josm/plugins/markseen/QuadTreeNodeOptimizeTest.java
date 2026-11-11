@@ -1,6 +1,8 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,21 +11,18 @@ import java.util.Collection;
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.tools.Logging;
 
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "{index}-scenario-{0}-seed-{1}-stride-{2}")
+@MethodSource("getParameters")
 public class QuadTreeNodeOptimizeTest extends BaseQuadTreeNodeTest {
     private static final int variants = 6;
 
     // parametrized variables
     protected final Integer optimizeStride;
 
-    @Parameters(name = "{index}-scenario-{0}-seed-{1}-stride-{2}")
     public static Collection<Object[]> getParameters() throws IOException {
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         Object[][] scenarios = getTestScenarios();
@@ -82,8 +81,8 @@ public class QuadTreeNodeOptimizeTest extends BaseQuadTreeNodeTest {
 
                 if (aliasable) {
                     assertTrue(
-                        "Failed asserting identity " + refMask.toString() + " of ref tile " + j,
-                        resultMask == ((boolean) refMask ? quadTreeMeta.FULL_MASK : quadTreeMeta.EMPTY_MASK)
+                        resultMask == ((boolean) refMask ? quadTreeMeta.FULL_MASK : quadTreeMeta.EMPTY_MASK),
+                        "Failed asserting identity " + refMask.toString() + " of ref tile " + j
                     );
                 } else if (Boolean.class.isInstance(refMask)) {
                     try {

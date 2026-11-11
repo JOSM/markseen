@@ -4,17 +4,18 @@ package org.openstreetmap.josm.plugins.markseen;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "{index}-scenario-{0}-seed-{1}")
+@MethodSource("getParameters")
 public class QuadTreeMetaSeenRectOrderTest extends BaseQuadTreeMetaTest {
     private static final int variants = 16;
 
-    @Parameters(name = "{index}-scenario-{0}-seed-{1}")
     public static Collection<Object[]> getParameters() throws IOException {
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         Object[][] scenarios = getTestScenarios();
@@ -39,7 +40,7 @@ public class QuadTreeMetaSeenRectOrderTest extends BaseQuadTreeMetaTest {
         super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_, false);
     }
 
-    @Test(timeout = 10000)
+    @Test @Timeout(value = 10000, unit = TimeUnit.MILLISECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     public void test() {
         QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);
 

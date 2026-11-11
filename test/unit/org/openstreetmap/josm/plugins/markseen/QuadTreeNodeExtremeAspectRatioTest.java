@@ -1,6 +1,8 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.awt.Color;
 import java.io.IOException;
 import java.util.Arrays;
@@ -8,14 +10,13 @@ import java.util.Collection;
 
 import org.openstreetmap.josm.data.Bounds;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
+@ParameterizedClass
+@MethodSource("getParameters")
 public class QuadTreeNodeExtremeAspectRatioTest extends BaseTest {
-    @Parameters
     public static Collection<Object[]> getParameters() throws IOException {
         return Arrays.asList(scenarios);
     }
@@ -37,15 +38,17 @@ public class QuadTreeNodeExtremeAspectRatioTest extends BaseTest {
         this.minTilesAcross = minTilesAcross_;
     }
 
-    @Test(expected = QuadTreeNode.ExtremeAspectRatioException.class)
+    @Test
     public void test() {
-        QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
-        quadTreeMeta.quadTreeRWLock.writeLock().lock();
+        assertThrows(QuadTreeNode.ExtremeAspectRatioException.class, () -> {
+            QuadTreeMeta quadTreeMeta = new QuadTreeMeta(this.tileSize, Color.PINK, 0.5, false);
+            quadTreeMeta.quadTreeRWLock.writeLock().lock();
 
-        try {
-            quadTreeMeta.quadTreeRoot.markBoundsSeen(this.bounds, this.minTilesAcross);
-        } finally {
-            quadTreeMeta.quadTreeRWLock.writeLock().unlock();
-        }
+            try {
+                quadTreeMeta.quadTreeRoot.markBoundsSeen(this.bounds, this.minTilesAcross);
+            } finally {
+                quadTreeMeta.quadTreeRWLock.writeLock().unlock();
+            }
+        });
     }
 }

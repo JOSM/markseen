@@ -1,22 +1,24 @@
 // License: GPL. For details, see LICENSE file.
 package org.openstreetmap.josm.plugins.markseen;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.junit.Assert.assertArrayEquals;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "{index}-scenario-{0}-seeds-{1}-{2}")
+@MethodSource("getParameters")
 public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
     /* change to true to get debug output in commandline */
     Boolean debug = false;
@@ -24,7 +26,6 @@ public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
     private static final int seenRectVariants = 8;
     private static final int referenceTileVariants = 2;
 
-    @Parameters(name = "{index}-scenario-{0}-seeds-{1}-{2}")
     public static Collection<Object[]> getParameters() throws IOException {
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         Object[][] scenarios = getTestScenarios();
@@ -58,7 +59,7 @@ public class QuadTreeMetaReferenceTileOrderTest extends BaseQuadTreeMetaTest {
         super(scenarioIndex_, seenRectOrderSeed_, referenceTileOrderSeed_, false);
     }
 
-    @Test(timeout = 10000)
+    @Test @Timeout(value = 10000, unit = TimeUnit.MILLISECONDS, threadMode = Timeout.ThreadMode.SEPARATE_THREAD)
     public void test()
     throws java.lang.InterruptedException, java.util.concurrent.ExecutionException {
         QuadTreeNodeDynamicReference[] dynamicReferences = createDynamicReferences(this.quadTreeMeta, this.referenceTiles);

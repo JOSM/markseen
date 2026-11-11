@@ -6,12 +6,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "{index}-scenarios-{0}-{1}-seeds-{2}-{3}-{4}")
+@MethodSource("getParameters")
 public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
     private static final int preSeenRectVariants = 2;
     private static final int seenRectVariants = 2;
@@ -25,7 +25,6 @@ public class QuadTreeNodeClearOtherScenarioTest extends BaseQuadTreeNodeTest {
     protected final Object[][] preSeenRects;
     protected final Object[][] preReferenceTiles;
 
-    @Parameters(name = "{index}-scenarios-{0}-{1}-seeds-{2}-{3}-{4}")
     public static Collection<Object[]> getParameters() throws IOException {
         ArrayList<Object[]> paramSets = new ArrayList<Object[]>();
         Object[][] scenarios = getTestScenarios();

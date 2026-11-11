@@ -27,31 +27,37 @@ import org.openstreetmap.josm.spi.preferences.Config;
 
 import org.openstreetmap.josm.TestUtils;
 import org.openstreetmap.josm.gui.layer.LayerManagerTest.TestLayer;
-import org.openstreetmap.josm.testutils.JOSMTestRules;
+import org.openstreetmap.josm.testutils.annotations.Main;
+import org.openstreetmap.josm.testutils.annotations.FullPreferences;
+import org.openstreetmap.josm.testutils.annotations.Projection;
+import org.openstreetmap.josm.testutils.annotations.FakeImagery;
 import org.openstreetmap.josm.testutils.ImagePatternMatching;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import org.awaitility.Awaitility;
 
 import com.google.common.collect.ImmutableMap;
 
+@Main
+@FullPreferences
+@Projection
+@FakeImagery
+@Timeout(70)
 public class MarkSeenRootTest {
     private static BufferedImage originalErrorImage;
     private static BufferedImage originalLoadingImage;
 
-    @Rule public JOSMTestRules test = new JOSMTestRules().main().preferences().projection().fakeImagery().timeout(70000);
-
-    @Before
+    @BeforeEach
     public void setUp() {
         // Add a test layer to the layer manager to get the MapFrame & MapView
         MainApplication.getLayerManager().addLayer(new TestLayer());
